@@ -5,17 +5,35 @@
     /// <summary>
     /// Class for storing a collection of constraints to be used in a scan that applies more than one constraint per update.
     /// </summary>
-    public class Operation : ConstraintNode
+    public class OperationConstraint : Constraint
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraintTree" /> class.
         /// </summary>
-        public Operation(OperationType operation)
+        public OperationConstraint(OperationType operation)
         {
             this.BinaryOperation = operation;
         }
 
+        /// <summary>
+        /// Sets the element type to which all constraints apply.
+        /// </summary>
+        /// <param name="elementType">The new element type.</param>
+        public override void SetElementType(Type elementType)
+        {
+            base.SetElementType(elementType);
+
+            this.Left?.SetElementType(elementType);
+            this.Right?.SetElementType(elementType);
+        }
+
+        // TODO: Balance these trees to be "Right heavy". Scans currently early-exit after evaluating the left tree.
+
         public OperationType BinaryOperation { get; private set; }
+
+        public Constraint Left { get; set; }
+
+        public Constraint Right { get; set; }
 
         public override Boolean IsValid()
         {
@@ -26,6 +44,7 @@
         {
             OR,
             AND,
+            XOR,
         }
     }
     //// End class

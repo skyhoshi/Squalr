@@ -55,13 +55,12 @@
         {
             DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
 
-            throw new NotImplementedException();
-            TrackableTask<Snapshot> valueCollectTask = null;/* ValueCollector.CollectValues(
-                SnapshotManager.GetSnapshot(Snapshot.SnapshotRetrievalMode.FromActiveSnapshotOrPrefilter, dataType),
-                TrackableTask.UniversalIdentifier);*/
+            TrackableTask<Snapshot> valueCollectTask = ValueCollector.CollectValues(
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
+                TrackableTask.UniversalIdentifier);
 
             TaskTrackerViewModel.GetInstance().TrackTask(valueCollectTask);
-            //// SnapshotManager.SaveSnapshot(valueCollectTask.Result);
+            SessionManager.Session.SnapshotManager.SaveSnapshot(valueCollectTask.Result);
         }
     }
     //// End class

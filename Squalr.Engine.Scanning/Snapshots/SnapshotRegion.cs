@@ -116,7 +116,7 @@
         /// <returns>The enumerator for an element reference within this snapshot region.</returns>
         public IEnumerator<SnapshotElementComparer> IterateComparer(
             SnapshotElementComparer.PointerIncrementMode pointerIncrementMode,
-            ConstraintNode constraints)
+            Constraint constraints)
         {
             Int32 elementCount = this.ElementCount;
             SnapshotElementComparer snapshotElement = new SnapshotElementComparer(region: this, pointerIncrementMode: pointerIncrementMode, constraints: constraints);

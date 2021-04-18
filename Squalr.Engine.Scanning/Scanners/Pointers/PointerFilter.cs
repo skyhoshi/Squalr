@@ -53,7 +53,7 @@
                                 // Check for canceled scan
                                 parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                                if (!region.ReadGroup.CanCompare(hasRelativeConstraint: false))
+                                if (!region.ReadGroup.CanCompare(null))
                                 {
                                     return;
                                 }

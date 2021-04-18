@@ -1,8 +1,8 @@
 ﻿namespace Squalr.Source.Scanning
 {
     using GalaSoft.MvvmLight.Command;
-    using Squalr.Engine;
     using Squalr.Engine.Common;
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Scanners.Pointers;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Source.Docking;
@@ -213,8 +213,16 @@
         {
             try
             {
-                throw new NotImplementedException();
-                TrackableTask<PointerBag> pointerScanTask = null;// PointerScan.Scan(this.TargetAddress, (UInt32)this.PointerRadius, this.PointerDepth, 4, PointerScannerViewModel.PointerScanTaskIdentifier);
+                PointerSize pointerSize = SessionManager.Session.OpenedProcess.Is32Bit() ? PointerSize.Byte4 : PointerSize.Byte8;
+                TrackableTask<PointerBag> pointerScanTask = PointerScan.Scan(
+                    SessionManager.Session.OpenedProcess,
+                    this.TargetAddress,
+                    (UInt32)this.PointerRadius,
+                    this.PointerDepth,
+                    pointerSize.ToSize(),
+                    pointerSize,
+                    PointerScannerViewModel.PointerScanTaskIdentifier
+                );
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerScanTask.Result;
             }
@@ -246,8 +254,14 @@
         {
             try
             {
-                throw new NotImplementedException();
-                TrackableTask<PointerBag> pointerRetargetScanTask = null; // PointerRetargetScan.Scan(this.RetargetAddress, 4, PointerScanResultsViewModel.GetInstance().DiscoveredPointers, PointerScannerViewModel.PointerScanTaskIdentifier);
+                PointerSize pointerSize = SessionManager.Session.OpenedProcess.Is32Bit() ? PointerSize.Byte4 : PointerSize.Byte8;
+                TrackableTask<PointerBag> pointerRetargetScanTask = PointerRetargetScan.Scan(
+                    SessionManager.Session.OpenedProcess,
+                    this.RetargetAddress,
+                    pointerSize.ToSize(),
+                    PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
+                    PointerScannerViewModel.PointerScanTaskIdentifier
+                );
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRetargetScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRetargetScanTask.Result;
             }

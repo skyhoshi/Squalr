@@ -111,7 +111,6 @@
                 if (value == this.DetachProcess)
                 {
                     SessionManager.Session = null;
-                    throw new NotImplementedException();
                     this.RaisePropertyChanged(nameof(this.WindowedProcessList));
                 }
                 else if (value != this.SelectedProcess)

@@ -36,7 +36,7 @@
         {
             this.StartScanCommand = new RelayCommand(() => this.StartScan(), () => true);
 
-            // Note: Not async to avoid updates slower than the perception threshold
+            // Not async for faster UI feedback
             this.UpdateActiveValueCommand = new RelayCommand<Object>((newValue) => this.UpdateActiveValue(newValue), (newValue) => true);
             this.SelectChangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Changed), () => true);
             this.SelectDecreasedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Decreased), () => true);
@@ -51,7 +51,7 @@
             this.SelectNotEqualCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.NotEqual), () => true);
             this.SelectUnchangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Unchanged), () => true);
 
-            // Note: Constraint modifying commands cannot be async since they modify the observable collection, which must be done on the same thread as the GUI
+            // Constraint modifying commands cannot be async since they modify the observable collection, which must be done on the same thread as the GUI
             this.AddCurrentConstraintCommand = new RelayCommand(() => this.AddCurrentConstraint(), () => true);
             this.RemoveConstraintCommand = new RelayCommand<ScanConstraint>((ScanConstraint) => this.RemoveConstraint(ScanConstraint), (ScanConstraint) => true);
             this.EditConstraintCommand = new RelayCommand<ScanConstraint>((ScanConstraint) => this.EditConstraint(ScanConstraint), (ScanConstraint) => true);
@@ -176,7 +176,7 @@
         {
             get
             {
-                return ActiveConstraint == null ? true : ScanConstraint.IsValuedConstraint(this.ActiveConstraint.Constraint);
+                return this.ActiveConstraint?.IsValuedConstraint() ?? true;
             }
         }
 
@@ -195,11 +195,6 @@
         /// <param name="activeType">The new active type.</param>
         public void Update(DataTypeBase activeType)
         {
-            // Create a temporary manager to update our current constraint
-            ConstraintNode scanConstraintCollection = new ConstraintNode();
-            //   scanConstraintCollection.AddConstraint(this.CurrentScanConstraint);
-            scanConstraintCollection.SetElementType(activeType);
-
             this.ActiveConstraint.SetElementType(activeType);
             this.UpdateAllProperties();
         }
@@ -210,7 +205,7 @@
         private void StartScan()
         {
             // Create a constraint manager that includes the current active constraint
-            ConstraintNode scanConstraints = this.ActiveConstraint.Clone();
+            Constraint scanConstraints = this.ActiveConstraint.Clone();
 
             if (!scanConstraints.IsValid())
             {
@@ -220,14 +215,11 @@
 
             DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
 
-            throw new NotImplementedException();
-
             try
             {
-                /*
                 // Collect values
                 TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                    SnapshotManager.GetSnapshot(Snapshot.SnapshotRetrievalMode.FromActiveSnapshotOrPrefilter, dataType),
+                    SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
                     TrackableTask.UniversalIdentifier);
 
                 TaskTrackerViewModel.GetInstance().TrackTask(valueCollectorTask);
@@ -242,9 +234,8 @@
                         TrackableTask.UniversalIdentifier);
 
                     TaskTrackerViewModel.GetInstance().TrackTask(scanTask);
-                    SnapshotManager.SaveSnapshot(scanTask.Result);
+                    SessionManager.Session.SnapshotManager.SaveSnapshot(scanTask.Result);
                 });
-                */
             }
             catch (TaskConflictException)
             {

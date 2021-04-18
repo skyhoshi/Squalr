@@ -11,7 +11,7 @@
     using System.Numerics;
 
     /// <summary>
-    /// Class for comparing snapshot regions.
+    /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
     internal unsafe class SnapshotElementVectorComparer
     {
@@ -36,7 +36,7 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotElementVectorComparer(SnapshotRegion region, ConstraintNode constraints) : this(region)
+        public SnapshotElementVectorComparer(SnapshotRegion region, Constraint constraints) : this(region)
         {
             this.VectorCompare = this.BuildCompareActions(constraints);
         }
@@ -472,89 +472,94 @@
         /// <summary>
         /// Sets the default compare action to use for this element.
         /// </summary>
-        /// <param name="constraints">The constraints to use for the scan.</param>
+        /// <param name="constraint">The constraint(s) to use for the scan.</param>
         /// <param name="compareActionValue">The value to use for the scan.</param>
-        private Func<Vector<Byte>> BuildCompareActions(ConstraintNode constraints)
+        private Func<Vector<Byte>> BuildCompareActions(Constraint constraint)
         {
-            if (constraints is Operation)
+            switch(constraint)
             {
-                if (constraints.Left == null || constraints.Right == null)
-                {
-                    throw new ArgumentException("An operation constraint must have both a left and right child");
-                }
+                case OperationConstraint operationConstraint:
+                    if (operationConstraint.Left == null || operationConstraint.Right == null)
+                    {
+                        throw new ArgumentException("An operation constraint must have both a left and right child");
+                    }
 
-                switch ((constraints as Operation).BinaryOperation)
-                {
-                    case Operation.OperationType.AND:
-                        return () =>
-                        {
-                            Vector<Byte> resultLeft = this.BuildCompareActions(constraints.Left).Invoke();
-
-                            // Early exit mechanism to prevent extra comparisons
-                            if (resultLeft.Equals(Vector<Byte>.Zero))
+                    switch (operationConstraint.BinaryOperation)
+                    {
+                        case OperationConstraint.OperationType.AND:
+                            return () =>
                             {
-                                return Vector<Byte>.Zero;
-                            }
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
-                            Vector<Byte> resultRight = this.BuildCompareActions(constraints.Right).Invoke();
+                                // Early exit mechanism to prevent extra comparisons
+                                if (resultLeft.Equals(Vector<Byte>.Zero))
+                                {
+                                    return Vector<Byte>.Zero;
+                                }
 
-                            return Vector.BitwiseAnd(resultLeft, resultRight);
-                        };
-                    case Operation.OperationType.OR:
-                        return () =>
-                        {
-                            Vector<Byte> resultLeft = this.BuildCompareActions(constraints.Left).Invoke();
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
-                            // Early exit mechanism to prevent extra comparisons
-                            if (resultLeft.Equals(Vector<Byte>.One))
+                                return Vector.BitwiseAnd(resultLeft, resultRight);
+                            };
+                        case OperationConstraint.OperationType.OR:
+                            return () =>
                             {
-                                return Vector<Byte>.One;
-                            }
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
-                            Vector<Byte> resultRight = this.BuildCompareActions(constraints.Right).Invoke();
+                                // Early exit mechanism to prevent extra comparisons
+                                if (resultLeft.Equals(Vector<Byte>.One))
+                                {
+                                    return Vector<Byte>.One;
+                                }
 
-                            return Vector.BitwiseOr(resultLeft, resultRight);
-                        };
-                    default:
-                        throw new ArgumentException("Unkown operation type");
-                }
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
+
+                                return Vector.BitwiseOr(resultLeft, resultRight);
+                            };
+                        case OperationConstraint.OperationType.XOR:
+                            return () =>
+                            {
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
+
+                                return Vector.Xor(resultLeft, resultRight);
+                            };
+                        default:
+                            throw new ArgumentException("Unkown operation type");
+                    }
+                case ScanConstraint scanConstraint:
+                    switch (scanConstraint.Constraint)
+                    {
+                        case ScanConstraint.ConstraintType.Unchanged:
+                            return this.Unchanged;
+                        case ScanConstraint.ConstraintType.Changed:
+                            return this.Changed;
+                        case ScanConstraint.ConstraintType.Increased:
+                            return this.Increased;
+                        case ScanConstraint.ConstraintType.Decreased:
+                            return this.Decreased;
+                        case ScanConstraint.ConstraintType.IncreasedByX:
+                            return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.DecreasedByX:
+                            return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.Equal:
+                            return () => this.EqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.NotEqual:
+                            return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.GreaterThan:
+                            return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.GreaterThanOrEqual:
+                            return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.LessThan:
+                            return () => this.LessThanValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.LessThanOrEqual:
+                            return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
+                        default:
+                            throw new Exception("Unknown constraint type");
+                    }
+                default:
+                    throw new ArgumentException("Invalid constraint");
             }
-            else if (constraints is ScanConstraint)
-            {
-                ScanConstraint scanConstraint = (constraints as ScanConstraint);
-
-                switch (scanConstraint.Constraint)
-                {
-                    case ScanConstraint.ConstraintType.Unchanged:
-                        return this.Unchanged;
-                    case ScanConstraint.ConstraintType.Changed:
-                        return this.Changed;
-                    case ScanConstraint.ConstraintType.Increased:
-                        return this.Increased;
-                    case ScanConstraint.ConstraintType.Decreased:
-                        return this.Decreased;
-                    case ScanConstraint.ConstraintType.IncreasedByX:
-                        return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.DecreasedByX:
-                        return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.Equal:
-                        return () => this.EqualToValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.NotEqual:
-                        return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.GreaterThan:
-                        return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.GreaterThanOrEqual:
-                        return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.LessThan:
-                        return () => this.LessThanValue(scanConstraint.ConstraintValue);
-                    case ScanConstraint.ConstraintType.LessThanOrEqual:
-                        return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
-                    default:
-                        throw new Exception("Unknown constraint type");
-                }
-            }
-
-            throw new ArgumentException("Invalid constraint node");
         }
     }
     //// End class

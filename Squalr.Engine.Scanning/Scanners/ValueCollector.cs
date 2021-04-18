@@ -61,6 +61,7 @@
                             cancellationToken.ThrowIfCancellationRequested();
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
+                            Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
                             return snapshot;
                         }
                         catch (OperationCanceledException ex)

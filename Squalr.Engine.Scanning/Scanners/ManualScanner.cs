@@ -31,7 +31,7 @@
         /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
         /// <param name="taskIdentifier">The unique identifier to prevent duplicate tasks.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, ConstraintNode constraints, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, Constraint constraints, String taskIdentifier = null)
         {
             try
             {
@@ -62,7 +62,7 @@
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
-                                    if (!region.ReadGroup.CanCompare(constraints.HasRelativeConstraint()))
+                                    if (!region.ReadGroup.CanCompare(constraints: constraints))
                                     {
                                         return;
                                     }

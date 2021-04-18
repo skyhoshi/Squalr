@@ -3,6 +3,7 @@
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.OS;
     using Squalr.Engine.Memory;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -96,10 +97,14 @@
         /// <summary>
         /// Determines if a relative comparison can be done for this region, ie current and previous values are loaded.
         /// </summary>
+        /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
         /// <returns>True if a relative comparison can be done for this region.</returns>
-        public Boolean CanCompare(Boolean hasRelativeConstraint)
+        public Boolean CanCompare(Constraint constraints)
         {
-            if (this?.CurrentValues == null || (hasRelativeConstraint && this?.PreviousValues == null))
+            if (constraints == null
+                || !constraints.IsValid()
+                || this.CurrentValues == null
+                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && this.PreviousValues != null)
             {
                 return false;
             }

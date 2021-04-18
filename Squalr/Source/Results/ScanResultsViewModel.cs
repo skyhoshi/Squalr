@@ -5,6 +5,7 @@
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Memory;
     using Squalr.Engine.Projects.Items;
     using Squalr.Engine.Scanning.Snapshots;
     using Squalr.Source.Docking;
@@ -414,8 +415,7 @@
         /// </summary>
         private void LoadScanResults()
         {
-            throw new NotImplementedException();
-            Snapshot snapshot = null; // SnapshotManager.GetSnapshot(Snapshot.SnapshotRetrievalMode.FromActiveSnapshot, this.ActiveType);
+            Snapshot snapshot = SessionManager.Session.SnapshotManager.GetActiveSnapshot();
             IList<ScanResult> newAddresses = new List<ScanResult>();
 
             if (snapshot != null)
@@ -432,8 +432,7 @@
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue() : null;
 
                     String moduleName = String.Empty;
-                    throw new NotImplementedException();
-                    UInt64 address = 0; // Query.Default.AddressToModule(element.BaseAddress, out moduleName);
+                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.BaseAddress, out moduleName);
 
                     PointerItem pointerItem = new PointerItem(baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
                     newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));

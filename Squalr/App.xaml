@@ -21,7 +21,6 @@
                 <ResourceDictionary Source="/Squalr;component/View/Styles/ScrollViewer.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/Separator.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/Submenu.xaml" />
-                <ResourceDictionary Source="/Squalr;component/View/Styles/TabItem.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/TextBoxPlaceHolder.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
