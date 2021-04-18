@@ -4,7 +4,6 @@
     using Squalr.Source.Controls;
     using Squalr.Source.Results;
     using Squalr.Source.Scanning;
-    using Squalr.Theme.Themes;
     using System;
     using System.Threading.Tasks;
     using System.Windows;

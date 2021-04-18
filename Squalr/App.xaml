@@ -11,17 +11,18 @@
         <ResourceDictionary>
             <viewModel:ViewModelLocator x:Key="ViewModelLocator" d:IsDataSource="True" />
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/DarkBrushes.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/Button.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/CheckBox.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/ComboBox.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/ContextMenu.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/GroupBox.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/MenuItem.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/ScrollViewer.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/Separator.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/Submenu.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/Squalr.Theme;component/Styles/TextBoxPlaceHolder.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/DarkBrushes.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/Button.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/CheckBox.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/ComboBox.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/ContextMenu.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/GroupBox.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/MenuItem.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/ScrollViewer.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/Separator.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/Submenu.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/TabItem.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/TextBoxPlaceHolder.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

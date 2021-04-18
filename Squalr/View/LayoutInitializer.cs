@@ -1,9 +1,9 @@
-﻿using System.Linq;
-using Squalr.Theme.Layout;
+﻿using AvalonDock.Layout;
+using System.Linq;
 
 namespace Squalr.View
 {
-	class LayoutInitializer : ILayoutUpdateStrategy
+    class LayoutInitializer : ILayoutUpdateStrategy
 	{
 		public bool BeforeInsertAnchorable(LayoutRoot layout, LayoutAnchorable anchorableToShow, ILayoutContainer destinationContainer)
 		{
@@ -25,7 +25,6 @@ namespace Squalr.View
 			return false;
 
 		}
-
 
 		public void AfterInsertAnchorable(LayoutRoot layout, LayoutAnchorable anchorableShown)
 		{

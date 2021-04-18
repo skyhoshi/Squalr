@@ -1,9 +1,10 @@
 ﻿namespace Squalr.Source.Docking
 {
+    using AvalonDock;
+    using AvalonDock.Layout.Serialization;
+    using AvalonDock.Themes;
     using GalaSoft.MvvmLight;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Theme;
-    using Squalr.Theme.Layout.Serialization;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -33,6 +34,18 @@
         /// </summary>
         private DockingViewModel()
         {
+        }
+
+        private Tuple<string, Theme> selectedTheme = new Tuple<string, Theme>(nameof(Vs2013DarkTheme), new Vs2013DarkTheme());
+
+        public Tuple<string, Theme> SelectedTheme
+        {
+            get { return selectedTheme; }
+            set
+            {
+                selectedTheme = value;
+                RaisePropertyChanged(nameof(SelectedTheme));
+            }
         }
 
         /// <summary>
