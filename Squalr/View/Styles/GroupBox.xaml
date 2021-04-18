@@ -2,7 +2,7 @@
     x:Class="Squalr.View.Styles.GroupBox"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:Squalr.Source.Converters">
+    xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters">
 
     <Style TargetType="{x:Type GroupBox}">
         <Style.Resources>

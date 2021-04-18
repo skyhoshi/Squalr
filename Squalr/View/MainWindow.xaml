@@ -312,7 +312,7 @@
                                     Width="16"
                                     Height="16"
                                     Margin="0,0,6,0"
-                                    Source="{Binding Path=Icon, Converter={StaticResource IconConverter}}" />
+                                    Source="{Binding Path=., Converter={StaticResource IconConverter}}" />
                                 <shell:TextBlock
                                     Grid.Column="1"
                                     Foreground="{StaticResource SqualrColorWhite}"

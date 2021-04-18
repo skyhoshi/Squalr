@@ -1,12 +1,14 @@
 ﻿namespace Squalr.Source.Mvvm.Converters
 {
     using System;
+    using System.Diagnostics;
     using System.Drawing;
     using System.Globalization;
     using System.Windows;
     using System.Windows.Data;
     using System.Windows.Interop;
     using System.Windows.Media.Imaging;
+    using Squalr.Engine.Processes;
 
     /// <summary>
     /// Converts Icons to a format readily usable by the view.
@@ -28,12 +30,20 @@
                 return null;
             }
 
+            if (value is Process)
+            {
+                value = (value as Process)?.GetIcon();
+            }
+
             if (value is Icon)
             {
                 Bitmap bitmap = (value as Icon)?.ToBitmap();
                 IntPtr bitmaphandle = bitmap?.GetHbitmap() ?? IntPtr.Zero;
 
-                return Imaging.CreateBitmapSourceFromHBitmap(bitmaphandle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                if (bitmaphandle != IntPtr.Zero)
+                {
+                    return Imaging.CreateBitmapSourceFromHBitmap(bitmaphandle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                }
             }
 
             return null;

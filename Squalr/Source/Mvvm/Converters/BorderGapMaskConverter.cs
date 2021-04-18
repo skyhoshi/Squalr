@@ -1,4 +1,4 @@
-﻿namespace Squalr.Source.Converters
+﻿namespace Squalr.Source.Mvvm.Converters
 {
     using System;
     using System.Globalization;

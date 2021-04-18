@@ -12,6 +12,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
+    using Squalr.Engine;
 
     /// <summary>
     /// View model for the Process Selector.
@@ -29,11 +30,6 @@
         /// A dummy process that detaches from the target process when selected.
         /// </summary>
         private Process detachProcess;
-
-        /// <summary>
-        /// The selected process.
-        /// </summary>
-        private Process selectedProcess;
 
         /// <summary>
         /// The list of running processes.
@@ -91,14 +87,12 @@
         {
             get
             {
-                return null;
-                /*
-                // Process list with the selected process at the top, and a detach option as the 2nd element
-                return this.ProcessList?.Where(process => process.HasWindow && (process?.Id ?? 0) != (this.SelectedProcess?.Id ?? 0)).Select(process => process)
+                ProcessList.First().GetIcon();
+                // Create a process list with the selected process at the top, and a detach option as the 2nd element
+                return this.ProcessList?.Where(process => process.HasWindow() && (process?.Id ?? 0) != (this.SelectedProcess?.Id ?? 0)).Select(process => process)
                     .PrependIfNotNull(this.SelectedProcess != null ? this.DetachProcess : null)
                     .PrependIfNotNull(this.SelectedProcess)
                     .Distinct();
-                    */
             }
         }
 
@@ -109,21 +103,20 @@
         {
             get
             {
-                return this.selectedProcess;
+                return SessionManager.Session?.OpenedProcess;
             }
 
             set
             {
                 if (value == this.DetachProcess)
                 {
-                    this.selectedProcess = null;
+                    SessionManager.Session = null;
                     throw new NotImplementedException();
                     this.RaisePropertyChanged(nameof(this.WindowedProcessList));
                 }
                 else if (value != this.SelectedProcess)
                 {
-                    this.selectedProcess = value;
-                    throw new NotImplementedException();
+                    SessionManager.Session = new Session(value);
                     this.RaisePropertyChanged(nameof(this.SelectedProcess));
                     this.RaisePropertyChanged(nameof(this.WindowedProcessList));
                 }
@@ -154,9 +147,8 @@
         {
             get
             {
-                throw new NotImplementedException();
-               // String processName = Processes.Default.OpenedProcess.ProcessName;
-                // return String.IsNullOrEmpty(processName) ? "Please Select a Process" : processName;
+                String processName = SessionManager.Session?.OpenedProcess?.ProcessName;
+                return String.IsNullOrEmpty(processName) ? "Please Select a Process" : processName;
             }
         }
 
@@ -219,7 +211,7 @@
         /// </summary>
         private void RefreshProcessList()
         {
-            // this.ProcessList = Processes.Default.GetProcesses().Select(process => new Process(process));
+            this.ProcessList = ProcessQuery.Instance.GetProcesses();
         }
     }
     //// End class
