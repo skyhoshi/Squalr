@@ -5,6 +5,7 @@
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -12,12 +13,15 @@
     /// <summary>
     /// A class to contain snapshots of memory, which can be compared by scanners.
     /// </summary>
-    public class Snapshot
+    public class Snapshot : INotifyPropertyChanged
     {
         /// <summary>
         /// The read groups of this snapshot.
         /// </summary>
         private IList<ReadGroup> readGroups;
+
+        // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
@@ -233,15 +237,6 @@
         }
 
         /// <summary>
-        /// Gets the time since the last update was performed on this snapshot.
-        /// </summary>
-        /// <returns>The time since the last update.</returns>
-        public DateTime GetTimeSinceLastUpdate()
-        {
-            return this.TimeSinceLastUpdate;
-        }
-
-        /// <summary>
         /// Adds snapshot regions to the regions contained in this snapshot. Will automatically merge and sort regions.
         /// </summary>
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
@@ -255,6 +250,7 @@
             }
 
             this.ReadGroups = snapshotsByReadGroup.Select(x => x.Key).OrderBy(group => group.BaseAddress).ToList();
+            this.TimeSinceLastUpdate = DateTime.Now;
         }
 
         /// <summary>

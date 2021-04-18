@@ -197,13 +197,13 @@
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 
-                // Check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
+                // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
                     this.RunLength += this.VectorSize;
                     this.Encoding = true;
                 }
-                // Check all vector results false
+                // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
                     if (this.Encoding)

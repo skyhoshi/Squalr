@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Scanning.Properties;
     using System;
@@ -20,16 +21,14 @@
         public SnapshotManager()
         {
             this.AccessLock = new Object();
-            this.ObserverLock = new Object();
-            this.Snapshots = new Stack<Snapshot>();
+            this.Snapshots = new FullyObservableCollection<Snapshot>();
             this.DeletedSnapshots = new Stack<Snapshot>();
-            this.SnapshotObservers = new List<ISnapshotObserver>();
         }
 
         /// <summary>
         /// Gets the snapshots being managed.
         /// </summary>
-        public Stack<Snapshot> Snapshots { get; private set; }
+        public FullyObservableCollection<Snapshot> Snapshots { get; private set; }
 
         /// <summary>
         /// Gets the deleted snapshots for the capability of redoing after undo.
@@ -41,46 +40,9 @@
         /// </summary>
         private Object AccessLock { get; set; }
 
-        /// <summary>
-        /// Gets or sets a lock to ensure multiple entities do not try and update the snapshot list at the same time.
-        /// </summary>
-        private Object ObserverLock { get; set; }
+        public delegate void OnSnapshotsUpdated();
 
-        /// <summary>
-        /// Gets or sets objects observing changes in the active snapshot.
-        /// </summary>
-        private List<ISnapshotObserver> SnapshotObservers { get; set; }
-
-        /// <summary>
-        /// Subscribes the given object to changes in the active snapshot.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe active snapshot changes.</param>
-        public void Subscribe(ISnapshotObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (!this.SnapshotObservers.Contains(snapshotObserver))
-                {
-                    this.SnapshotObservers.Add(snapshotObserver);
-                    snapshotObserver.Update(this.GetActiveSnapshot());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Unsubscribes the given object from changes in the active snapshot.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe active snapshot changes.</param>
-        public void Unsubscribe(ISnapshotObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (this.SnapshotObservers.Contains(snapshotObserver))
-                {
-                    this.SnapshotObservers.Remove(snapshotObserver);
-                }
-            }
-        }
+        public event OnSnapshotsUpdated OnSnapshotsUpdatedEvent;
 
         /// <summary>
         /// Returns the memory regions associated with the current snapshot. If none exist, a query will be done. Will not read any memory.
@@ -134,7 +96,7 @@
                 }
 
                 this.Snapshots.Push(this.DeletedSnapshots.Pop());
-                this.NotifyObservers();
+                this.OnSnapshotsUpdatedEvent.Invoke();
             }
         }
 
@@ -157,7 +119,7 @@
                     this.DeletedSnapshots.Pop();
                 }
 
-                this.NotifyObservers();
+                this.OnSnapshotsUpdatedEvent.Invoke();
             }
         }
 
@@ -170,7 +132,7 @@
             {
                 this.Snapshots.Clear();
                 this.DeletedSnapshots.Clear();
-                this.NotifyObservers();
+                this.OnSnapshotsUpdatedEvent.Invoke();
 
                 // There can be multiple GB of deleted snapshots, so run the garbage collector ASAP for a performance boost.
                 Task.Run(() => GC.Collect());
@@ -199,23 +161,7 @@
 
                 this.Snapshots.Push(snapshot);
                 this.DeletedSnapshots.Clear();
-                this.NotifyObservers();
-            }
-        }
-
-        /// <summary>
-        /// Notify all observing objects of an active snapshot change.
-        /// </summary>
-        private void NotifyObservers()
-        {
-            lock (this.ObserverLock)
-            {
-                Snapshot activeSnapshot = this.GetActiveSnapshot();
-
-                foreach (ISnapshotObserver observer in this.SnapshotObservers)
-                {
-                    observer.Update(activeSnapshot);
-                }
+                this.OnSnapshotsUpdatedEvent.Invoke();
             }
         }
     }

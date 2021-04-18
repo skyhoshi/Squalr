@@ -5,6 +5,7 @@
     using System.Collections.ObjectModel;
     using System.Collections.Specialized;
     using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// A collection of items for which property change events are observed. Fixes the poor .NET platform ObservableCollection implementation.
@@ -159,6 +160,33 @@
             /// Index in parent collection.
             /// </value>
             public Int32 CollectionIndex { get; }
+        }
+
+        public void Push(T item)
+        {
+            this.Items.Add(item);
+        }
+
+        public T Pop()
+        {
+            T result = this.Peek();
+
+            if (this.Items.Count > 0)
+            {
+                this.Items.RemoveAt(this.Items.Count - 1);
+            }
+
+            return result;
+        }
+
+        public T Peek()
+        {
+            if (this.Items.Count > 0)
+            {
+                return this.Items[this.Items.Count - 1];
+            }
+
+            return default(T);
         }
     }
     //// End class

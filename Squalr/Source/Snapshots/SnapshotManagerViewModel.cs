@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Source.Snapshots
 {
     using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine;
     using Squalr.Engine.Scanning.Snapshots;
     using Squalr.Source.Docking;
     using System;
@@ -30,7 +31,23 @@
             this.UndoSnapshotCommand = new RelayCommand(() => SessionManager.Session.SnapshotManager.UndoSnapshot(), () => true);
             this.RedoSnapshotCommand = new RelayCommand(() => SessionManager.Session.SnapshotManager.RedoSnapshot(), () => true);
 
+            SessionManager.OnSessionChangedEvent += SessionManagerOnSessionChangedEvent;
+
             DockingViewModel.GetInstance().RegisterViewModel(this);
+        }
+
+        private void SessionManagerOnSessionChangedEvent(Session session)
+        {
+            if (session != null)
+            {
+                session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent; ;
+            }
+        }
+
+        private void SnapshotManagerOnSnapshotsUpdatedEvent()
+        {
+            this.RaisePropertyChanged(nameof(this.Snapshots));
+            this.RaisePropertyChanged(nameof(this.DeletedSnapshots));
         }
 
         /// <summary>
@@ -76,17 +93,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static SnapshotManagerViewModel GetInstance()
         {
-            return snapshotManagerViewModelInstance.Value;
-        }
-
-        /// <summary>
-        /// Recieves an update of the active snapshot.
-        /// </summary>
-        /// <param name="snapshot">The active snapshot.</param>
-        public void Update(Snapshot snapshot)
-        {
-            this.RaisePropertyChanged(nameof(this.Snapshots));
-            this.RaisePropertyChanged(nameof(this.DeletedSnapshots));
+            return SnapshotManagerViewModel.snapshotManagerViewModelInstance.Value;
         }
     }
     //// End class
