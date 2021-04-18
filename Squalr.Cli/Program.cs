@@ -3,8 +3,15 @@
     using Squalr.Engine.Common.Logging;
     using System;
 
+    /// <summary>
+    /// Squalr.Cli is a command line version of Squalr. This project is useful for ensuring that engine code is decoupled from view code.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Squalr.Cli entry point.
+        /// </summary>
+        /// <param name="args">Unused args.</param>
         static void Main(String[] args)
         {
             PrefixedWriter prefixedWriter = new PrefixedWriter();

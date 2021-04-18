@@ -1,11 +1,11 @@
-﻿using CommandLine;
-using Squalr.Cli.CommandHandlers.Scan;
-using Squalr.Engine;
-using System;
-using System.Collections.Generic;
-
-namespace Squalr.Cli.CommandHandlers.Crash
+﻿namespace Squalr.Cli.CommandHandlers.Crash
 {
+    using CommandLine;
+    using Squalr.Cli.CommandHandlers.Scan;
+    using Squalr.Engine;
+    using System;
+    using System.Collections.Generic;
+
     public class CrashCommandHandler : ICommandHandler
     {
         public String GetCommandName()

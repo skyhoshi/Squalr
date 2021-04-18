@@ -1,9 +1,9 @@
-﻿using AvalonDock.Layout;
-using System.Linq;
-
-namespace Squalr.View
+﻿namespace Squalr.View
 {
-    class LayoutInitializer : ILayoutUpdateStrategy
+	using AvalonDock.Layout;
+	using System.Linq;
+
+	class LayoutInitializer : ILayoutUpdateStrategy
 	{
 		public bool BeforeInsertAnchorable(LayoutRoot layout, LayoutAnchorable anchorableToShow, ILayoutContainer destinationContainer)
 		{

@@ -1,12 +1,12 @@
-﻿using Squalr.Engine.Common.Logging;
-using System;
-using System.Reflection;
-using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Squalr.Engine.Scripting
+﻿namespace Squalr.Engine.Scripting
 {
+    using Squalr.Engine.Common.Logging;
+    using System;
+    using System.Reflection;
+    using System.Security;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Instance of a single script.
     /// </summary>

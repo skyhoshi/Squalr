@@ -1,14 +1,14 @@
-﻿using CommandLine;
-using Squalr.Engine.Common;
-using Squalr.Engine.Common.DataTypes;
-using Squalr.Engine.Memory;
-using Squalr.Engine.Scanning.Scanners;
-using Squalr.Engine.Scanning.Scanners.Constraints;
-using Squalr.Engine.Scanning.Snapshots;
-using System;
-
-namespace Squalr.Cli.CommandHandlers.Scan
+﻿namespace Squalr.Cli.CommandHandlers.Scan
 {
+    using CommandLine;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Memory;
+    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
+    using Squalr.Engine.Scanning.Snapshots;
+    using System;
+
     [Verb("", HelpText = "Attempts to crash the target program by zeroing out memory that changed recently.")]
     public class CrashCommandOptions
     {

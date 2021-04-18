@@ -1,8 +1,8 @@
-﻿using CommandLine;
-using System;
-
-namespace Squalr.Cli.CommandHandlers.Process
+﻿namespace Squalr.Cli.CommandHandlers.Process
 {
+    using CommandLine;
+    using System;
+
     [Verb("attach", HelpText = "Opens a running process. Alias for open.")]
     public class ProcessAttachOptions
     {

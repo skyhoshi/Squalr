@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Squalr.Engine.Scripting
+﻿namespace Squalr.Engine.Scripting
 {
+    using System;
+
     public class ModAttribute : Attribute
     {
         public String Name { get; set; }
