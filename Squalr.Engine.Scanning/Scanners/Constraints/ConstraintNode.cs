@@ -40,7 +40,9 @@
         /// <returns>True if any constraint has a relative value constraint.</returns>
         public virtual Boolean HasRelativeConstraint()
         {
-            return (this.Left?.HasRelativeConstraint() ?? false) || (this.Right?.HasRelativeConstraint() ?? false);
+            return (this.Left == null && this.Right == null)
+                || (this.Left?.HasRelativeConstraint() ?? false)
+                || (this.Right?.HasRelativeConstraint() ?? false);
         }
 
         public Int32 Count

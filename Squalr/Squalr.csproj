@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>Squalr</AssemblyName>
     <RootNamespace>Squalr</RootNamespace>
     <!-- Ignore package downgrade warnings -->
     <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -114,7 +115,6 @@
     <None Remove="View\PointerScanner.xaml" />
     <None Remove="View\PointerScanResults.xaml" />
     <None Remove="View\ProcessSelector.xaml" />
-    <None Remove="View\ProjectExplorer.xaml" />
     <None Remove="View\PropertyViewer.xaml" />
     <None Remove="View\ScanResults.xaml" />
     <None Remove="View\Settings.xaml" />
@@ -134,11 +134,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.0.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
     <PackageReference Include="MvvmLightLibsStd10" Version="5.4.1.1" />
     <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.6.0-preview3.19128.7" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -362,10 +362,10 @@
     <Page Update="View\ProcessSelector.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="View\ProjectExplorer.xaml">
+    <Page Update="View\PropertyViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="View\PropertyViewer.xaml">
+    <Page Update="View\ProjectExplorer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="View\ScanResults.xaml">

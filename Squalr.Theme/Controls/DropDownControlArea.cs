@@ -1,118 +1,120 @@
-﻿/************************************************************************
-
+/************************************************************************
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Media;
 using System.Windows.Input;
-using System.Diagnostics;
 
 namespace Squalr.Theme.Controls
 {
-    public class DropDownControlArea : UserControl
-    {
-        //static DropDownControlArea()
-        //{
-        //    //IsHitTestVisibleProperty.OverrideMetadata(typeof(DropDownControlArea), new FrameworkPropertyMetadata(true));
-        //}
+	/// <inheritdoc />
+	/// <summary>
+	/// Implements the title display for various items: <see cref="LayoutAnchorablePaneControl"/>,
+	/// <see cref="LayoutDocumentTabItem"/>, <see cref="LayoutAnchorableTabItem"/>,
+	/// <see cref="LayoutDocumentFloatingWindowControl"/>, and <see cref="LayoutAnchorableFloatingWindowControl"/>.
+	///
+	/// The content is usually displayed via ContentPresenter binding in the theme definition.
+	/// </summary>
+	/// <seealso cref="ContentControl"/>
+	public class DropDownControlArea : ContentControl
+	{
+		#region ctors
+		/// <summary>
+		/// Static class constructor
+		/// </summary>
+		static DropDownControlArea()
+		{
+			// Fixing issue with Keyboard up/down in textbox in floating anchorable focusing DropDownControlArea
+			// https://github.com/Dirkster99/AvalonDock/issues/225
+			FocusableProperty.OverrideMetadata(typeof(DropDownControlArea), new FrameworkPropertyMetadata(false));
+			
+			// See PreviewMouseRightButtonUpCallback for details.
+			EventManager.RegisterClassHandler(
+			    typeof(DropDownControlArea),
+			    PreviewMouseRightButtonUpEvent,
+			    new MouseButtonEventHandler((s, e) => (s as DropDownControlArea)?.PreviewMouseRightButtonUpCallback(e)));
+		}
+		#endregion ctors
+		
+		#region Properties
 
-        public DropDownControlArea()
-        { 
+		#region DropDownContextMenu
 
-        }
+		/// <summary><see cref="DropDownContextMenu"/> dependency property.</summary>
+		public static readonly DependencyProperty DropDownContextMenuProperty = DependencyProperty.Register(nameof(DropDownContextMenu), typeof(ContextMenu), typeof(DropDownControlArea),
+				new FrameworkPropertyMetadata(null));
 
-        #region DropDownContextMenu
+		/// <summary>Gets/sets the drop down menu to show up when user click on an anchorable menu pin.</summary>
+		[Bindable(true), Description("Gets/sets the drop down menu to show up when user click on an anchorable menu pin."), Category("Menu")]
+		public ContextMenu DropDownContextMenu
+		{
+			get => (ContextMenu)GetValue(DropDownContextMenuProperty);
+			set => SetValue(DropDownContextMenuProperty, value);
+		}
 
-        /// <summary>
-        /// DropDownContextMenu Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty DropDownContextMenuProperty =
-            DependencyProperty.Register("DropDownContextMenu", typeof(ContextMenu), typeof(DropDownControlArea),
-                new FrameworkPropertyMetadata((ContextMenu)null));
+		#endregion DropDownContextMenu
 
-        /// <summary>
-        /// Gets or sets the DropDownContextMenu property.  This dependency property 
-        /// indicates context menu to show when a right click is detected over the area occpied by the control.
-        /// </summary>
-        public ContextMenu DropDownContextMenu
-        {
-            get { return (ContextMenu)GetValue(DropDownContextMenuProperty); }
-            set { SetValue(DropDownContextMenuProperty, value); }
-        }
+		#region DropDownContextMenuDataContext
 
-        #endregion
+		/// <summary><see cref="DropDownContextMenuDataContext"/> dependency property. </summary>
+		public static readonly DependencyProperty DropDownContextMenuDataContextProperty = DependencyProperty.Register(nameof(DropDownContextMenuDataContext), typeof(object), typeof(DropDownControlArea),
+				new FrameworkPropertyMetadata(null));
 
-        #region DropDownContextMenuDataContext
+		/// <summary>Gets/sets the DataContext to set for the DropDownContext menu property.</summary>
+		[Bindable(true), Description("Gets/sets the DataContext to set for the DropDownContext menu property."), Category("Menu")]
+		public object DropDownContextMenuDataContext
+		{
+			get => (object)GetValue(DropDownContextMenuDataContextProperty);
+			set => SetValue(DropDownContextMenuDataContextProperty, value);
+		}
 
-        /// <summary>
-        /// DropDownContextMenuDataContext Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty DropDownContextMenuDataContextProperty =
-            DependencyProperty.Register("DropDownContextMenuDataContext", typeof(object), typeof(DropDownControlArea),
-                new FrameworkPropertyMetadata((object)null));
+		#endregion DropDownContextMenuDataContext
 
-        /// <summary>
-        /// Gets or sets the DropDownContextMenuDataContext property.  This dependency property 
-        /// indicates data context to attach when context menu is shown.
-        /// </summary>
-        public object DropDownContextMenuDataContext
-        {
-            get { return (object)GetValue(DropDownContextMenuDataContextProperty); }
-            set { SetValue(DropDownContextMenuDataContextProperty, value); }
-        }
+		#endregion Properties
 
-        #endregion
+		#region Overrides
 
-        protected override void OnMouseRightButtonDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnMouseRightButtonDown(e);
+		// The core code uses OnPreviewMouseButtonUp for this logic. However, this change fixes
+		// a bug when the context menu style has no border. The right click to show the context
+		// menu gets handled by the first menu item. If that happens to be Close, the tab closes
+		// unexpectedly.
+		// We use a class handler for the event - which gets called earlier in the event handling
+		// chain - to show the right-click context menu and, importantly, mark the event as handled,
+		// so no further processing occurs.
+		private void PreviewMouseRightButtonUpCallback(MouseButtonEventArgs e)
+		{
+			if (!e.Handled && DropDownContextMenu != null)
+			{
+				// Fix for multi-dpi aware aplications
+				DropDownContextMenu.PlacementTarget = e.Source as UIElement;
+				//DropDownContextMenu.PlacementTarget = null;
+				DropDownContextMenu.Placement = PlacementMode.MousePoint;
+				DropDownContextMenu.HorizontalOffset = 0d;
+				DropDownContextMenu.VerticalOffset = 0d;
+				DropDownContextMenu.DataContext = DropDownContextMenuDataContext;
+				DropDownContextMenu.IsOpen = true;
 
+				e.Handled = true;
+			}
+		}
 
-        }
+		//protected override System.Windows.Media.HitTestResult HitTestCore(System.Windows.Media.PointHitTestParameters hitTestParameters)
+		//{
+		//    var hitResult = base.HitTestCore(hitTestParameters);
+		//    if (hitResult == null)
+		//        return new PointHitTestResult(this, hitTestParameters.HitPoint);
 
-        protected override void OnPreviewMouseRightButtonUp(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnPreviewMouseRightButtonUp(e);
+		//    return hitResult;
+		//}
 
-            if (!e.Handled)
-            {
-                if (DropDownContextMenu != null)
-                {
-                    DropDownContextMenu.PlacementTarget = null;
-                    DropDownContextMenu.Placement = PlacementMode.MousePoint;
-                    DropDownContextMenu.DataContext = DropDownContextMenuDataContext;
-                    DropDownContextMenu.IsOpen = true;
-                   // e.Handled = true;
-                }
-            } 
-        }
-
-
-        //protected override System.Windows.Media.HitTestResult HitTestCore(System.Windows.Media.PointHitTestParameters hitTestParameters)
-        //{
-        //    var hitResult = base.HitTestCore(hitTestParameters);
-        //    if (hitResult == null)
-        //        return new PointHitTestResult(this, hitTestParameters.HitPoint);
-
-        //    return hitResult;
-        //}
-    }
+		#endregion Overrides
+	}
 }

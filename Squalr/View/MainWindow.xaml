@@ -19,7 +19,7 @@
     Title="Squalr"
     Width="1280"
     Height="840"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     AllowsTransparency="False"
     DataContext="{Binding MainViewModel, Source={StaticResource ViewModelLocator}}"
     WindowStyle="None">
@@ -156,13 +156,13 @@
                             BorderThickness="0"
                             Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}"
                             Header="Select Project"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             BorderThickness="0"
                             Command="{Binding MainViewModel.CloseCommand}"
                             CommandParameter="{Binding ElementName=SqualrWindow}"
                             Header="Exit"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
 
                     <!--  Edit Header  -->
@@ -171,7 +171,7 @@
                             Header="Settings"
                             IsCheckable="True"
                             IsChecked="{Binding SettingsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
 
                     <!--  Layout Header  -->
@@ -180,7 +180,7 @@
                             Command="{Binding MainViewModel.ResetLayoutCommand}"
                             CommandParameter="{Binding ., ElementName=dockManager}"
                             Header="Reset Layout"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
 
                     <!--  Windows Header  -->
@@ -189,42 +189,42 @@
                             Header="Process Selector"
                             IsCheckable="True"
                             IsChecked="{Binding ProcessSelectorViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Project Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding ProjectExplorerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Property Viewer"
                             IsCheckable="True"
                             IsChecked="{Binding PropertyViewerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Output"
                             IsCheckable="True"
                             IsChecked="{Binding OutputViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding ScanResultsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Pointer Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScanResultsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Snapshot Manager"
                             IsCheckable="True"
                             IsChecked="{Binding SnapshotManagerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header=".Net Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding DotNetExplorerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
 
                     <!--  Scans Header  -->
@@ -233,25 +233,25 @@
                             Header="Change Counter"
                             IsCheckable="True"
                             IsChecked="{Binding ChangeCounterViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}"
+                            
                             Visibility="Collapsed" />
                         <shell:MenuItem
                             Header="Input Correlator"
                             IsCheckable="True"
                             IsChecked="{Binding InputCorrelatorViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Label Thresholder"
                             IsCheckable="True"
                             IsChecked="{Binding LabelThresholderViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}"
+                            
                             Visibility="Collapsed" />
                         <shell:Separator />
                         <shell:MenuItem
                             Header="Pointer Scanner"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScannerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
 
                     <!--  Debugger  -->
@@ -260,12 +260,12 @@
                             Header="Disassembly"
                             IsCheckable="True"
                             IsChecked="{Binding DisassemblyViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                         <shell:MenuItem
                             Header="Code Tracer"
                             IsCheckable="True"
                             IsChecked="{Binding CodeTracerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                             />
                     </shell:MenuItem>
                 </shell:Menu>
             </shell:Grid>
@@ -377,7 +377,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.SByte}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="1 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -396,7 +396,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int16}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="2 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -415,7 +415,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int32}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="4 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -434,7 +434,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int64}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="8 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -453,7 +453,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Byte}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="1 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -472,7 +472,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt16}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="2 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -491,7 +491,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt32}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="4 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -510,7 +510,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt64}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="8 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -529,7 +529,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Single}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Single Precision Floating Point Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -548,7 +548,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Double}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Double Precision Floating Point Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -604,7 +604,7 @@
                                     </shell:MenuItem.Header>
                                     <shell:MenuItem
                                         Command="{Binding SelectChangedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Changed Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -621,7 +621,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectUnchangedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Unchanged Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -638,7 +638,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectIncreasedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Increased Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -655,7 +655,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectDecreasedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Decreased Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -672,7 +672,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -689,7 +689,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectNotEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Not Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -706,7 +706,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectIncreasedByXCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Increased by Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -723,7 +723,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectDecreasedByXCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Decreased by Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -740,7 +740,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectGreaterThanCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Greater Than Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -757,7 +757,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectGreaterThanOrEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Greater Than or Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -774,7 +774,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectLessThanCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Less Than Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -791,7 +791,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectLessThanOrEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Less Than or Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -823,15 +823,14 @@
                                     Background="{StaticResource SqualrColorGray27}"
                                     BorderBrush="{StaticResource SqualrColorGray35}" />
                                 <shell:Border.InputBindings>
-                                    <shell:KeyBinding Command="{Binding StartScanCommand}" Gesture="Enter" />
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
                                 </shell:Border.InputBindings>
                             </shell:Border>
                             <shell:MenuItem
-                                Command="{Binding StartScanCommand}"
-                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
+                                Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}"
                                 ToolTip="Start Scan">
                                 <shell:MenuItem.InputBindings>
-                                    <shell:KeyBinding Command="{Binding StartScanCommand}" Gesture="Enter" />
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
                                 </shell:MenuItem.InputBindings>
                                 <shell:MenuItem.Header>
                                     <shell:Image
@@ -845,17 +844,12 @@
                 </shell:Grid>
             </shell:WrapPanel>
 
-            <!--  Docking Panel AnchorablesSource="{Binding Tools}"  -->
+            <!--  Docking Panel  -->
             <avalonDock:DockingManager
                 x:Name="dockManager"
                 Grid.Row="3"
                 AnchorablesSource="{Binding DockingViewModel.Tools, Source={StaticResource ViewModelLocator}}"
                 Background="{StaticResource SqualrColorFrame}">
-                <!--  Theme  -->
-                <avalonDock:DockingManager.ThemeBase>
-                    <theme:DarkTheme />
-                </avalonDock:DockingManager.ThemeBase>
-
                 <!--  All Dockable Windows  -->
                 <avalonDock:DockingManager.LayoutItemTemplateSelector>
                     <view:ViewTemplateSelector>
@@ -865,12 +859,12 @@
                                 <view:DataTemplateError />
                             </shell:DataTemplate>
                         </view:ViewTemplateSelector.DataTemplateErrorViewTemplate>
-                        <!--  Project Explorer  -->
+                        <!--  Project Explorer  
                         <view:ViewTemplateSelector.ProjectExplorerViewTemplate>
                             <shell:DataTemplate>
                                 <view:ProjectExplorer />
                             </shell:DataTemplate>
-                        </view:ViewTemplateSelector.ProjectExplorerViewTemplate>
+                        </view:ViewTemplateSelector.ProjectExplorerViewTemplate>-->
                         <!--  Change Counter  -->
                         <view:ViewTemplateSelector.ChangeCounterViewTemplate>
                             <shell:DataTemplate>
@@ -968,6 +962,9 @@
                         </docking:PanesStyleSelector.ToolStyle>
                     </docking:PanesStyleSelector>
                 </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                <avalonDock:DockingManager.LayoutUpdateStrategy>
+                    <coreView:LayoutInitializer />
+                </avalonDock:DockingManager.LayoutUpdateStrategy>
 
                 <!--  Layout Style  -->
                 <layout:LayoutRoot>

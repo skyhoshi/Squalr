@@ -22,7 +22,7 @@
     /// <summary>
     /// View model for the scan results.
     /// </summary>
-    internal class ScanResultsViewModel : ToolViewModel, ISnapshotObserver
+    public class ScanResultsViewModel : ToolViewModel, ISnapshotObserver
     {
         /// <summary>
         /// The number of elements to display on each page.

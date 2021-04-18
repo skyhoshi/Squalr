@@ -13,7 +13,7 @@
     /// <summary>
     /// The view model for the project renaming dialog.
     /// </summary>
-    internal class RenameProjectDialogViewModel : ViewModelBase
+    public class RenameProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="RenameProjectDialogViewModel" /> class.
@@ -120,7 +120,7 @@
                 {
                     String projectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, projectName);
                     String newProjectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, this.NewProjectName);
-                    ProjectQueryer.RenameProject(projectPath, newProjectPath);
+                    // ProjectQueryer.RenameProject(projectPath, newProjectPath);
 
                     return true;
                 }

@@ -1,35 +1,35 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using Squalr.Theme.Layout;
 using System.ComponentModel;
 
 namespace Squalr.Theme
 {
-    public class DocumentClosingEventArgs : CancelEventArgs
-    {
-        public DocumentClosingEventArgs(LayoutDocument document)
-        {
-            Document = document;
-        }
+	/// <summary>
+	/// Implements a Cancelable event that can be raised to ask the client application whether closing this document
+	/// and removing its content (viewmodel) is OK or not.
+	/// </summary>
+	public class DocumentClosingEventArgs : CancelEventArgs
+	{
+		/// <summary>
+		/// Class constructor from the documents layout model.
+		/// </summary>
+		/// <param name="document"></param>
+		public DocumentClosingEventArgs(LayoutDocument document)
+		{
+			Document = document;
+		}
 
-        public LayoutDocument Document
-        {
-            get;
-            private set;
-        }
-    }
+		/// <summary>
+		/// Gets the model of the document that is about to be closed.
+		/// </summary>
+		public LayoutDocument Document { get; private set; }
+	}
 }

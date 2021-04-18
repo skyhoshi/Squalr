@@ -10,7 +10,7 @@
     /// <summary>
     /// Interaction logic for Settings.xaml.
     /// </summary>
-    internal partial class Settings : UserControl
+    public partial class Settings : UserControl
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings" /> class.

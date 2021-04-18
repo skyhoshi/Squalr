@@ -18,7 +18,7 @@
     /// <summary>
     /// View model for the Manual Scanner.
     /// </summary>
-    internal class ManualScannerViewModel : ToolViewModel, IResultDataTypeObserver
+    public class ManualScannerViewModel : ToolViewModel, IResultDataTypeObserver
     {
         /// <summary>
         /// Singleton instance of the <see cref="ManualScannerViewModel" /> class.

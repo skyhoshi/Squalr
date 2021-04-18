@@ -1,267 +1,245 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
 using System.Windows.Markup;
-using System.ComponentModel;
 using System.Xml.Serialization;
 
 namespace Squalr.Theme.Layout
 {
-    [ContentProperty("Children")]
-    [Serializable]
-    public class LayoutAnchorablePane : LayoutPositionableGroup<LayoutAnchorable>, ILayoutAnchorablePane, ILayoutPositionableElement, ILayoutContentSelector, ILayoutPaneSerializable
-    {
-        public LayoutAnchorablePane()
-        {
-        }
+	/// <summary>Implements the model for a layout anchorable pane control (a pane in a tool window environment).
+	/// A layout anchorable pane control can have multiple LayoutAnchorable controls  as its children.
+	/// </summary>
+	[ContentProperty(nameof(Children))]
+	[Serializable]
+	public class LayoutAnchorablePane : LayoutPositionableGroup<LayoutAnchorable>, ILayoutAnchorablePane, ILayoutPositionableElement, ILayoutContentSelector, ILayoutPaneSerializable
+	{
+		#region fields
 
-        public LayoutAnchorablePane(LayoutAnchorable anchorable)
-        {
-            Children.Add(anchorable);
-        }
+		private int _selectedIndex = -1;
 
-        protected override bool GetVisibility()
-        {
-            return Children.Count > 0 && Children.Any(c => c.IsVisible);
-        }
+		[XmlIgnore]
+		private bool _autoFixSelectedContent = true;
 
-        #region SelectedContentIndex
+		private string _name = null;
+		private string _id;
 
-        private int _selectedIndex = -1;
-        public int SelectedContentIndex
-        {
-            get { return _selectedIndex; }
-            set
-            {
-                if (value < 0 ||
-                    value >= Children.Count)
-                    value = -1;
+		#endregion fields
 
-                if (_selectedIndex != value)
-                {
-                    RaisePropertyChanging("SelectedContentIndex");
-                    RaisePropertyChanging("SelectedContent");
-                    if (_selectedIndex >= 0 &&
-                        _selectedIndex < Children.Count)
-                        Children[_selectedIndex].IsSelected = false;
+		#region Constructors
 
-                    _selectedIndex = value;
+		/// <summary>Class constructor</summary>
+		public LayoutAnchorablePane()
+		{
+		}
 
-                    if (_selectedIndex >= 0 &&
-                        _selectedIndex < Children.Count)
-                        Children[_selectedIndex].IsSelected = true;
+		/// <summary>Class constructor from <see cref="LayoutAnchorable"/> which will be added into its children collection.</summary>
+		public LayoutAnchorablePane(LayoutAnchorable anchorable)
+		{
+			Children.Add(anchorable);
+		}
 
-                    RaisePropertyChanged("SelectedContentIndex");
-                    RaisePropertyChanged("SelectedContent");
-                }
-            }
-        }
+		#endregion Constructors
 
-        protected override void ChildMoved(int oldIndex, int newIndex)
-        {
-            if (_selectedIndex == oldIndex)
-            {
-                RaisePropertyChanging("SelectedContentIndex");
-                _selectedIndex = newIndex;
-                RaisePropertyChanged("SelectedContentIndex");
-            }
+		#region Properties
 
+		/// <summary>Gets whether the pane can be hidden.</summary>
+		public bool CanHide => Children.All(a => a.CanHide);
 
-            base.ChildMoved(oldIndex, newIndex);
-        }
+		/// <summary>Gets whether the pane can be closed.</summary>
+		public bool CanClose => Children.All(a => a.CanClose);
 
-        public LayoutContent SelectedContent
-        {
-            get
-            { 
-                return _selectedIndex == -1 ? null : Children[_selectedIndex]; 
-            }
-        }
-        #endregion
+		/// <summary>Gets whether the pane is hosted in a floating window.</summary>
+		public bool IsHostedInFloatingWindow => this.FindParent<LayoutFloatingWindow>() != null;
 
-        protected override void OnChildrenCollectionChanged()
-        {
-            AutoFixSelectedContent();
-            for (int i = 0; i < Children.Count; i++)
-            {
-                if (Children[i].IsSelected)
-                {
-                    SelectedContentIndex = i;
-                    break;
-                }
-            }
+		/// <summary>Gets whether the pane is hosted in a floating window.</summary>
+		public string Name
+		{
+			get => _name;
+			set
+			{
+				if (value == _name) return;
+				_name = value;
+				RaisePropertyChanged(nameof(Name));
+			}
+		}
 
-            RaisePropertyChanged("CanClose");
-            RaisePropertyChanged("CanHide");
-            RaisePropertyChanged("IsDirectlyHostedInFloatingWindow");
-            base.OnChildrenCollectionChanged();
-        }
+		/// <summary>Gets or sets the index of the selected content in the pane.</summary>
+		public int SelectedContentIndex
+		{
+			get => _selectedIndex;
+			set
+			{
+				if (value < 0 || value >= Children.Count) value = -1;
+				if (value == _selectedIndex) return;
+				RaisePropertyChanging(nameof(SelectedContentIndex));
+				RaisePropertyChanging(nameof(SelectedContent));
+				if (_selectedIndex >= 0 && _selectedIndex < Children.Count)
+					Children[_selectedIndex].IsSelected = false;
+				_selectedIndex = value;
+				if (_selectedIndex >= 0 && _selectedIndex < Children.Count)
+					Children[_selectedIndex].IsSelected = true;
+				RaisePropertyChanged(nameof(SelectedContentIndex));
+				RaisePropertyChanged(nameof(SelectedContent));
+			}
+		}
 
-        [XmlIgnore]
-        bool _autoFixSelectedContent = true;
-        void AutoFixSelectedContent()
-        {
-            if (_autoFixSelectedContent)
-            {
-                if (SelectedContentIndex >= ChildrenCount)
-                    SelectedContentIndex = Children.Count - 1;
+		/// <summary>Gets the selected content in the pane or null.</summary>
+		public LayoutContent SelectedContent => _selectedIndex == -1 ? null : Children[_selectedIndex];
 
-                if (SelectedContentIndex == -1 && ChildrenCount > 0)
-                    SelectedContentIndex = 0;
-            }
-        }
+		/// <summary>Gets/sets the unique id that is used for the serialization of this panel.</summary>
+		string ILayoutPaneSerializable.Id
+		{
+			get => _id;
+			set => _id = value;
+		}
 
-        public int IndexOf(LayoutContent content)
-        {
-            var anchorableChild = content as LayoutAnchorable;
-            if (anchorableChild == null)
-                return -1;
+		#endregion Properties
 
-            return Children.IndexOf(anchorableChild);
-        }
+		#region Overrides
 
+		/// <inheritdoc />
+		protected override bool GetVisibility() => Children.Count > 0 && Children.Any(c => c.IsVisible);
 
-        public bool IsDirectlyHostedInFloatingWindow
-        {
-            get
-            {
-                var parentFloatingWindow = this.FindParent<LayoutAnchorableFloatingWindow>();
-                if (parentFloatingWindow != null)
-                    return parentFloatingWindow.IsSinglePane;
+		/// <inheritdoc />
+		protected override void ChildMoved(int oldIndex, int newIndex)
+		{
+			if (_selectedIndex == oldIndex)
+			{
+				RaisePropertyChanging(nameof(SelectedContentIndex));
+				_selectedIndex = newIndex;
+				RaisePropertyChanged(nameof(SelectedContentIndex));
+			}
+			base.ChildMoved(oldIndex, newIndex);
+		}
 
-                return false;
-                //return Parent != null && Parent.ChildrenCount == 1 && Parent.Parent is LayoutFloatingWindow;
-            }
-        }
+		/// <inheritdoc />
+		protected override void OnChildrenCollectionChanged()
+		{
+			AutoFixSelectedContent();
+			for (var i = 0; i < Children.Count; i++)
+			{
+				if (!Children[i].IsSelected) continue;
+				SelectedContentIndex = i;
+				break;
+			}
+			RaisePropertyChanged(nameof(CanClose));
+			RaisePropertyChanged(nameof(CanHide));
+			RaisePropertyChanged(nameof(IsDirectlyHostedInFloatingWindow));
+			base.OnChildrenCollectionChanged();
+		}
 
-        internal void UpdateIsDirectlyHostedInFloatingWindow()
-        {
-            RaisePropertyChanged("IsDirectlyHostedInFloatingWindow");
-        }
+		/// <inheritdoc />
+		protected override void OnParentChanged(ILayoutContainer oldValue, ILayoutContainer newValue)
+		{
+			if (oldValue is ILayoutGroup oldGroup) oldGroup.ChildrenCollectionChanged -= OnParentChildrenCollectionChanged;
+			RaisePropertyChanged(nameof(IsDirectlyHostedInFloatingWindow));
+			if (newValue is ILayoutGroup newGroup) newGroup.ChildrenCollectionChanged += OnParentChildrenCollectionChanged;
+			base.OnParentChanged(oldValue, newValue);
+		}
 
-        public bool IsHostedInFloatingWindow
-        {
-            get
-            {
-                return this.FindParent<LayoutFloatingWindow>() != null;
-            }
-        }
+		/// <inheritdoc />
+		public override void WriteXml(System.Xml.XmlWriter writer)
+		{
+			if (_id != null) writer.WriteAttributeString(nameof(ILayoutPaneSerializable.Id), _id);
+			if (_name != null) writer.WriteAttributeString(nameof(Name), _name);
+			base.WriteXml(writer);
+		}
 
-        protected override void OnParentChanged(ILayoutContainer oldValue, ILayoutContainer newValue)
-        {
-            var oldGroup = oldValue as ILayoutGroup;
-            if (oldGroup != null)
-                oldGroup.ChildrenCollectionChanged -= new EventHandler(OnParentChildrenCollectionChanged);
-
-            RaisePropertyChanged("IsDirectlyHostedInFloatingWindow");
-
-            var newGroup = newValue as ILayoutGroup;
-            if (newGroup != null)
-                newGroup.ChildrenCollectionChanged += new EventHandler(OnParentChildrenCollectionChanged);
-
-            base.OnParentChanged(oldValue, newValue);
-        }
-
-        void OnParentChildrenCollectionChanged(object sender, EventArgs e)
-        {
-            RaisePropertyChanged("IsDirectlyHostedInFloatingWindow");
-        }
-
-        string _id;
-
-        string ILayoutPaneSerializable.Id
-        {
-            get
-            {
-                return _id;
-            }
-            set
-            {
-                _id = value;
-            }
-        }
-
-        #region Name
-
-        private string _name = null;
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                if (_name != value)
-                {
-                    _name = value;
-                    RaisePropertyChanged("Name");
-                }
-            }
-        }
-
-        #endregion
-
-
-
-        public override void WriteXml(System.Xml.XmlWriter writer)
-        {
-            if (_id != null)
-                writer.WriteAttributeString("Id", _id);
-            if (_name != null)
-                writer.WriteAttributeString("Name", _name);
-
-            base.WriteXml(writer);
-        }
-
-        public override void ReadXml(System.Xml.XmlReader reader)
-        {
-            if (reader.MoveToAttribute("Id"))
-                _id = reader.Value;
-            if (reader.MoveToAttribute("Name"))
-                _name = reader.Value;
-
-            _autoFixSelectedContent = false;
-            base.ReadXml(reader);
-            _autoFixSelectedContent = true;
-            AutoFixSelectedContent();
-        }
-
-
-        public bool CanHide
-        {
-            get { return Children.All(a => a.CanHide); }
-        }
-
-        public bool CanClose
-        {
-            get { return Children.All(a => a.CanClose);}
-        }
+		/// <inheritdoc />
+		public override void ReadXml(System.Xml.XmlReader reader)
+		{
+			if (reader.MoveToAttribute(nameof(ILayoutPaneSerializable.Id))) _id = reader.Value;
+			if (reader.MoveToAttribute(nameof(Name))) _name = reader.Value;
+			_autoFixSelectedContent = false;
+			base.ReadXml(reader);
+			_autoFixSelectedContent = true;
+			AutoFixSelectedContent();
+		}
 
 #if TRACE
-        public override void ConsoleDump(int tab)
-        {
-          System.Diagnostics.Trace.Write( new string( ' ', tab * 4 ) );
-          System.Diagnostics.Trace.WriteLine( "AnchorablePane()" );
+		/// <inheritdoc />
+		public override void ConsoleDump(int tab)
+		{
+			System.Diagnostics.Trace.Write(new string(' ', tab * 4));
+			System.Diagnostics.Trace.WriteLine("AnchorablePane()");
 
-          foreach (LayoutElement child in Children)
-              child.ConsoleDump(tab + 1);
-        }
+			foreach (LayoutElement child in Children)
+				child.ConsoleDump(tab + 1);
+		}
 #endif
-    }
+
+		#endregion Overrides
+
+		#region Public Methods
+
+		/// <summary>
+		/// Gets the index of the layout content (which is required to be a <see cref="LayoutAnchorable"/>)
+		/// or -1 if the layout content is not a <see cref="LayoutAnchorable"/> or is not part of the childrens collection.
+		/// </summary>
+		/// <param name="content"></param>
+		public int IndexOf(LayoutContent content)
+		{
+			if (!(content is LayoutAnchorable anchorableChild)) return -1;
+			return Children.IndexOf(anchorableChild);
+		}
+
+		/// <summary>
+		/// Gets whether the model hosts only 1 <see cref="LayoutAnchorable"/> (True)
+		/// or whether there are more than one <see cref="LayoutAnchorable"/>s below
+		/// this model pane.
+		/// </summary>
+		public bool IsDirectlyHostedInFloatingWindow
+		{
+			get
+			{
+				var parentFloatingWindow = this.FindParent<LayoutAnchorableFloatingWindow>();
+				return parentFloatingWindow != null && parentFloatingWindow.IsSinglePane;
+				//return Parent != null && Parent.ChildrenCount == 1 && Parent.Parent is LayoutFloatingWindow;
+			}
+		}
+
+		#endregion Public Methods
+
+		#region Internal Methods
+
+		/// <summary>Invalidates the current <see cref="SelectedContentIndex"/> and sets the index for the next avialable child with IsEnabled == true.</summary>
+		internal void SetNextSelectedIndex()
+		{
+			SelectedContentIndex = -1;
+			for (var i = 0; i < Children.Count; ++i)
+			{
+				if (!Children[i].IsEnabled) continue;
+				SelectedContentIndex = i;
+				return;
+			}
+		}
+
+		/// <summary>
+		/// Updates whether this object is hosted at the root level of a floating window control or not.
+		/// </summary>
+		internal void UpdateIsDirectlyHostedInFloatingWindow() => RaisePropertyChanged(nameof(IsDirectlyHostedInFloatingWindow));
+
+		#endregion Internal Methods
+
+		#region Private Methods
+
+		private void AutoFixSelectedContent()
+		{
+			if (!_autoFixSelectedContent) return;
+			if (SelectedContentIndex >= ChildrenCount) SelectedContentIndex = Children.Count - 1;
+			if (SelectedContentIndex == -1 && ChildrenCount > 0) SetNextSelectedIndex();
+		}
+
+		private void OnParentChildrenCollectionChanged(object sender, EventArgs e) => RaisePropertyChanged(nameof(IsDirectlyHostedInFloatingWindow));
+
+		#endregion Private Methods
+	}
 }

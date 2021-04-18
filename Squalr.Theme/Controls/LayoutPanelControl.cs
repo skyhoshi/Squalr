@@ -1,131 +1,128 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
-using System.Windows;
 using Squalr.Theme.Layout;
+using System;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutPanelControl : LayoutGridControl<ILayoutPanelElement>, ILayoutControl
-    {
-        internal LayoutPanelControl(LayoutPanel model)
-            :base(model, model.Orientation)
-        {
-            _model = model;
+	/// <summary>
+	/// Implements a <see cref="Grid"/> based panel base class
+	/// that hosts a <see cref="LayoutPanel"/> as its model.
+	/// </summary>
+	public class LayoutPanelControl : LayoutGridControl<ILayoutPanelElement>, ILayoutControl
+	{
+		#region fields
 
-        }
+		private readonly LayoutPanel _model;
 
-        LayoutPanel _model;
+		#endregion fields
 
-        protected override void OnFixChildrenDockLengths()
-        {
-            if (ActualWidth == 0.0 ||
-                ActualHeight == 0.0)
-                return;
+		#region Constructors
 
-            var modelAsPositionableElement = _model as ILayoutPositionableElementWithActualSize;
-            #region Setup DockWidth/Height for children
-            if (_model.Orientation == Orientation.Horizontal)
-            {
-                if (_model.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>())
-                {
-                    for (int i = 0; i < _model.Children.Count; i++)
-                    {
-                        var childContainerModel = _model.Children[i] as ILayoutContainer;
-                        var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
+		internal LayoutPanelControl(LayoutPanel model)
+			: base(model, model.Orientation)
+		{
+			_model = model;
+		}
 
-                        if (childContainerModel != null &&
-                            (childContainerModel.IsOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>() ||
-                             childContainerModel.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>()))
-                        {
-                            childPositionableModel.DockWidth = new GridLength(1.0, GridUnitType.Star);
-                        }
-                        else if (childPositionableModel != null && childPositionableModel.DockWidth.IsStar)
-                        {
-                            var childPositionableModelWidthActualSize = childPositionableModel as ILayoutPositionableElementWithActualSize;
+		#endregion Constructors
 
-                            var widthToSet = Math.Max(childPositionableModelWidthActualSize.ActualWidth, childPositionableModel.DockMinWidth);
+		#region Overrides
 
-                            widthToSet = Math.Min(widthToSet, ActualWidth / 2.0);
-                            widthToSet = Math.Max(widthToSet, childPositionableModel.DockMinWidth);
+		protected override void OnFixChildrenDockLengths()
+		{
+			if (ActualWidth == 0.0 || ActualHeight == 0.0) return;
 
-                            childPositionableModel.DockWidth = new GridLength(
-                                widthToSet,
-                                GridUnitType.Pixel);
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < _model.Children.Count; i++)
-                    {
-                        var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
-                        if (!childPositionableModel.DockWidth.IsStar)
-                        {
-                            childPositionableModel.DockWidth = new GridLength(1.0, GridUnitType.Star);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                if (_model.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>())
-                {
-                    for (int i = 0; i < _model.Children.Count; i++)
-                    {
-                        var childContainerModel = _model.Children[i] as ILayoutContainer;
-                        var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
+			#region Setup DockWidth/Height for children
 
-                        if (childContainerModel != null &&
-                            (childContainerModel.IsOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>() ||
-                             childContainerModel.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>()))
-                        {
-                            childPositionableModel.DockHeight = new GridLength(1.0, GridUnitType.Star);
-                        }
-                        else if (childPositionableModel != null && childPositionableModel.DockHeight.IsStar)
-                        {
-                            var childPositionableModelWidthActualSize = childPositionableModel as ILayoutPositionableElementWithActualSize;
+			if (_model.Orientation == Orientation.Horizontal)
+			{
+				if (_model.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>())
+				{
+					for (var i = 0; i < _model.Children.Count; i++)
+					{
+						if (_model.Children[i] as ILayoutContainer != null &&
+							((_model.Children[i] as ILayoutContainer).IsOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>() ||
+							 (_model.Children[i] as ILayoutContainer).ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>()))
+						{
+							// Keep set values (from XML for instance)
+							if (!(_model.Children[i] as ILayoutPositionableElement).DockWidth.IsStar) (_model.Children[i] as ILayoutPositionableElement).DockWidth = new GridLength(1.0, GridUnitType.Star);
+						}
+						else if (_model.Children[i] as ILayoutPositionableElement != null && (_model.Children[i] as ILayoutPositionableElement).DockWidth.IsStar)
+						{
+							var childPositionableModelWidthActualSize = _model.Children[i] as ILayoutPositionableElement as ILayoutPositionableElementWithActualSize;
+							var childDockMinWidth = (_model.Children[i] as ILayoutPositionableElement).CalculatedDockMinWidth();
+							var widthToSet = Math.Max(childPositionableModelWidthActualSize.ActualWidth, childDockMinWidth);
 
-                            var heightToSet = Math.Max(childPositionableModelWidthActualSize.ActualHeight, childPositionableModel.DockMinHeight);
-                            heightToSet = Math.Min(heightToSet, ActualHeight / 2.0);
-                            heightToSet = Math.Max(heightToSet, childPositionableModel.DockMinHeight);
+							widthToSet = Math.Min(widthToSet, ActualWidth / 2.0);
+							widthToSet = Math.Max(widthToSet, childDockMinWidth);
+							(_model.Children[i] as ILayoutPositionableElement).DockWidth = new GridLength(widthToSet, GridUnitType.Pixel);
+						}
+					}
+				}
+				else
+				{
+					for (var i = 0; i < _model.Children.Count; i++)
+					{
+						var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
+						if (!childPositionableModel.DockWidth.IsStar)
+						{
+							// Keep set values (from XML for instance)
+							if (!childPositionableModel.DockWidth.IsStar) childPositionableModel.DockWidth = new GridLength(1.0, GridUnitType.Star);
+						}
+					}
+				}
+			}
+			else // Vertical
+			{
+				if (_model.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>())
+				{
+					for (var i = 0; i < _model.Children.Count; i++)
+					{
+						if (_model.Children[i] is ILayoutContainer childContainerModel &&
+							(childContainerModel.IsOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>() ||
+							 childContainerModel.ContainsChildOfType<LayoutDocumentPane, LayoutDocumentPaneGroup>()))
+						{
+							// Keep set values (from XML for instance)
+							if (!(_model.Children[i] as ILayoutPositionableElement).DockHeight.IsStar) (_model.Children[i] as ILayoutPositionableElement).DockHeight = new GridLength(1.0, GridUnitType.Star);
+						}
+						else if (_model.Children[i] as ILayoutPositionableElement != null && (_model.Children[i] as ILayoutPositionableElement).DockHeight.IsStar)
+						{
+							var childPositionableModelWidthActualSize = _model.Children[i] as ILayoutPositionableElement as ILayoutPositionableElementWithActualSize;
+							var childDockMinHeight = (_model.Children[i] as ILayoutPositionableElement).CalculatedDockMinHeight();
+							var heightToSet = Math.Max(childPositionableModelWidthActualSize.ActualHeight, childDockMinHeight);
+							heightToSet = Math.Min(heightToSet, ActualHeight / 2.0);
+							heightToSet = Math.Max(heightToSet, childDockMinHeight);
+							(_model.Children[i] as ILayoutPositionableElement).DockHeight = new GridLength(heightToSet, GridUnitType.Pixel);
+						}
+					}
+				}
+				else
+				{
+					for (var i = 0; i < _model.Children.Count; i++)
+					{
+						var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
+						if (!childPositionableModel.DockHeight.IsStar)
+						{
+							// Keep set values (from XML for instance)
+							if (!childPositionableModel.DockHeight.IsStar) childPositionableModel.DockHeight = new GridLength(1.0, GridUnitType.Star);
+						}
+					}
+				}
+			}
 
-                            childPositionableModel.DockHeight = new GridLength(heightToSet, GridUnitType.Pixel);
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < _model.Children.Count; i++)
-                    {
-                        var childPositionableModel = _model.Children[i] as ILayoutPositionableElement;
-                        if (!childPositionableModel.DockHeight.IsStar)
-                        {
-                            childPositionableModel.DockHeight = new GridLength(1.0, GridUnitType.Star);
-                        }
-                    }
-                }
-            }
-            #endregion
-        }
+			#endregion Setup DockWidth/Height for children
+		}
 
-    }
+		#endregion Overrides
+	}
 }

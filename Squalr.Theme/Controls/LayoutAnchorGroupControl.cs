@@ -1,99 +1,118 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
-using System.Collections.ObjectModel;
 using Squalr.Theme.Layout;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutAnchorGroupControl : Control, ILayoutControl
-    {
-        static LayoutAnchorGroupControl()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutAnchorGroupControl), new FrameworkPropertyMetadata(typeof(LayoutAnchorGroupControl)));
-        }
+	/// <summary>
+	/// This control displays multiple <see cref="LayoutAnchorControl"/>s along the
+	/// top, bottom, left, or right side of the <see cref="DockingManager"/>.
+	/// </summary>
+	public class LayoutAnchorGroupControl : Control, ILayoutControl
+	{
+		#region fields
 
+		private ObservableCollection<LayoutAnchorControl> _childViews = new ObservableCollection<LayoutAnchorControl>();
+		private LayoutAnchorGroup _model;
 
-        internal LayoutAnchorGroupControl(LayoutAnchorGroup model)
-        {
-            _model = model;
-            CreateChildrenViews();
+		#endregion fields
 
-            _model.Children.CollectionChanged += (s, e) => OnModelChildrenCollectionChanged(e);
-        }
+		#region Constructors
 
-        private void CreateChildrenViews()
-        {
-            var manager = _model.Root.Manager;
-            foreach (var childModel in _model.Children)
-            {
-                _childViews.Add(new LayoutAnchorControl(childModel) { Template = manager.AnchorTemplate });
-            }
-        }
+		static LayoutAnchorGroupControl()
+		{
+			DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutAnchorGroupControl), new FrameworkPropertyMetadata(typeof(LayoutAnchorGroupControl)));
+		}
 
-        private void OnModelChildrenCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove ||
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
-            {
-                if (e.OldItems != null)
-                {
-                    {
-                        foreach (var childModel in e.OldItems)
-                            _childViews.Remove(_childViews.First(cv => cv.Model == childModel));
-                    }
-                }
-            }
+		internal LayoutAnchorGroupControl(LayoutAnchorGroup model)
+		{
+			_model = model;
+			CreateChildrenViews();
 
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
-                _childViews.Clear();
+			_model.Children.CollectionChanged += (s, e) => OnModelChildrenCollectionChanged(e);
+		}
 
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add ||
-                e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
-            {
-                if (e.NewItems != null)
-                {
-                    var manager = _model.Root.Manager;
-                    int insertIndex = e.NewStartingIndex;
-                    foreach (LayoutAnchorable childModel in e.NewItems)
-                    {
-                        _childViews.Insert(insertIndex++, new LayoutAnchorControl(childModel) { Template = manager.AnchorTemplate });
-                    }
-                }
-            }
-        }
+		#endregion Constructors
 
-        ObservableCollection<LayoutAnchorControl> _childViews = new ObservableCollection<LayoutAnchorControl>();
+		#region Properties
 
-        public ObservableCollection<LayoutAnchorControl> Children
-        {
-            get { return _childViews; }
-        }
+		public ObservableCollection<LayoutAnchorControl> Children
+		{
+			get
+			{
+				return _childViews;
+			}
+		}
 
+		public ILayoutElement Model
+		{
+			get
+			{
+				return _model;
+			}
+		}
 
-        LayoutAnchorGroup _model;
-        public ILayoutElement Model
-        {
-            get { return _model; }
-        }
-    }
+		#endregion Properties
+
+		#region Private Methods
+
+		private void CreateChildrenViews()
+		{
+			var manager = _model.Root.Manager;
+			foreach (var childModel in _model.Children)
+			{
+				var lac = new LayoutAnchorControl(childModel);
+				lac.SetBinding(LayoutAnchorControl.TemplateProperty, new Binding(DockingManager.AnchorTemplateProperty.Name) { Source = manager });
+				_childViews.Add(lac);
+			}
+		}
+
+		private void OnModelChildrenCollectionChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove ||
+				e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+			{
+				if (e.OldItems != null)
+				{
+					{
+						foreach (var childModel in e.OldItems)
+							_childViews.Remove(_childViews.First(cv => cv.Model == childModel));
+					}
+				}
+			}
+
+			if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+				_childViews.Clear();
+
+			if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add ||
+				e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+			{
+				if (e.NewItems != null)
+				{
+					var manager = _model.Root.Manager;
+					int insertIndex = e.NewStartingIndex;
+					foreach (LayoutAnchorable childModel in e.NewItems)
+					{
+						var lac = new LayoutAnchorControl(childModel);
+						lac.SetBinding(LayoutAnchorControl.TemplateProperty, new Binding(DockingManager.AnchorTemplateProperty.Name) { Source = manager });
+						_childViews.Insert(insertIndex++, lac);
+					}
+				}
+			}
+		}
+
+		#endregion Private Methods
+	}
 }

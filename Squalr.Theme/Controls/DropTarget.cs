@@ -1,115 +1,152 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
+using Squalr.Theme.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Media;
-using Squalr.Theme.Layout;
 using System.Windows.Threading;
 
 namespace Squalr.Theme.Controls
 {
-    internal abstract class DropTarget<T> : DropTargetBase, IDropTarget where T : FrameworkElement
-    {
-        protected DropTarget(T targetElement, Rect detectionRect, DropTargetType type)
-        {
-            _targetElement = targetElement;
-            _detectionRect = new Rect[] { detectionRect };
-            _type = type;
-        }
+	/// <summary>
+	/// Abstract class to implement base for various drop target implementations on <see cref="DockingManager"/>,
+	/// <see cref="LayoutAnchorablePaneControl"/>, <see cref="LayoutDocumentPaneControl"/> etc.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	internal abstract class DropTarget<T> : DropTargetBase, IDropTarget where T : FrameworkElement
+	{
+		#region fields
 
-        protected DropTarget(T targetElement, IEnumerable<Rect> detectionRects, DropTargetType type)
-        {
-            _targetElement = targetElement;
-            _detectionRect = detectionRects.ToArray();
-            _type = type;
-        }
+		private Rect[] _detectionRect;
+		private T _targetElement;
+		private DropTargetType _type;
 
-        Rect[] _detectionRect;
+		#endregion fields
 
-        public Rect[] DetectionRects
-        {
-            get { return _detectionRect; }
-        }
+		#region Constructors
 
+		protected DropTarget(T targetElement, Rect detectionRect, DropTargetType type)
+		{
+			_targetElement = targetElement;
+			_detectionRect = new Rect[] { detectionRect };
+			_type = type;
+		}
 
-        T _targetElement;
-        public T TargetElement
-        {
-            get { return _targetElement; }
-        }
+		protected DropTarget(T targetElement, IEnumerable<Rect> detectionRects, DropTargetType type)
+		{
+			_targetElement = targetElement;
+			_detectionRect = detectionRects.ToArray();
+			_type = type;
+		}
 
-        DropTargetType _type;
+		#endregion Constructors
 
-        public DropTargetType Type
-        {
-            get { return _type; }
-        }
+		#region Properties
 
-        protected virtual void Drop(LayoutAnchorableFloatingWindow floatingWindow)
-        { }
+		public Rect[] DetectionRects
+		{
+			get
+			{
+				return _detectionRect;
+			}
+		}
 
-        protected virtual void Drop(LayoutDocumentFloatingWindow floatingWindow)
-        { }
+		public T TargetElement
+		{
+			get
+			{
+				return _targetElement;
+			}
+		}
 
+		public DropTargetType Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
 
-        public void Drop(LayoutFloatingWindow floatingWindow)
-        {
-            var root = floatingWindow.Root;
-            var currentActiveContent = floatingWindow.Root.ActiveContent;
-            var fwAsAnchorable = floatingWindow as LayoutAnchorableFloatingWindow;
+		#endregion Properties
 
-            if (fwAsAnchorable != null)
-            {
-                this.Drop(fwAsAnchorable);
-            }
-            else
-            {
-                var fwAsDocument = floatingWindow as LayoutDocumentFloatingWindow;
-                this.Drop(fwAsDocument);
-            }
+		#region Overrides
 
-            Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    currentActiveContent.IsSelected = false;
-                    currentActiveContent.IsActive = false;
-                    currentActiveContent.IsActive = true;
-                }), DispatcherPriority.Background);
-        }
+		/// <summary>
+		/// Method is invoked to complete a drag & drop operation with a (new) docking position
+		/// by docking of the LayoutAnchorable <paramref name="floatingWindow"/> into this drop target.
+		///
+		/// Inheriting classes should override this method to implement their own custom logic.
+		/// </summary>
+		/// <param name="floatingWindow"></param>
+		protected virtual void Drop(LayoutAnchorableFloatingWindow floatingWindow)
+		{
+		}
 
-        public virtual bool HitTest(Point dragPoint)
-        {
-            return _detectionRect.Any(dr => dr.Contains(dragPoint));
-        }
+		/// <summary>
+		/// Method is invoked to complete a drag & drop operation with a (new) docking position
+		/// by docking of the LayoutDocument <paramref name="floatingWindow"/> into this drop target.
+		///
+		/// Inheriting classes should override this method to implement their own custom logic.
+		/// </summary>
+		/// <param name="floatingWindow"></param>
+		protected virtual void Drop(LayoutDocumentFloatingWindow floatingWindow)
+		{
+		}
 
-        public abstract Geometry GetPreviewPath(OverlayWindow overlayWindow, LayoutFloatingWindow floatingWindow);
+		#endregion Overrides
 
+		#region Public Methods
 
+		public void Drop(LayoutFloatingWindow floatingWindow)
+		{
+			var root = floatingWindow.Root;
+			var currentActiveContent = floatingWindow.Root.ActiveContent;
+			var fwAsAnchorable = floatingWindow as LayoutAnchorableFloatingWindow;
 
-        public void DragEnter()
-        {
-            SetIsDraggingOver(TargetElement, true);
-        }
+			if (fwAsAnchorable != null)
+			{
+				this.Drop(fwAsAnchorable);
+			}
+			else
+			{
+				var fwAsDocument = floatingWindow as LayoutDocumentFloatingWindow;
+				this.Drop(fwAsDocument);
+			}
 
-        public void DragLeave()
-        {
-            SetIsDraggingOver(TargetElement, false);
-        }
-    }
+			Dispatcher.BeginInvoke(new Action(() =>
+				{
+					currentActiveContent.IsSelected = false;
+					currentActiveContent.IsActive = false;
+					currentActiveContent.IsActive = true;
+				}), DispatcherPriority.Background);
+		}
+
+		public virtual bool HitTest(Point dragPoint)
+		{
+			return _detectionRect.Any(dr => dr.Contains(dragPoint));
+		}
+
+		public abstract Geometry GetPreviewPath(OverlayWindow overlayWindow, LayoutFloatingWindow floatingWindow);
+
+		public void DragEnter()
+		{
+			SetIsDraggingOver(TargetElement, true);
+		}
+
+		public void DragLeave()
+		{
+			SetIsDraggingOver(TargetElement, false);
+		}
+
+		#endregion Public Methods
+	}
 }

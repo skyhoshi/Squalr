@@ -31,6 +31,19 @@
             }
         }
 
+        public static Int32 FreezeInterval
+        {
+            get
+            {
+                return Properties.Settings.Default.FreezeInterval;
+            }
+
+            set
+            {
+                Properties.Settings.Default.FreezeInterval = value;
+            }
+        }
+
         public static Boolean MemoryTypeNone
         {
             get

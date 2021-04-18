@@ -1,184 +1,194 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
+using Squalr.Theme.Layout;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using Squalr.Theme.Layout;
 using System.Windows.Threading;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutAnchorControl : Control, ILayoutControl
-    {
-        static LayoutAnchorControl()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutAnchorControl), new FrameworkPropertyMetadata(typeof(LayoutAnchorControl)));
-            Control.IsHitTestVisibleProperty.AddOwner(typeof(LayoutAnchorControl), new FrameworkPropertyMetadata(true)); 
-        }
+	/// <summary>
+	/// Implements a control that is displayed when a <see cref="LayoutAnchorableControl"/>
+	/// is in AutoHide mode (which can be applied via context menu drop entry or click on the Pin symbol.
+	/// </summary>
+	public class LayoutAnchorControl : Control, ILayoutControl
+	{
+		#region fields
 
+		private LayoutAnchorable _model;
+		private DispatcherTimer _openUpTimer = null;
 
-        internal LayoutAnchorControl(LayoutAnchorable model)
-        {
-            _model = model;
-            _model.IsActiveChanged += new EventHandler(_model_IsActiveChanged);
-            _model.IsSelectedChanged += new EventHandler(_model_IsSelectedChanged);
+		#endregion fields
 
-            SetSide(_model.FindParent<LayoutAnchorSide>().Side);
-        }
+		#region Constructors
 
-        void _model_IsSelectedChanged(object sender, EventArgs e)
-        {
-            if (!_model.IsAutoHidden)
-                _model.IsSelectedChanged -= new EventHandler(_model_IsSelectedChanged);
-            else if (_model.IsSelected)
-            {
-                _model.Root.Manager.ShowAutoHideWindow(this);
-                _model.IsSelected = false;
-            }
-        }
+		static LayoutAnchorControl()
+		{
+			DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutAnchorControl), new FrameworkPropertyMetadata(typeof(LayoutAnchorControl)));
+			Control.IsHitTestVisibleProperty.AddOwner(typeof(LayoutAnchorControl), new FrameworkPropertyMetadata(true));
+		}
 
-        void _model_IsActiveChanged(object sender, EventArgs e)
-        {
-            if (!_model.IsAutoHidden)
-                _model.IsActiveChanged -= new EventHandler(_model_IsActiveChanged);
-            else if (_model.IsActive)
-                _model.Root.Manager.ShowAutoHideWindow(this);
-        }
+		internal LayoutAnchorControl(LayoutAnchorable model)
+		{
+			_model = model;
+			_model.IsActiveChanged += new EventHandler(_model_IsActiveChanged);
+			_model.IsSelectedChanged += new EventHandler(_model_IsSelectedChanged);
 
-        LayoutAnchorable _model;
+			SetSide(_model.FindParent<LayoutAnchorSide>().Side);
+		}
 
-        public ILayoutElement Model
-        {
-            get { return _model; }
-        }
+		#endregion Constructors
 
-        //protected override void OnVisualParentChanged(DependencyObject oldParent)
-        //{
-        //    base.OnVisualParentChanged(oldParent);
+		#region Properties
 
-        //    var contentModel = _model;
+		public ILayoutElement Model
+		{
+			get
+			{
+				return _model;
+			}
+		}
 
-        //    if (oldParent != null && contentModel != null && contentModel.Content is UIElement)
-        //    {
-        //        var oldParentPaneControl = oldParent.FindVisualAncestor<LayoutAnchorablePaneControl>();
-        //        if (oldParentPaneControl != null)
-        //        {
-        //            ((ILogicalChildrenContainer)oldParentPaneControl).InternalRemoveLogicalChild(contentModel.Content);
-        //        }
-        //    }
+		#region Side
 
-        //    if (contentModel.Content != null && contentModel.Content is UIElement)
-        //    {
-        //        var oldLogicalParentPaneControl = LogicalTreeHelper.GetParent(contentModel.Content as UIElement)
-        //            as ILogicalChildrenContainer;
-        //        if (oldLogicalParentPaneControl != null)
-        //            oldLogicalParentPaneControl.InternalRemoveLogicalChild(contentModel.Content);
-        //    }
+		/// <summary>
+		/// Side Read-Only Dependency Property
+		/// </summary>
+		private static readonly DependencyPropertyKey SidePropertyKey = DependencyProperty.RegisterReadOnly("Side", typeof(AnchorSide), typeof(LayoutAnchorControl),
+				new FrameworkPropertyMetadata((AnchorSide)AnchorSide.Left));
 
-        //    if (contentModel != null && contentModel.Content != null && contentModel.Root != null && contentModel.Content is UIElement)
-        //    {
-        //        ((ILogicalChildrenContainer)contentModel.Root.Manager).InternalAddLogicalChild(contentModel.Content);
-        //    }
-        //}
+		public static readonly DependencyProperty SideProperty = SidePropertyKey.DependencyProperty;
 
+		/// <summary>Gets the anchor side of the control.</summary>
+		[Bindable(true), Description("Gets the anchor side of the control."), Category("Anchor")]
+		public AnchorSide Side
+		{
+			get
+			{
+				return (AnchorSide)GetValue(SideProperty);
+			}
+		}
 
-        protected override void OnMouseDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnMouseDown(e);
+		/// <summary>
+		/// Provides a secure method for setting the Side property.
+		/// This dependency property indicates the anchor side of the control.
+		/// </summary>
+		/// <param name="value">The new value for the property.</param>
+		protected void SetSide(AnchorSide value)
+		{
+			SetValue(SidePropertyKey, value);
+		}
 
-            if (!e.Handled)
-            {
-                _model.Root.Manager.ShowAutoHideWindow(this);
-                _model.IsActive = true;
-            }
-        }
+		#endregion Side
 
+		#endregion Properties
 
-        DispatcherTimer _openUpTimer = null;
+		#region Overrides
 
-        protected override void OnMouseEnter(System.Windows.Input.MouseEventArgs e)
-        {
-            base.OnMouseEnter(e);
+		//protected override void OnVisualParentChanged(DependencyObject oldParent)
+		//{
+		//    base.OnVisualParentChanged(oldParent);
 
-            if (!e.Handled)
-            {
-                _openUpTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle);
-                _openUpTimer.Interval = TimeSpan.FromMilliseconds(400);
-                _openUpTimer.Tick += new EventHandler(_openUpTimer_Tick);
-                _openUpTimer.Start();
-            }
-        }
+		//    var contentModel = _model;
 
-        void _openUpTimer_Tick(object sender, EventArgs e)
-        {
-            _openUpTimer.Tick -= new EventHandler(_openUpTimer_Tick);
-            _openUpTimer.Stop();
-            _openUpTimer = null;
-            _model.Root.Manager.ShowAutoHideWindow(this);
-        }
+		//    if (oldParent != null && contentModel != null && contentModel.Content is UIElement)
+		//    {
+		//        var oldParentPaneControl = oldParent.FindVisualAncestor<LayoutAnchorablePaneControl>();
+		//        if (oldParentPaneControl != null)
+		//        {
+		//            ((ILogicalChildrenContainer)oldParentPaneControl).InternalRemoveLogicalChild(contentModel.Content);
+		//        }
+		//    }
 
-        protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e)
-        {
-            if (_openUpTimer != null)
-            {
-                _openUpTimer.Tick -= new EventHandler(_openUpTimer_Tick);
-                _openUpTimer.Stop();
-                _openUpTimer = null;
-            }
-            base.OnMouseLeave(e);
-        }
+		//    if (contentModel.Content != null && contentModel.Content is UIElement)
+		//    {
+		//        var oldLogicalParentPaneControl = LogicalTreeHelper.GetParent(contentModel.Content as UIElement)
+		//            as ILogicalChildrenContainer;
+		//        if (oldLogicalParentPaneControl != null)
+		//            oldLogicalParentPaneControl.InternalRemoveLogicalChild(contentModel.Content);
+		//    }
 
+		//    if (contentModel != null && contentModel.Content != null && contentModel.Root != null && contentModel.Content is UIElement)
+		//    {
+		//        ((ILogicalChildrenContainer)contentModel.Root.Manager).InternalAddLogicalChild(contentModel.Content);
+		//    }
+		//}
 
-        #region Side
+		protected override void OnMouseDown(System.Windows.Input.MouseButtonEventArgs e)
+		{
+			base.OnMouseDown(e);
 
-        /// <summary>
-        /// Side Read-Only Dependency Property
-        /// </summary>
-        private static readonly DependencyPropertyKey SidePropertyKey
-            = DependencyProperty.RegisterReadOnly("Side", typeof(AnchorSide), typeof(LayoutAnchorControl),
-                new FrameworkPropertyMetadata((AnchorSide)AnchorSide.Left));
+			if (!e.Handled)
+			{
+				_model.Root.Manager.ShowAutoHideWindow(this);
+				_model.IsActive = true;
+			}
+		}
 
-        public static readonly DependencyProperty SideProperty
-            = SidePropertyKey.DependencyProperty;
+		protected override void OnMouseEnter(System.Windows.Input.MouseEventArgs e)
+		{
+			base.OnMouseEnter(e);
 
-        /// <summary>
-        /// Gets the Side property.  This dependency property 
-        /// indicates the anchor side of the control.
-        /// </summary>
-        public AnchorSide Side
-        {
-            get { return (AnchorSide)GetValue(SideProperty); }
-        }
+			if (!e.Handled)
+			{
+				_openUpTimer = new DispatcherTimer(DispatcherPriority.ApplicationIdle);
+				_openUpTimer.Interval = TimeSpan.FromMilliseconds(400);
+				_openUpTimer.Tick += new EventHandler(_openUpTimer_Tick);
+				_openUpTimer.Start();
+			}
+		}
 
-        /// <summary>
-        /// Provides a secure method for setting the Side property.  
-        /// This dependency property indicates the anchor side of the control.
-        /// </summary>
-        /// <param name="value">The new value for the property.</param>
-        protected void SetSide(AnchorSide value)
-        {
-            SetValue(SidePropertyKey, value);
-        }
+		protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e)
+		{
+			if (_openUpTimer != null)
+			{
+				_openUpTimer.Tick -= new EventHandler(_openUpTimer_Tick);
+				_openUpTimer.Stop();
+				_openUpTimer = null;
+			}
+			base.OnMouseLeave(e);
+		}
 
-        #endregion
+		#endregion Overrides
 
+		#region Private Methods
 
-    }
+		private void _model_IsSelectedChanged(object sender, EventArgs e)
+		{
+			if (!_model.IsAutoHidden)
+				_model.IsSelectedChanged -= new EventHandler(_model_IsSelectedChanged);
+			else if (_model.IsSelected)
+			{
+				_model.Root.Manager.ShowAutoHideWindow(this);
+				_model.IsSelected = false;
+			}
+		}
+
+		private void _model_IsActiveChanged(object sender, EventArgs e)
+		{
+			if (!_model.IsAutoHidden)
+				_model.IsActiveChanged -= new EventHandler(_model_IsActiveChanged);
+			else if (_model.IsActive)
+				_model.Root.Manager.ShowAutoHideWindow(this);
+		}
+
+		private void _openUpTimer_Tick(object sender, EventArgs e)
+		{
+			_openUpTimer.Tick -= new EventHandler(_openUpTimer_Tick);
+			_openUpTimer.Stop();
+			_openUpTimer = null;
+			_model.Root.Manager.ShowAutoHideWindow(this);
+		}
+
+		#endregion Private Methods
+	}
 }

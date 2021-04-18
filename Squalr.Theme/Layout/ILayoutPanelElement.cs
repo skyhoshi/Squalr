@@ -1,29 +1,18 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 namespace Squalr.Theme.Layout
 {
-    public interface ILayoutPanelElement : ILayoutElement
-    {
-        bool IsVisible { get; }
-    }
+	/// <summary>Interface definition for a <see cref="ILayoutElement"/> that supports a visibility property.</summary>
+	public interface ILayoutPanelElement : ILayoutElement
+	{
+		/// <summary>Gets whether the <see cref="ILayoutElement"/> is currently visible or not.</summary>
+		bool IsVisible { get; }
+	}
 }

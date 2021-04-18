@@ -49,6 +49,18 @@ namespace Squalr.Engine.Scanning.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int FreezeInterval {
+            get {
+                return ((int)(this["FreezeInterval"]));
+            }
+            set {
+                this["FreezeInterval"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool MemoryTypeNone {
             get {

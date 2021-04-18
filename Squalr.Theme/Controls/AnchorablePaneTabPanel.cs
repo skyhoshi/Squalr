@@ -1,107 +1,107 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
-using System.Windows;
 using Squalr.Theme.Layout;
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Squalr.Theme.Controls
 {
-    public class AnchorablePaneTabPanel : Panel
-    {
-        public AnchorablePaneTabPanel()
-        {
-            FlowDirection = System.Windows.FlowDirection.LeftToRight;
-        }
+	/// <summary>
+	/// provides a <see cref="Panel"/> that contains the TabItem Headers of the <see cref="LayoutAnchorablePaneControl"/>.
+	/// </summary>
+	public class AnchorablePaneTabPanel : Panel
+	{
+		#region Constructors
 
+		public AnchorablePaneTabPanel()
+		{
+			this.FlowDirection = System.Windows.FlowDirection.LeftToRight;
+		}
 
-        protected override Size MeasureOverride(Size availableSize)
-        {
-            double totWidth = 0;
-            double maxHeight = 0;
-            var visibleChildren = Children.Cast<UIElement>().Where(ch => ch.Visibility != System.Windows.Visibility.Collapsed);
-            foreach (FrameworkElement child in visibleChildren)
-            {
-                child.Measure(new Size(double.PositiveInfinity, availableSize.Height));
-                totWidth += child.DesiredSize.Width;
-                maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
-            }
+		#endregion Constructors
 
-            if (totWidth > availableSize.Width)
-            {
-                double childFinalDesideredWidth = availableSize.Width / visibleChildren.Count();
-                foreach (FrameworkElement child in visibleChildren)
-                {
-                    child.Measure(new Size(childFinalDesideredWidth, availableSize.Height));
-                }
-            }
+		#region Overrides
 
-            return new Size(Math.Min(availableSize.Width, totWidth), maxHeight);
-        }
+		protected override Size MeasureOverride(Size availableSize)
+		{
+			double totWidth = 0;
+			double maxHeight = 0;
+			var visibleChildren = Children.Cast<UIElement>().Where(ch => ch.Visibility != System.Windows.Visibility.Collapsed);
+			foreach (FrameworkElement child in visibleChildren)
+			{
+				child.Measure(new Size(double.PositiveInfinity, availableSize.Height));
+				totWidth += child.DesiredSize.Width;
+				maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
+			}
 
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            var visibleChildren = Children.Cast<UIElement>().Where(ch => ch.Visibility != System.Windows.Visibility.Collapsed);
+			if (totWidth > availableSize.Width)
+			{
+				double childFinalDesideredWidth = availableSize.Width / visibleChildren.Count();
+				foreach (FrameworkElement child in visibleChildren)
+				{
+					child.Measure(new Size(childFinalDesideredWidth, availableSize.Height));
+				}
+			}
 
+			return new Size(Math.Min(availableSize.Width, totWidth), maxHeight);
+		}
 
-            double finalWidth = finalSize.Width;
-            double desideredWidth = visibleChildren.Sum(ch => ch.DesiredSize.Width);
-            double offsetX = 0.0;
+		protected override Size ArrangeOverride(Size finalSize)
+		{
+			var visibleChildren = Children.Cast<UIElement>().Where(ch => ch.Visibility != System.Windows.Visibility.Collapsed);
 
-            if (finalWidth > desideredWidth)
-            {
-                foreach (FrameworkElement child in visibleChildren)
-                {
-                    double childFinalWidth = child.DesiredSize.Width ;
-                    child.Arrange(new Rect(offsetX, 0, childFinalWidth, finalSize.Height));
+			double finalWidth = finalSize.Width;
+			double desideredWidth = visibleChildren.Sum(ch => ch.DesiredSize.Width);
+			double offsetX = 0.0;
 
-                    offsetX += childFinalWidth;
-                }
-            }
-            else
-            {
-                double childFinalWidth = finalWidth / visibleChildren.Count();
-                foreach (FrameworkElement child in visibleChildren)
-                {
-                    child.Arrange(new Rect(offsetX, 0, childFinalWidth, finalSize.Height));
+			if (finalWidth > desideredWidth)
+			{
+				foreach (FrameworkElement child in visibleChildren)
+				{
+					double childFinalWidth = child.DesiredSize.Width;
+					child.Arrange(new Rect(offsetX, 0, childFinalWidth, finalSize.Height));
 
-                    offsetX += childFinalWidth;
-                }   
-            }
+					offsetX += childFinalWidth;
+				}
+			}
+			else
+			{
+				double childFinalWidth = finalWidth / visibleChildren.Count();
+				foreach (FrameworkElement child in visibleChildren)
+				{
+					child.Arrange(new Rect(offsetX, 0, childFinalWidth, finalSize.Height));
 
-            return finalSize;
-        }
+					offsetX += childFinalWidth;
+				}
+			}
 
-        protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e)
-        {
-            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed &&
-                LayoutAnchorableTabItem.IsDraggingItem())
-            {
-                var contentModel = LayoutAnchorableTabItem.GetDraggingItem().Model as LayoutAnchorable;
-                var manager = contentModel.Root.Manager;
-                LayoutAnchorableTabItem.ResetDraggingItem();
+			return finalSize;
+		}
 
-                manager.StartDraggingFloatingWindowForContent(contentModel);
-            }
+		protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e)
+		{
+			if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed &&
+				LayoutAnchorableTabItem.IsDraggingItem())
+			{
+				var contentModel = LayoutAnchorableTabItem.GetDraggingItem().Model as LayoutAnchorable;
+				var manager = contentModel.Root.Manager;
+				LayoutAnchorableTabItem.ResetDraggingItem();
 
-            base.OnMouseLeave(e);
-        }
-    }
+				manager.StartDraggingFloatingWindowForContent(contentModel);
+			}
+
+			base.OnMouseLeave(e);
+		}
+
+		#endregion Overrides
+	}
 }

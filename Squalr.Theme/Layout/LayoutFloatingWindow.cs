@@ -1,52 +1,73 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Markup;
-using System.Windows;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 
 namespace Squalr.Theme.Layout
 {
-    [Serializable]
-    [XmlInclude(typeof(LayoutAnchorableFloatingWindow))]
-    [XmlInclude(typeof(LayoutDocumentFloatingWindow))]
-    public abstract class LayoutFloatingWindow : LayoutElement, ILayoutContainer
-    {
-        public LayoutFloatingWindow()
-        { 
+	/// <summary>
+	/// Provides an abstract class to implement a concrete floating window layout model.
+	/// </summary>
+	[Serializable]
+	public abstract class LayoutFloatingWindow : LayoutElement, ILayoutContainer, IXmlSerializable
+	{
+		#region Properties
 
-        }
+		/// <summary>Gets the list of <see cref="ILayoutElement"/> based children below this object.</summary>
+		public abstract IEnumerable<ILayoutElement> Children { get; }
 
+		/// <summary>Gets the number of children below this object.</summary>
+		public abstract int ChildrenCount { get; }
 
-        public abstract IEnumerable<ILayoutElement> Children { get; }
+		public abstract bool IsValid { get; }
 
-        public abstract void RemoveChild(ILayoutElement element);
+		#endregion Properties
 
-        public abstract void ReplaceChild(ILayoutElement oldElement, ILayoutElement newElement);
+		#region Public Methods
 
-        public abstract int ChildrenCount { get; }
+		/// <summary>Remove the child element from the collection of children.</summary>
+		/// <param name="element"></param>
+		public abstract void RemoveChild(ILayoutElement element);
 
-        public abstract bool IsValid { get; }
+		/// <summary>Replace the child element with a new child in the collection of children.</summary>
+		/// <param name="oldElement"></param>
+		/// <param name="newElement"></param>
+		public abstract void ReplaceChild(ILayoutElement oldElement, ILayoutElement newElement);
 
+		#region IXmlSerializable interface members
 
+		/// <inheritdoc cref="IXmlSerializable"/>
+		public XmlSchema GetSchema()
+		{
+			return null;
+		}
 
+		/// <inheritdoc cref="IXmlSerializable"/>
+		public abstract void ReadXml(XmlReader reader);
 
-    }
+		/// <inheritdoc cref="IXmlSerializable"/>
+		public virtual void WriteXml(XmlWriter writer)
+		{
+			foreach (var child in Children)
+			{
+				var type = child.GetType();
+				var serializer = new XmlSerializer(type);
+				serializer.Serialize(writer, child);
+			}
+		}
+
+		#endregion IXmlSerializable interface members
+
+		#endregion Public Methods
+	}
 }

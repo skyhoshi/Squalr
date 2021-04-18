@@ -10,7 +10,7 @@
     x:Name="SqualrPointerScanResults"
     d:DesignHeight="256"
     d:DesignWidth="512"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding PointerScanResultsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

@@ -10,7 +10,7 @@
     /// <summary>
     /// View model for an individual .Net object.
     /// </summary>
-    internal class DotNetObjectViewModel : TreeViewItemViewModel
+    public class DotNetObjectViewModel : TreeViewItemViewModel
     {
         /// <summary>
         /// The .Net object model.

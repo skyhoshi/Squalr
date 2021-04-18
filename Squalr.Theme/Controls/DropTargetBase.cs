@@ -1,56 +1,46 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 
 namespace Squalr.Theme.Controls
 {
-    abstract class DropTargetBase : DependencyObject
-    {
-        #region IsDraggingOver
+	/// <summary>Implements a base implementation for the abstract <see cref="DropTarget{T}"/> class.</summary>
+	internal abstract class DropTargetBase : DependencyObject
+	{
+		#region Properties
 
-        /// <summary>
-        /// IsDraggingOver Attached Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty IsDraggingOverProperty =
-            DependencyProperty.RegisterAttached("IsDraggingOver", typeof(bool), typeof(DropTargetBase),
-                new FrameworkPropertyMetadata((bool)false));
+		#region IsDraggingOver
 
-        /// <summary>
-        /// Gets the IsDraggingOver property.  This dependency property 
-        /// indicates if user is dragging a window over the target element.
-        /// </summary>
-        public static bool GetIsDraggingOver(DependencyObject d)
-        {
-            return (bool)d.GetValue(IsDraggingOverProperty);
-        }
+		/// <summary>IsDraggingOver Attached Dependency Property</summary>
+		public static readonly DependencyProperty IsDraggingOverProperty = DependencyProperty.RegisterAttached("IsDraggingOver", typeof(bool), typeof(DropTargetBase),
+				new FrameworkPropertyMetadata((bool)false));
 
-        /// <summary>
-        /// Sets the IsDraggingOver property.  This dependency property 
-        /// indicates if user is dragging away a window from the target element.
-        /// </summary>
-        public static void SetIsDraggingOver(DependencyObject d, bool value)
-        {
-            d.SetValue(IsDraggingOverProperty, value);
-        }
+		/// <summary>Gets wether the user is dragging a window over the target element.</summary>
+		[Bindable(true), Description("Gets wether the user is dragging a window over the target element."), Category("Other")]
+		public static bool GetIsDraggingOver(DependencyObject d)
+		{
+			return (bool)d.GetValue(IsDraggingOverProperty);
+		}
 
-        #endregion
-    }
+		/// <summary>
+		/// Sets the IsDraggingOver property.
+		/// This dependency property indicates if user is dragging away a window from the target element.
+		/// </summary>
+		public static void SetIsDraggingOver(DependencyObject d, bool value)
+		{
+			d.SetValue(IsDraggingOverProperty, value);
+		}
+
+		#endregion IsDraggingOver
+
+		#endregion Properties
+	}
 }

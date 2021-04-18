@@ -1,189 +1,158 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls;
-using System.Windows;
-using System.Windows.Input;
 using Squalr.Theme.Layout;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Squalr.Theme.Controls
 {
+	/// <summary>
+	/// This control defines the Title area of a <see cref="LayoutAnchorableControl"/>.
+	/// It is used to show a title bar with docking window buttons to let users interact
+	/// with a <see cref="LayoutAnchorable"/> via drop down menu click or drag & drop.
+	/// </summary>
+	public class AnchorablePaneTitle : Control
+	{
+		#region fields
 
-    public class AnchorablePaneTitle : Control
-    {
-        static AnchorablePaneTitle()
-        {
-            IsHitTestVisibleProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(true));
-            FocusableProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(false));
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(typeof(AnchorablePaneTitle)));
-        }
+		private bool _isMouseDown = false;
 
+		#endregion fields
 
-        public AnchorablePaneTitle()
-        { 
+		#region Constructors
 
-        }
+		/// <summary>
+		/// Static class constructor
+		/// </summary>
+		static AnchorablePaneTitle()
+		{
+			IsHitTestVisibleProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(true));
+			FocusableProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(false));
+			DefaultStyleKeyProperty.OverrideMetadata(typeof(AnchorablePaneTitle), new FrameworkPropertyMetadata(typeof(AnchorablePaneTitle)));
+		}
 
-        #region Model
+		#endregion Constructors
 
-        /// <summary>
-        /// Model Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.Register("Model", typeof(LayoutAnchorable), typeof(AnchorablePaneTitle),
-                new FrameworkPropertyMetadata((LayoutAnchorable)null, new PropertyChangedCallback(_OnModelChanged)));
+		#region Model
 
-        /// <summary>
-        /// Gets or sets the Model property.  This dependency property 
-        /// indicates model attached to this view.
-        /// </summary>
-        public LayoutAnchorable Model
-        {
-            get { return (LayoutAnchorable)GetValue(ModelProperty); }
-            set { SetValue(ModelProperty, value); }
-        }
+		/// <summary><see cref="Model"/> dependency property.</summary>
+		public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(nameof(Model), typeof(LayoutAnchorable), typeof(AnchorablePaneTitle),
+				new FrameworkPropertyMetadata(null, _OnModelChanged));
 
-        static void _OnModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
-        {
-            ((AnchorablePaneTitle)sender).OnModelChanged(e);
-        }
+		/// <summary>Gets/sets the <see cref="LayoutAnchorable"/> model attached of this view.</summary>
+		[Bindable(true), Description("Gets/sets the LayoutAnchorable model attached of this view."), Category("Anchorable")]
+		public LayoutAnchorable Model
+		{
+			get => (LayoutAnchorable)GetValue(ModelProperty);
+			set => SetValue(ModelProperty, value);
+		}
 
-        /// <summary>
-        /// Provides derived classes an opportunity to handle changes to the Model property.
-        /// </summary>
-        protected virtual void OnModelChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (Model != null)
-                SetLayoutItem(Model.Root.Manager.GetLayoutItemFromModel(Model));
-            else
-                SetLayoutItem(null);
-        }
+		private static void _OnModelChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((AnchorablePaneTitle)sender).OnModelChanged(e);
 
-        #endregion
+		/// <summary>Provides derived classes an opportunity to handle changes to the <see cref="Model"/> property.</summary>
+		protected virtual void OnModelChanged(DependencyPropertyChangedEventArgs e)
+		{
+			if (Model != null)
+				SetLayoutItem(Model?.Root?.Manager?.GetLayoutItemFromModel(Model));
+			else
+				SetLayoutItem(null);
+		}
 
+		#endregion Model
 
-        #region LayoutItem
+		#region LayoutItem
 
-        /// <summary>
-        /// LayoutItem Read-Only Dependency Property
-        /// </summary>
-        private static readonly DependencyPropertyKey LayoutItemPropertyKey
-            = DependencyProperty.RegisterReadOnly("LayoutItem", typeof(LayoutItem), typeof(AnchorablePaneTitle),
-                new FrameworkPropertyMetadata((LayoutItem)null));
+		/// <summary><see cref="LayoutItem"/> Read-Only dependency property.</summary>
+		private static readonly DependencyPropertyKey LayoutItemPropertyKey = DependencyProperty.RegisterReadOnly(nameof(LayoutItem), typeof(LayoutItem), typeof(AnchorablePaneTitle),
+				new FrameworkPropertyMetadata((LayoutItem)null));
 
-        public static readonly DependencyProperty LayoutItemProperty
-            = LayoutItemPropertyKey.DependencyProperty;
+		public static readonly DependencyProperty LayoutItemProperty = LayoutItemPropertyKey.DependencyProperty;
 
-        /// <summary>
-        /// Gets the LayoutItem property.  This dependency property 
-        /// indicates the LayoutItem attached to this tag item.
-        /// </summary>
-        public LayoutItem LayoutItem
-        {
-            get { return (LayoutItem)GetValue(LayoutItemProperty); }
-        }
+		/// <summary>Gets the <see cref="LayoutItem"/> (<see cref="LayoutAnchorableItem"/> or <see cref="LayoutDocumentItem"/>) attached to this view.</summary>
+		[Bindable(true), Description("Gets the LayoutItem (LayoutAnchorableItem or LayoutDocumentItem) attached to this object."), Category("Layout")]
+		public LayoutItem LayoutItem => (LayoutItem)GetValue(LayoutItemProperty);
 
-        /// <summary>
-        /// Provides a secure method for setting the LayoutItem property.  
-        /// This dependency property indicates the LayoutItem attached to this tag item.
-        /// </summary>
-        /// <param name="value">The new value for the property.</param>
-        protected void SetLayoutItem(LayoutItem value)
-        {
-            SetValue(LayoutItemPropertyKey, value);
-        }
+		/// <summary>
+		/// Provides a secure method for setting the <see cref="LayoutItem"/> property.
+		/// This dependency property indicates the <see cref="AvalonDock.Controls.LayoutItem"/> attached to this tag item.
+		/// </summary>
+		/// <param name="value">The new value for the property.</param>
+		protected void SetLayoutItem(LayoutItem value) => SetValue(LayoutItemPropertyKey, value);
 
-        #endregion
+		#endregion LayoutItem
 
+		#region Overrides
 
-        private void OnHide()
-        {
-            Model.IsVisible = false;
-        }
+		/// <inheritdoc />
+		protected override void OnMouseMove(MouseEventArgs e)
+		{
+			if (e.LeftButton != MouseButtonState.Pressed) _isMouseDown = false;
+			base.OnMouseMove(e);
+		}
 
-        private void OnToggleAutoHide()
-        {
-            Model.ToggleAutoHide();
-        }
+		/// <inheritdoc />
+		protected override void OnMouseLeave(MouseEventArgs e)
+		{
+			base.OnMouseLeave(e);
+			if (_isMouseDown && e.LeftButton == MouseButtonState.Pressed)
+			{
+				var pane = this.FindVisualAncestor<LayoutAnchorablePaneControl>();
+				if (pane != null)
+				{
+					var paneModel = pane.Model as LayoutAnchorablePane;
+					var manager = paneModel.Root.Manager;
+					manager.StartDraggingFloatingWindowForPane(paneModel);
+				}
+				else
+				{
+					// Start dragging a LayoutAnchorable control that docked/reduced into a SidePanel and
+					// 1) made visible by clicking on to its name in AutoHide mode
+					// 2) user drags the top title bar of the LayoutAnchorable control to drag it out of its current docking position
+					Model?.Root?.Manager?.StartDraggingFloatingWindowForContent(Model);
+				}
+			}
+			_isMouseDown = false;
+		}
 
-        protected override void OnMouseMove(System.Windows.Input.MouseEventArgs e)
-        {
-            if (e.LeftButton != MouseButtonState.Pressed)
-            {
-                _isMouseDown = false;
-            }
+		/// <inheritdoc />
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+		{
+			base.OnMouseLeftButtonDown(e);
 
-            base.OnMouseMove(e);
-        }
+			// Start a drag & drop action for a LayoutAnchorable
+			if (e.Handled || Model.CanMove == false) return;
+			var attachFloatingWindow = false;
+			var parentFloatingWindow = Model.FindParent<LayoutAnchorableFloatingWindow>();
+			if (parentFloatingWindow != null) attachFloatingWindow = parentFloatingWindow.Descendents().OfType<LayoutAnchorablePane>().Count() == 1;
 
-        protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e)
-        {
-            base.OnMouseLeave(e);
+			if (attachFloatingWindow)
+			{
+				//the pane is hosted inside a floating window that contains only an anchorable pane so drag the floating window itself
+				var floatingWndControl = Model.Root.Manager.FloatingWindows.Single(fwc => fwc.Model == parentFloatingWindow);
+				floatingWndControl.AttachDrag(false);
+			}
+			else
+				_isMouseDown = true;//normal drag
+		}
 
-            if (_isMouseDown && e.LeftButton == MouseButtonState.Pressed)
-            {
-                var pane = this.FindVisualAncestor<LayoutAnchorablePaneControl>();
-                if (pane != null)
-                {
-                    var paneModel = pane.Model as LayoutAnchorablePane;
-                    var manager = paneModel.Root.Manager;
+		/// <inheritdoc />
+		protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+		{
+			_isMouseDown = false;
+			base.OnMouseLeftButtonUp(e);
+			if (Model != null) Model.IsActive = true;//FocusElementManager.SetFocusOnLastElement(Model);
+		}
 
-                    manager.StartDraggingFloatingWindowForPane(paneModel);
-                }
-            }
-
-            _isMouseDown = false;
-        }
-
-        bool _isMouseDown = false;
-        protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnMouseLeftButtonDown(e);
-
-            if (!e.Handled)
-            {
-                bool attachFloatingWindow = false;
-                var parentFloatingWindow = Model.FindParent<LayoutAnchorableFloatingWindow>();
-                if (parentFloatingWindow != null)
-                {
-                    attachFloatingWindow = parentFloatingWindow.Descendents().OfType<LayoutAnchorablePane>().Count() == 1;
-                }
-
-                if (attachFloatingWindow)
-                {
-                    //the pane is hosted inside a floating window that contains only an anchorable pane so drag the floating window itself
-                    var floatingWndControl = Model.Root.Manager.FloatingWindows.Single(fwc => fwc.Model == parentFloatingWindow);
-                    floatingWndControl.AttachDrag(false);
-                }
-                else
-                    _isMouseDown = true;//normal drag
-            }
-        }
-
-        protected override void OnMouseLeftButtonUp(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            _isMouseDown = false;
-            base.OnMouseLeftButtonUp(e);
-
-            if (Model != null)
-                Model.IsActive = true;//FocusElementManager.SetFocusOnLastElement(Model);
-        }
-    }
+		#endregion Overrides
+	}
 }

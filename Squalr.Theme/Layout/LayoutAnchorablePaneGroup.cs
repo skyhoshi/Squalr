@@ -1,129 +1,142 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 
 namespace Squalr.Theme.Layout
 {
-    [ContentProperty("Children")]
-    [Serializable]
-    public class LayoutAnchorablePaneGroup : LayoutPositionableGroup<ILayoutAnchorablePane>, ILayoutAnchorablePane, ILayoutOrientableGroup
-    {
-        public LayoutAnchorablePaneGroup()
-        {
-        }
+	/// <summary>
+	/// Implements an element in the layout model tree that can contain and arrange multiple
+	/// <see cref="LayoutAnchorablePane"/> elements in x or y directions, which in turn contain
+	/// <see cref="LayoutAnchorable"/> elements.
+	/// </summary>
+	[ContentProperty(nameof(Children))]
+	[Serializable]
+	public class LayoutAnchorablePaneGroup : LayoutPositionableGroup<ILayoutAnchorablePane>, ILayoutAnchorablePane, ILayoutOrientableGroup
+	{
+		#region fields
 
-        public LayoutAnchorablePaneGroup(LayoutAnchorablePane firstChild)
-        {
-            Children.Add(firstChild);
-        }
+		private Orientation _orientation;
 
-        #region Orientation
+		#endregion fields
 
-        private Orientation _orientation;
-        public Orientation Orientation
-        {
-            get { return _orientation; }
-            set
-            {
-                if (_orientation != value)
-                {
-                    RaisePropertyChanging("Orientation");
-                    _orientation = value;
-                    RaisePropertyChanged("Orientation");
-                }
-            }
-        }
+		#region Constructors
 
-        #endregion
+		/// <summary>Class constructor</summary>
+		public LayoutAnchorablePaneGroup()
+		{
+		}
 
-        protected override bool GetVisibility()
-        {
-            return Children.Count > 0 && Children.Any(c => c.IsVisible);
-        }
+		/// <summary>Class constructor <paramref name="firstChild"/> to be inserted into collection of children models.</summary>
+		public LayoutAnchorablePaneGroup(LayoutAnchorablePane firstChild)
+		{
+			Children.Add(firstChild);
+		}
 
-        protected override void OnIsVisibleChanged()
-        {
-            UpdateParentVisibility();
-            base.OnIsVisibleChanged();
-        }
+		#endregion Constructors
 
-        void UpdateParentVisibility()
-        {
-            var parentPane = Parent as ILayoutElementWithVisibility;
-            if (parentPane != null)
-                parentPane.ComputeVisibility();
-        }
+		#region Properties
 
-        protected override void OnDockWidthChanged()
-        {
-            if (DockWidth.IsAbsolute && ChildrenCount == 1)
-                ((ILayoutPositionableElement)Children[0]).DockWidth = DockWidth;
+		/// <summary>
+		/// Gets/sets the <see cref="System.Windows.Controls.Orientation"/> of this object.
+		/// </summary>
+		public Orientation Orientation
+		{
+			get => _orientation;
+			set
+			{
+				if (value == _orientation) return;
+				RaisePropertyChanging(nameof(Orientation));
+				_orientation = value;
+				RaisePropertyChanged(nameof(Orientation));
+			}
+		}
 
-            base.OnDockWidthChanged();
-        }
+		#endregion Properties
 
-        protected override void OnDockHeightChanged()
-        {
-            if (DockHeight.IsAbsolute && ChildrenCount == 1)
-                ((ILayoutPositionableElement)Children[0]).DockHeight = DockHeight;
-            base.OnDockHeightChanged();
-        }
+		#region Overrides
 
-        protected override void OnChildrenCollectionChanged()
-        {
-            if (DockWidth.IsAbsolute && ChildrenCount == 1)
-                ((ILayoutPositionableElement)Children[0]).DockWidth = DockWidth;
-            if (DockHeight.IsAbsolute && ChildrenCount == 1)
-                ((ILayoutPositionableElement)Children[0]).DockHeight = DockHeight;
-            base.OnChildrenCollectionChanged();
-        }
+		/// <inheritdoc />
+		protected override bool GetVisibility() => Children.Count > 0 && Children.Any(c => c.IsVisible);
 
-        public override void WriteXml(System.Xml.XmlWriter writer)
-        {
-            writer.WriteAttributeString("Orientation", Orientation.ToString());
-            base.WriteXml(writer);
-        }
+		/// <inheritdoc />
+		protected override void OnIsVisibleChanged()
+		{
+			UpdateParentVisibility();
+			base.OnIsVisibleChanged();
+		}
 
-        public override void ReadXml(System.Xml.XmlReader reader)
-        {
-            if (reader.MoveToAttribute("Orientation"))
-                Orientation = (Orientation)Enum.Parse(typeof(Orientation), reader.Value, true);
-            base.ReadXml(reader);
-        }
+		/// <inheritdoc />
+		protected override void OnDockWidthChanged()
+		{
+			if (DockWidth.IsAbsolute && ChildrenCount == 1)
+				((ILayoutPositionableElement)Children[0]).DockWidth = DockWidth;
+			base.OnDockWidthChanged();
+		}
+
+		/// <inheritdoc />
+		protected override void OnDockHeightChanged()
+		{
+			if (DockHeight.IsAbsolute && ChildrenCount == 1)
+				((ILayoutPositionableElement)Children[0]).DockHeight = DockHeight;
+			base.OnDockHeightChanged();
+		}
+
+		/// <inheritdoc />
+		protected override void OnChildrenCollectionChanged()
+		{
+			if (DockWidth.IsAbsolute && ChildrenCount == 1)
+				((ILayoutPositionableElement)Children[0]).DockWidth = DockWidth;
+			if (DockHeight.IsAbsolute && ChildrenCount == 1)
+				((ILayoutPositionableElement)Children[0]).DockHeight = DockHeight;
+			base.OnChildrenCollectionChanged();
+		}
+
+		/// <inheritdoc />
+		public override void WriteXml(System.Xml.XmlWriter writer)
+		{
+			writer.WriteAttributeString(nameof(Orientation), Orientation.ToString());
+			base.WriteXml(writer);
+		}
+
+		/// <inheritdoc />
+		public override void ReadXml(System.Xml.XmlReader reader)
+		{
+			if (reader.MoveToAttribute(nameof(Orientation)))
+				Orientation = (Orientation)Enum.Parse(typeof(Orientation), reader.Value, true);
+			base.ReadXml(reader);
+		}
 
 #if TRACE
-        public override void ConsoleDump(int tab)
-        {
-          System.Diagnostics.Trace.Write( new string( ' ', tab * 4 ) );
-          System.Diagnostics.Trace.WriteLine( string.Format( "AnchorablePaneGroup({0})", Orientation ) );
+		/// <inheritdoc />
+		public override void ConsoleDump(int tab)
+		{
+			System.Diagnostics.Trace.Write(new string(' ', tab * 4));
+			System.Diagnostics.Trace.WriteLine(string.Format("AnchorablePaneGroup({0})", Orientation));
 
-          foreach (LayoutElement child in Children)
-              child.ConsoleDump(tab + 1);
-        }
+			foreach (LayoutElement child in Children)
+				child.ConsoleDump(tab + 1);
+		}
 #endif
 
+		#endregion Overrides
 
-    }
+		#region Private Methods
 
+		private void UpdateParentVisibility()
+		{
+			if (Parent is ILayoutElementWithVisibility parentPane) parentPane.ComputeVisibility();
+		}
+
+		#endregion Private Methods
+	}
 }

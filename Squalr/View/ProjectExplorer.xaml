@@ -1,5 +1,7 @@
 ﻿<UserControl
+    xmlns:src="clr-namespace:Squalr.View;assembly=Squalr"
     x:Class="Squalr.View.ProjectExplorer"
+    xmlns:properties="clr-namespace:Squalr.View"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:content="clr-namespace:Squalr.Content"

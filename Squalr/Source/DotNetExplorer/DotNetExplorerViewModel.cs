@@ -17,7 +17,7 @@
     /// <summary>
     /// View model for the .Net Explorer.
     /// </summary>
-    internal class DotNetExplorerViewModel : ToolViewModel
+    public class DotNetExplorerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="DotNetExplorerViewModel" /> class.

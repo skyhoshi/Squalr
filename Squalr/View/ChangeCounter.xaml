@@ -8,7 +8,7 @@
     x:Name="SqualrChangeCounter"
     d:DesignHeight="256"
     d:DesignWidth="256"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding ChangeCounterViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

@@ -1,83 +1,72 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
 using System.Windows.Markup;
-using Squalr.Theme.Controls;
 
 namespace Squalr.Theme.Layout
 {
-    [ContentProperty("Children")]
-    [Serializable]
-    public class LayoutAnchorSide : LayoutGroup<LayoutAnchorGroup>
-    {
-        public LayoutAnchorSide()
-        {
-        }
+	/// <summary>
+	/// Implements the viewmodel for a a side element (left, right, top, bottom) in AvalonDock's
+	/// visual root of the <see cref="DockingManager"/>.
+	/// </summary>
+	[ContentProperty(nameof(Children))]
+	[Serializable]
+	public class LayoutAnchorSide : LayoutGroup<LayoutAnchorGroup>
+	{
+		#region fields
 
-        protected override bool GetVisibility()
-        {
-            return Children.Count > 0;
-        }
+		private AnchorSide _side;
 
+		#endregion fields
 
-        protected override void OnParentChanged(ILayoutContainer oldValue, ILayoutContainer newValue)
-        {
- 	        base.OnParentChanged(oldValue, newValue);
+		#region Properties
 
-            UpdateSide();
-        }
+		/// <summary>Gets the side (top, bottom, left, right) that this layout is anchored in the layout.</summary>
+		public AnchorSide Side
+		{
+			get => _side;
+			private set
+			{
+				if (value == _side) return;
+				RaisePropertyChanging(nameof(Side));
+				_side = value;
+				RaisePropertyChanged(nameof(Side));
+			}
+		}
 
-        private void UpdateSide()
-        {
-            if (Root.LeftSide == this)
-                Side = AnchorSide.Left;
-            else if (Root.TopSide == this)
-                Side = AnchorSide.Top;
-            else if (Root.RightSide == this)
-                Side = AnchorSide.Right;
-            else if (Root.BottomSide == this)
-                Side = AnchorSide.Bottom;
-        }
+		#endregion Properties
 
+		#region Overrides
 
-        #region Side
+		/// <inheritdoc />
+		protected override bool GetVisibility() => Children.Count > 0;
 
-        private AnchorSide _side;
-        public AnchorSide Side
-        {
-            get { return _side; }
-            private set
-            {
-                if (_side != value)
-                {
-                    RaisePropertyChanging("Side");
-                    _side = value;
-                    RaisePropertyChanged("Side");
-                }
-            }
-        }
+		/// <inheritdoc />
+		protected override void OnParentChanged(ILayoutContainer oldValue, ILayoutContainer newValue)
+		{
+			base.OnParentChanged(oldValue, newValue);
+			UpdateSide();
+		}
 
-        #endregion
+		#endregion Overrides
 
+		#region Private Methods
 
+		private void UpdateSide()
+		{
+			if (this == Root.LeftSide) Side = AnchorSide.Left;
+			else if (this == Root.TopSide) Side = AnchorSide.Top;
+			else if (this == Root.RightSide) Side = AnchorSide.Right;
+			else if (this == Root.BottomSide) Side = AnchorSide.Bottom;
+		}
 
-    }
+		#endregion Private Methods
+	}
 }

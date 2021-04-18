@@ -14,7 +14,7 @@
     /// <summary>
     /// View model for the Input Correlator.
     /// </summary>
-    internal class InputCorrelatorViewModel : ToolViewModel
+    public class InputCorrelatorViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="InputCorrelatorViewModel" /> class.
@@ -77,14 +77,14 @@
         private void NewHotkey()
         {
             HotkeyEditorModel hotkeyEditor = new HotkeyEditorModel();
-            Hotkey newHotkey = hotkeyEditor.EditValue(context: null, provider: null, value: null) as Hotkey;
+            /*Hotkey newHotkey = hotkeyEditor.EditValue(context: null, provider: null, value: null) as Hotkey;
 
             if (newHotkey != null)
             {
                 throw new NotImplementedException();
                 ////this.InputCorrelator.HotKeys.Add(newHotkey);
                 this.RaisePropertyChanged(nameof(this.Hotkeys));
-            }
+            }*/
         }
 
         private void RemoveHotkey(Hotkey hotkey)

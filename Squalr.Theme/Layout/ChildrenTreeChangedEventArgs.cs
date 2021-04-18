@@ -1,46 +1,42 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Squalr.Theme.Layout
 {
-    public enum ChildrenTreeChange
-    {
-        /// <summary>
-        /// Direct insert/remove operation has been perfomed to the group
-        /// </summary>
-        DirectChildrenChanged,
+	/// <summary>
+	/// Defines a way for communicating a type of change if the tree of
+	/// has been changed due to an insert/remove operation.
+	/// </summary>
+	public enum ChildrenTreeChange
+	{
+		/// <summary>Direct insert/remove operation has been perfomed to the group</summary>
+		DirectChildrenChanged,
 
-        /// <summary>
-        /// An element below in the hierarchy as been added/removed
-        /// </summary>
-        TreeChanged
-    }
+		/// <summary>An element below in the hierarchy as been added/removed</summary>
+		TreeChanged
+	}
 
-    public class ChildrenTreeChangedEventArgs : EventArgs
-    {
-        public ChildrenTreeChangedEventArgs(ChildrenTreeChange change)
-        {
-            Change = change;
-        }
+	/// <summary>
+	/// Defines an event to communicating a type of change if the tree of
+	/// has been changed due to an insert/remove operation.
+	/// </summary>
+	public class ChildrenTreeChangedEventArgs : EventArgs
+	{
+		/// <summary>Class constructor</summary>
+		public ChildrenTreeChangedEventArgs(ChildrenTreeChange change)
+		{
+			Change = change;
+		}
 
-        public ChildrenTreeChange Change { get; private set; }
-    }
+		/// <summary>Gets the type of <see cref="ChildrenTreeChange"/> for this event.</summary>
+		public ChildrenTreeChange Change { get; private set; }
+	}
 }

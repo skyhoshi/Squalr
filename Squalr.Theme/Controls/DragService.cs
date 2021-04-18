@@ -1,190 +1,269 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
+using Squalr.Theme.Layout;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows.Input;
 using System.Windows;
-using System.Diagnostics;
-using Squalr.Theme.Layout;
 
 namespace Squalr.Theme.Controls
 {
-    class DragService
-    {
-        DockingManager _manager;
-        LayoutFloatingWindowControl _floatingWindow;
+	/// <summary>
+	/// This class manages the drag & drop behavior when the user drags a:
+	/// - document (<see cref="LayoutDocument"/>) or
+	/// - tool window (<see cref="LayoutAnchorable"/>) and drops it in an alternative position.
+	///
+	/// The <see cref="LayoutFloatingWindowControl"/> contains a <see cref="DragService"/> field
+	/// in order to implement the drag behavior for inheriting classes
+	/// (<see cref="LayoutDocumentFloatingWindowControl"/> and <see cref="LayoutAnchorableFloatingWindowControl"/>).
+	///
+	/// Dragging a <see cref="LayoutDocument"/> usually results in a converted <see cref="LayoutDocumentFloatingWindow"/>
+	/// being actually dragged around. Likewise, Dragging a <see cref="LayoutAnchorable"/> usually
+	/// results in a converted <see cref="LayoutAnchorableFloatingWindow"/> being dragged around.
+	///
+	/// The behavior at the drop position can be that the floating window control is converted back into its
+	/// original class type and being inserted/dropped at the final drop target position. But its also possible
+	/// that the floating window control remains a floating window if the user simply drags an item out and positions
+	/// it at no specific drop target position. The behavior at the final drop position is not always the
+	/// same since it depends on:
+	/// 1- the item being dragged around (and its content) and
+	/// 2- the drop position (and its content).
+	/// </summary>
+	/// <seealso cref="LayoutAnchorable"/>
+	/// <seealso cref="LayoutDocument"/>
+	/// <seealso cref="LayoutAnchorableFloatingWindow"/>
+	/// <seealso cref="LayoutDocumentFloatingWindow"/>
+	/// <seealso cref="LayoutDocumentFloatingWindowControl"/>
+	/// <seeslso cref="LayoutAnchorableFloatingWindowControl"/>).
+	internal class DragService
+	{
+		#region fields
 
-        public DragService(LayoutFloatingWindowControl floatingWindow)
-        {
-            _floatingWindow = floatingWindow;
-            _manager = floatingWindow.Model.Root.Manager;
+		private DockingManager _manager;
+		private LayoutFloatingWindowControl _floatingWindow;
 
+		// A list of hosts that can display an overlaywindow and offer a drop target (docking position)
+		private List<IOverlayWindowHost> _overlayWindowHosts = new List<IOverlayWindowHost>();
 
-            GetOverlayWindowHosts();
-        }
+		private IOverlayWindowHost _currentHost;
+		private IOverlayWindow _currentWindow;
+		private List<IDropArea> _currentWindowAreas = new List<IDropArea>();
+		private IDropTarget _currentDropTarget;
 
-        List<IOverlayWindowHost> _overlayWindowHosts = new List<IOverlayWindowHost>();
-        void GetOverlayWindowHosts()
-        {
-            _overlayWindowHosts.AddRange(_manager.GetFloatingWindowsByZOrder().OfType<LayoutAnchorableFloatingWindowControl>().Where(fw => fw != _floatingWindow && fw.IsVisible));
-            _overlayWindowHosts.Add(_manager);
-        }
+		#endregion fields
 
-        IOverlayWindowHost _currentHost;
-        IOverlayWindow _currentWindow;
-        List<IDropArea> _currentWindowAreas = new List<IDropArea>();
-        IDropTarget _currentDropTarget;
+		#region Constructors
 
-        public void UpdateMouseLocation(Point dragPosition)
-        {
-            var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
+		/// <summary>
+		/// Class constructor from <see cref="LayoutFloatingWindowControl"/> that is using this
+		/// service to implement its drag and drop (dock) behavior.
+		/// </summary>
+		/// <param name="floatingWindow">Floating window manipulated by this drag service.</param>
+		public DragService(LayoutFloatingWindowControl floatingWindow)
+		{
+			_floatingWindow = floatingWindow;
+			_manager = floatingWindow.Model.Root.Manager;
 
-            var newHost = _overlayWindowHosts.FirstOrDefault(oh => oh.HitTest(dragPosition));
+			GetOverlayWindowHosts();
+		}
 
-            if (_currentHost != null || _currentHost != newHost)
-            { 
-                //is mouse still inside current overlay window host?
-                if ((_currentHost != null && !_currentHost.HitTest(dragPosition)) ||
-                    _currentHost != newHost)
-                {
-                    //esit drop target
-                    if (_currentDropTarget != null)
-                        _currentWindow.DragLeave(_currentDropTarget);
-                    _currentDropTarget = null;
+		#endregion Constructors
 
-                    //exit area
-                    _currentWindowAreas.ForEach(a =>
-                        _currentWindow.DragLeave(a));
-                    _currentWindowAreas.Clear();
+		#region Internal Methods
 
-                    //hide current overlay window
-                    if (_currentWindow != null)
-                        _currentWindow.DragLeave(_floatingWindow);
-                    if (_currentHost != null)
-                        _currentHost.HideOverlayWindow();
-                    _currentHost = null;
-                }
+		/// <summary>
+		/// Method is invoked by the <see cref="LayoutFloatingWindowControl"/> to update the
+		/// current mouse position as the user drags the floating window with the mouse cursor.
+		/// </summary>
+		/// <param name="dragPosition">The screen coordinates of the current mouse cursor position.</param>
+		internal void UpdateMouseLocation(Point dragPosition)
+		{
+			////var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
 
-                if (_currentHost != newHost)
-                {
-                    _currentHost = newHost;
-                    _currentWindow = _currentHost.ShowOverlayWindow(_floatingWindow);
-                    _currentWindow.DragEnter(_floatingWindow);
-                }
-            }
+			var newHost = _overlayWindowHosts.FirstOrDefault(oh => oh.HitTest(dragPosition));
 
-            if (_currentHost == null)
-                return;
+			if (_currentHost != null || _currentHost != newHost)
+			{
+				//is mouse still inside current overlay window host?
+				if ((_currentHost != null && !_currentHost.HitTest(dragPosition)) ||
+					_currentHost != newHost)
+				{
+					//esit drop target
+					if (_currentDropTarget != null)
+						_currentWindow.DragLeave(_currentDropTarget);
 
-            if (_currentDropTarget != null &&
-                !_currentDropTarget.HitTest(dragPosition))
-            {
-                _currentWindow.DragLeave(_currentDropTarget);
-                _currentDropTarget = null;
-            }
+					_currentDropTarget = null;
 
-            List<IDropArea> areasToRemove = new List<IDropArea>();
-            _currentWindowAreas.ForEach(a =>
-            { 
-                //is mouse still inside this area?
-                if (!a.DetectionRect.Contains(dragPosition))
-                {
-                    _currentWindow.DragLeave(a);
-                    areasToRemove.Add(a);
-                }
-            });
+					//exit area
+					_currentWindowAreas.ForEach(a =>
+						_currentWindow.DragLeave(a));
+					_currentWindowAreas.Clear();
 
-            areasToRemove.ForEach(a =>
-                _currentWindowAreas.Remove(a));
+					//hide current overlay window
+					if (_currentWindow != null)
+						_currentWindow.DragLeave(_floatingWindow);
+					if (_currentHost != null)
+						_currentHost.HideOverlayWindow();
+					_currentHost = null;
+				}
 
+				if (_currentHost != newHost)
+				{
+					_currentHost = newHost;
+					_currentWindow = _currentHost.ShowOverlayWindow(_floatingWindow);
+					_currentWindow.DragEnter(_floatingWindow);
+				}
+			}
 
-            var areasToAdd = 
-                _currentHost.GetDropAreas(_floatingWindow).Where(cw => !_currentWindowAreas.Contains(cw) && cw.DetectionRect.Contains(dragPosition)).ToList();
+			if (_currentHost == null)
+				return;
 
-            _currentWindowAreas.AddRange(areasToAdd);
+			if (_currentDropTarget != null &&
+				!_currentDropTarget.HitTest(dragPosition))
+			{
+				_currentWindow.DragLeave(_currentDropTarget);
+				_currentDropTarget = null;
+			}
 
-            areasToAdd.ForEach(a =>
-                _currentWindow.DragEnter(a));
+			List<IDropArea> areasToRemove = new List<IDropArea>();
+			_currentWindowAreas.ForEach(a =>
+			{
+				//is mouse still inside this area?
+				if (!a.DetectionRect.Contains(dragPosition))
+				{
+					_currentWindow.DragLeave(a);
+					areasToRemove.Add(a);
+				}
+			});
 
-            if (_currentDropTarget == null)
-            {
-                _currentWindowAreas.ForEach(wa =>
-                    {
-                        if (_currentDropTarget != null)
-                            return;
+			areasToRemove.ForEach(a =>
+				_currentWindowAreas.Remove(a));
 
-                        _currentDropTarget = _currentWindow.GetTargets().FirstOrDefault(dt => dt.HitTest(dragPosition));
-                        if (_currentDropTarget != null)
-                        {
-                            _currentWindow.DragEnter(_currentDropTarget);
-                            return;
-                        }
-                    });
-            }
+			var areasToAdd =
+				_currentHost.GetDropAreas(_floatingWindow).Where(cw => !_currentWindowAreas.Contains(cw) && cw.DetectionRect.Contains(dragPosition)).ToList();
 
-        }
+			_currentWindowAreas.AddRange(areasToAdd);
 
-        public void Drop(Point dropLocation, out bool dropHandled)
-        { 
-            dropHandled = false;
+			areasToAdd.ForEach(a =>
+				_currentWindow.DragEnter(a));
 
-            UpdateMouseLocation(dropLocation);
+			if (_currentDropTarget == null)
+			{
+				_currentWindowAreas.ForEach(wa =>
+				{
+					if (_currentDropTarget != null)
+						return;
 
-            var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
-            var root = floatingWindowModel.Root;
+					_currentDropTarget = _currentWindow.GetTargets().FirstOrDefault(dt => dt.HitTest(dragPosition));
 
-            if (_currentHost != null)
-                _currentHost.HideOverlayWindow();
+					if (_currentDropTarget != null)
+					{
+						_currentWindow.DragEnter(_currentDropTarget);
+						return;
+					}
+				});
+			}
+		}
 
-            if (_currentDropTarget != null)
-            {
-                _currentWindow.DragDrop(_currentDropTarget);
-                root.CollectGarbage();
-                dropHandled = true;
-            }
+		/// <summary>
+		/// Method is invoked by the <see cref="LayoutFloatingWindowControl"/> to indicate that the
+		/// <see cref="LayoutFloatingWindowControl"/> (and its content) should be dropped/docked at
+		/// the current mouse position.
+		///
+		/// The drop/dock behavior depends on whether the current mouse position is an actual drop target
+		/// the item being dragged, and the item being docked (if any) etc.
+		/// </summary>
+		/// <param name="dropLocation">The screen coordinates of the drop/dock position.</param>
+		/// <param name="dropHandled">Indicates whether the drop was handled such that the
+		/// dropped <see cref="LayoutFloatingWindowControl"/> can be removed now (since it content
+		/// is docked into a new visual tree position).</param>
+		internal void Drop(Point dropLocation, out bool dropHandled)
+		{
+			dropHandled = false;
 
+			UpdateMouseLocation(dropLocation);
 
-            _currentWindowAreas.ForEach(a => _currentWindow.DragLeave(a));
+			var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
+			var root = floatingWindowModel.Root;
 
-            if (_currentDropTarget != null)
-                _currentWindow.DragLeave(_currentDropTarget);
-            if (_currentWindow != null)
-                _currentWindow.DragLeave(_floatingWindow);
-            _currentWindow = null;
+			if (_currentHost != null)
+				_currentHost.HideOverlayWindow();
 
-            _currentHost = null;
-        }
+			if (_currentDropTarget != null)
+			{
+				_currentWindow.DragDrop(_currentDropTarget);
+				root.CollectGarbage();
+				dropHandled = true;
+			}
 
-        internal void Abort()
-        {
-            var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
+			_currentWindowAreas.ForEach(a => _currentWindow.DragLeave(a));
 
-            _currentWindowAreas.ForEach(a => _currentWindow.DragLeave(a));
+			if (_currentDropTarget != null)
+				_currentWindow.DragLeave(_currentDropTarget);
 
-            if (_currentDropTarget != null)
-                _currentWindow.DragLeave(_currentDropTarget);
-            if (_currentWindow != null)
-                _currentWindow.DragLeave(_floatingWindow);
-            _currentWindow = null;
-            if (_currentHost != null)
-                _currentHost.HideOverlayWindow();
-            _currentHost = null;
-        }
-    }
+			if (_currentWindow != null)
+				_currentWindow.DragLeave(_floatingWindow);
+
+			_currentWindow = null;
+			_currentHost = null;
+		}
+
+		/// <summary>
+		/// Method can be invoked to cancel the current drag and drop process and leave the
+		/// <see cref="LayoutFloatingWindowControl"/> at its current position without performing
+		/// a drop/dock operation.
+		/// </summary>
+		internal void Abort()
+		{
+			var floatingWindowModel = _floatingWindow.Model as LayoutFloatingWindow;
+
+			_currentWindowAreas.ForEach(a => _currentWindow.DragLeave(a));
+
+			if (_currentDropTarget != null)
+				_currentWindow.DragLeave(_currentDropTarget);
+
+			if (_currentWindow != null)
+				_currentWindow.DragLeave(_floatingWindow);
+
+			_currentWindow = null;
+
+			if (_currentHost != null)
+				_currentHost.HideOverlayWindow();
+
+			_currentHost = null;
+		}
+
+		#endregion Internal Methods
+
+		#region Private Methods
+
+		/// <summary>
+		/// Adds <see cref="IOverlayWindowHost"/>s into a private collection of possible
+		/// drop target hosts that can show a drop target button to drop a dragged
+		/// <see cref="LayoutAnchorableFloatingWindowControl"/> or
+		/// <see cref="LayoutDocumentFloatingWindowControl"/> into it.
+		/// </summary>
+		private void GetOverlayWindowHosts()
+		{
+			if (_manager.Layout.RootPanel.CanDock)
+			{
+				// Add LayoutFloatingWindowControls as drop target hosts
+				// 1) Don't drop a floating window on to itself
+				// 2) Use this Drop target if its visible
+				_overlayWindowHosts.AddRange(_manager.GetFloatingWindowsByZOrder().OfType<LayoutAnchorableFloatingWindowControl>().Where(fw => fw != _floatingWindow && fw.IsVisible));
+				_overlayWindowHosts.AddRange(_manager.GetFloatingWindowsByZOrder().OfType<LayoutDocumentFloatingWindowControl>().Where(fw => fw != _floatingWindow && fw.IsVisible));
+
+				// Add dockingManager itself as a drop target host
+				_overlayWindowHosts.Add(_manager);
+			}
+		}
+
+		#endregion Private Methods
+	}
 }

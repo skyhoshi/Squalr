@@ -20,11 +20,14 @@
         /// <param name="title">The title to display for the tool pane.</param>
         public ToolViewModel(String title)
         {
+            this.Name = title;
             this.Title = title;
             this.Show = new RelayCommand(() => this.ShowExecute(), () => true);
             this.Hide = new RelayCommand(() => this.HideExecute(), () => true);
             this.ToggleVisibility = new RelayCommand(() => this.ToggleVisibilityExecute(), () => true);
         }
+
+        public string Name { get; private set; }
 
         /// <summary>
         /// Gets a command that shows this tool.

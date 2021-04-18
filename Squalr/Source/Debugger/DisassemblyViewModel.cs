@@ -19,7 +19,7 @@
     /// <summary>
     /// View model for the Disassembly.
     /// </summary>
-    internal class DisassemblyViewModel : ToolViewModel
+    public class DisassemblyViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="DisassemblyViewModel" /> class.

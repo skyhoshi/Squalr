@@ -9,7 +9,7 @@
     {
         public String GetCommandName()
         {
-            return "Projects";
+            return "projects";
         }
 
         public void TryHandle(ref Session session, Command command)

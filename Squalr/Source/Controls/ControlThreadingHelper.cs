@@ -1,13 +1,14 @@
 ﻿namespace Squalr.Source.Controls
 {
     using System;
-    using System.Windows.Forms;
+    // using System.Windows.Forms;
 
     /// <summary>
     /// Class that allows threads outside of a windows form to update controls in the windows form.
     /// </summary>
     public static class ControlThreadingHelper
     {
+        /*
         /// <summary>
         /// Allow for any thread to update a windows form control by passing in the control and an action to perform on the control.
         /// </summary>
@@ -24,7 +25,7 @@
             {
                 action();
             }
-        }
+        }*/
     }
     //// End class
 }

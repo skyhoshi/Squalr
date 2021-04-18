@@ -1,111 +1,81 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
 using System.Windows.Markup;
 using System.Xml.Serialization;
 
 namespace Squalr.Theme.Layout
 {
-    [ContentProperty("Children")]
-    [Serializable]
-    public class LayoutAnchorGroup : LayoutGroup<LayoutAnchorable>, ILayoutPreviousContainer, ILayoutPaneSerializable
-    {
-        public LayoutAnchorGroup()
-        {
-        }
+	/// <summary>
+	/// Implements the layout model for the <see cref="Controls.LayoutAnchorGroupControl"/>.
+	/// </summary>
+	[ContentProperty(nameof(Children))]
+	[Serializable]
+	public class LayoutAnchorGroup : LayoutGroup<LayoutAnchorable>, ILayoutPreviousContainer, ILayoutPaneSerializable
+	{
+		#region Overrides
 
-        protected override bool GetVisibility()
-        {
-            return Children.Count > 0;
-        }
+		/// <inheritdoc />
+		protected override bool GetVisibility() => Children.Count > 0;
 
+		/// <inheritdoc />
+		public override void WriteXml(System.Xml.XmlWriter writer)
+		{
+			if (_id != null) writer.WriteAttributeString(nameof(ILayoutPaneSerializable.Id), _id);
+			if (_previousContainer is ILayoutPaneSerializable paneSerializable) writer.WriteAttributeString("PreviousContainerId", paneSerializable.Id);
+			base.WriteXml(writer);
+		}
 
-        #region PreviousContainer
+		public override void ReadXml(System.Xml.XmlReader reader)
+		{
+			if (reader.MoveToAttribute(nameof(ILayoutPaneSerializable.Id))) _id = reader.Value;
+			if (reader.MoveToAttribute("PreviousContainerId")) ((ILayoutPreviousContainer)this).PreviousContainerId = reader.Value;
+			base.ReadXml(reader);
+		}
 
-        [field:NonSerialized]
-        private ILayoutContainer _previousContainer = null;
-        [XmlIgnore]
-        ILayoutContainer ILayoutPreviousContainer.PreviousContainer
-        {
-            get { return _previousContainer; }
-            set
-            {
-                if (_previousContainer != value)
-                {
-                    _previousContainer = value;
-                    RaisePropertyChanged("PreviousContainer");
-                    var paneSerializable = _previousContainer as ILayoutPaneSerializable;
-                    if (paneSerializable != null &&
-                        paneSerializable.Id == null)
-                        paneSerializable.Id = Guid.NewGuid().ToString();
-                }
-            }
-        }
+		#endregion Overrides
 
-        #endregion
+		#region ILayoutPreviousContainer Interface
 
-        string _id;
-        string ILayoutPaneSerializable.Id
-        {
-            get
-            {
-                return _id;
-            }
-            set
-            {
-                _id = value;
-            }
-        }
+		#region PreviousContainer
 
-        string ILayoutPreviousContainer.PreviousContainerId
-        {
-            get;
-            set;
-        }
+		[field: NonSerialized]
+		private ILayoutContainer _previousContainer = null;
 
-        public override void WriteXml(System.Xml.XmlWriter writer)
-        {
-            if (_id != null)
-                writer.WriteAttributeString("Id", _id);
-            if (_previousContainer != null)
-            {
-                var paneSerializable = _previousContainer as ILayoutPaneSerializable;
-                if (paneSerializable != null)
-                {
-                    writer.WriteAttributeString("PreviousContainerId", paneSerializable.Id);
-                }
-            }
+		[XmlIgnore]
+		ILayoutContainer ILayoutPreviousContainer.PreviousContainer
+		{
+			get => _previousContainer;
+			set
+			{
+				if (value == _previousContainer) return;
+				_previousContainer = value;
+				RaisePropertyChanged(nameof(ILayoutPreviousContainer.PreviousContainer));
+				if (_previousContainer is ILayoutPaneSerializable paneSerializable && paneSerializable.Id == null)
+					paneSerializable.Id = Guid.NewGuid().ToString();
+			}
+		}
 
-            base.WriteXml(writer);
-        }
+		#endregion PreviousContainer
 
-        public override void ReadXml(System.Xml.XmlReader reader)
-        {
-            if (reader.MoveToAttribute("Id"))
-                _id = reader.Value;
-            if (reader.MoveToAttribute("PreviousContainerId"))
-                ((ILayoutPreviousContainer)this).PreviousContainerId = reader.Value;
+		string ILayoutPreviousContainer.PreviousContainerId { get; set; }
 
+		#endregion ILayoutPreviousContainer Interface
 
-            base.ReadXml(reader);
-        }
-    }
+		#region ILayoutPaneSerializable Interface
+
+		private string _id;
+
+		/// <inheritdoc />
+		string ILayoutPaneSerializable.Id { get => _id; set => _id = value; }
+
+		#endregion ILayoutPaneSerializable Interface
+	}
 }

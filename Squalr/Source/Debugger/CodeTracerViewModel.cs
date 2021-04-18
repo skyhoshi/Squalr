@@ -18,7 +18,7 @@
     /// <summary>
     /// View model for the Code Tracer.
     /// </summary>
-    internal class CodeTracerViewModel : ToolViewModel
+    public class CodeTracerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="CodeTracerViewModel" /> class.

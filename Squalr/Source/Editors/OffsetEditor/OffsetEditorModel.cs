@@ -10,7 +10,7 @@
     /// <summary>
     /// Type editor for pointer offsets.
     /// </summary>
-    public class OffsetEditorModel : UITypeEditor
+    public class OffsetEditorModel // : UITypeEditor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="OffsetEditorModel" /> class.
@@ -19,6 +19,7 @@
         {
         }
 
+        /*
         /// <summary>
         /// Gets the editor style. This will be Modal, as it launches a custom editor.
         /// </summary>
@@ -56,6 +57,7 @@
 
             return value;
         }
+        */
     }
     //// End class
 }

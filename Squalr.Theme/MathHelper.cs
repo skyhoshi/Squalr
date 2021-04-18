@@ -1,46 +1,46 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Squalr.Theme
 {
-    internal static class MathHelper
-    {
+	/// <summary>
+	/// Implements a class that provides mathematical helper methods.
+	/// </summary>
+	internal static class MathHelper
+	{
+		/// <summary>
+		/// Ensures that <paramref name="min"/> is greater <paramref name="max"/> via Exception (if not)
+		/// and returns a valid value inside the given bounds.
+		///
+		/// That is, (<paramref name="min"/> or <paramref name="max"/> is returned if
+		/// <paramref name="value"/> is out of bounds, <paramref name="value"/> is returned otherwise.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="min"></param>
+		/// <param name="max"></param>
+		/// <returns></returns>
+		public static double MinMax(double value, double min, double max)
+		{
+			if (min > max) throw new ArgumentException("The minimum should not be greater then the maximum", nameof(min));
+			if (value < min) return min;
+			return value > max ? max : value;
+		}
 
-        public static double MinMax(double value, double min, double max)
-        {
-            if (min > max)
-                throw new ArgumentException("min>max");
-
-            if (value < min)
-                return min;
-            if (value > max)
-                return max;
-
-            return value;
-        }
-
-        public static void AssertIsPositiveOrZero(double value)
-        {
-            if (value < 0.0)
-                throw new ArgumentException("Invalid value, must be a positive number or equal to zero");
-        }
-    }
+		/// <summary>
+		/// Throw an exception if <paramref name="value"/> is smaller than 0.
+		/// </summary>
+		/// <param name="value"></param>
+		public static void AssertIsPositiveOrZero(double value)
+		{
+			if (value < 0.0) throw new ArgumentException("Invalid value, must be a positive number or equal to zero", nameof(value));
+		}
+	}
 }

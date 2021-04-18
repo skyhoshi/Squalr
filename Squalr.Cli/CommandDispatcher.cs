@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Cli
 {
     using Squalr.Cli.CommandHandlers;
+    using Squalr.Cli.CommandHandlers.Crash;
     using Squalr.Cli.CommandHandlers.Process;
     using Squalr.Cli.CommandHandlers.Project;
     using Squalr.Cli.CommandHandlers.Projects;
@@ -19,6 +20,7 @@
         {
             this.CommandHandlers = new List<ICommandHandler>()
             {
+                new CrashCommandHandler(),
                 new ProcessCommandHandler(),
                 new ProjectsCommandHandler(),
                 new ProjectCommandHandler(),
@@ -55,7 +57,8 @@
                     break;
                 }
 
-                if (handler.GetCommandAndAliases().Any(alias => constructedCommand.Name.Equals(alias, StringComparison.OrdinalIgnoreCase)))
+                if (constructedCommand.Name.Equals(handler.GetCommandName(), StringComparison.OrdinalIgnoreCase)
+                    || handler.GetCommandAndAliases().Any(alias => constructedCommand.Name.Equals(alias, StringComparison.OrdinalIgnoreCase)))
                 {
                     handler.TryHandle(ref this.session, constructedCommand);
                 }
@@ -79,11 +82,12 @@
 
             foreach (ICommandHandler handler in this.CommandHandlers)
             {
-                Console.WriteLine("Commands for " + handler.GetCommandName() + ":");
+                Console.Write("Commands for " + handler.GetCommandName() + ": ");
+                Console.Write(handler.GetCommandName().ToLower() + " | ");
 
                 foreach (String alias in handler.GetCommandAndAliases())
                 {
-                    Console.Write(alias + " | ");
+                    Console.Write(alias.ToLower() + " | ");
                 }
 
                 Console.WriteLine();

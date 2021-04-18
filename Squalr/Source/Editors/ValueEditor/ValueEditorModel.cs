@@ -9,7 +9,7 @@
     /// <summary>
     /// Type editor for scripts.
     /// </summary>
-    public class ValueEditorModel : UITypeEditor
+    public class ValueEditorModel // : UITypeEditor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueEditorModel" /> class.
@@ -18,6 +18,7 @@
         {
         }
 
+        /*
         /// <summary>
         /// Gets the editor style. This will be Modal, as it launches a custom editor.
         /// </summary>
@@ -46,6 +47,7 @@
 
             return (value as AddressItem)?.AddressValue;
         }
+        */
     }
     //// End class
 }

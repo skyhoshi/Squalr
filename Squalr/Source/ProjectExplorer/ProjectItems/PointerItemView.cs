@@ -14,7 +14,7 @@
     /// <summary>
     /// Decorates the base project item class with annotations for use in the view.
     /// </summary>
-    internal class PointerItemView : ProjectItemView
+    public class PointerItemView : ProjectItemView
     {
         private PointerItem pointerItem;
 
@@ -162,7 +162,7 @@
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [TypeConverter(typeof(OffsetConverter))]
-        [Editor(typeof(OffsetEditorModel), typeof(UITypeEditor))]
+        // [Editor(typeof(OffsetEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Pointer Offsets"), Description("The pointer offsets used to calculate the final address")]
         public IEnumerable<Int32> PointerOffsets
         {
@@ -180,7 +180,7 @@
 
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
-        [Editor(typeof(ValueEditorModel), typeof(UITypeEditor))]
+        // [Editor(typeof(ValueEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Address Value"), Description("The value at the resolved address")]
         public override Object DisplayValue
         {

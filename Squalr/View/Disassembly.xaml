@@ -11,7 +11,7 @@
     x:Name="SqualrDisassembly"
     d:DesignHeight="256"
     d:DesignWidth="256"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding DisassemblyViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

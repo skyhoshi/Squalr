@@ -1,99 +1,102 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace Squalr.Theme.Controls
 {
-    class FocusChangeEventArgs : EventArgs
-    {
-        public FocusChangeEventArgs(IntPtr gotFocusWinHandle, IntPtr lostFocusWinHandle)
-        {
-            GotFocusWinHandle = gotFocusWinHandle;
-            LostFocusWinHandle = lostFocusWinHandle;
-        }
+	internal class FocusChangeEventArgs : EventArgs
+	{
+		#region Constructors
 
-        public IntPtr GotFocusWinHandle
-        {
-            get;
-            private set;
-        }
-        public IntPtr LostFocusWinHandle
-        {
-            get;
-            private set;
-        }
-    }
+		public FocusChangeEventArgs(IntPtr gotFocusWinHandle, IntPtr lostFocusWinHandle)
+		{
+			GotFocusWinHandle = gotFocusWinHandle;
+			LostFocusWinHandle = lostFocusWinHandle;
+		}
 
-    class WindowHookHandler
-    {
-        public WindowHookHandler()
-        { 
+		#endregion Constructors
 
-        }
+		#region Properties
 
-        IntPtr _windowHook;
-        Win32Helper.HookProc _hookProc;
-        public void Attach()
-        {
-            _hookProc = new Win32Helper.HookProc(this.HookProc);
-            _windowHook = Win32Helper.SetWindowsHookEx(
-                Win32Helper.HookType.WH_CBT,
-                _hookProc,
-                IntPtr.Zero,
-                (int)Win32Helper.GetCurrentThreadId());
-        }
+		public IntPtr GotFocusWinHandle { get; private set; }
 
+		public IntPtr LostFocusWinHandle { get; private set; }
 
-        public void Detach()
-        {
-            Win32Helper.UnhookWindowsHookEx(_windowHook);
-        }   
+		#endregion Properties
+	}
 
-        public int HookProc(int code, IntPtr wParam, IntPtr lParam)
-        {
-            if (code == Win32Helper.HCBT_SETFOCUS)
-            {
-                if (FocusChanged != null)
-                    FocusChanged(this, new FocusChangeEventArgs(wParam, lParam));
-            }
-            else if (code == Win32Helper.HCBT_ACTIVATE)
-            {
-                if (_insideActivateEvent.CanEnter)
-                {
-                    using (_insideActivateEvent.Enter())
-                    {
-                        //if (Activate != null)
-                        //    Activate(this, new WindowActivateEventArgs(wParam));
-                    }
-                }
-            }
+	internal class WindowHookHandler
+	{
+		#region fields
 
+		private IntPtr _windowHook;
+		private Win32Helper.HookProc _hookProc;
+		private ReentrantFlag _insideActivateEvent = new ReentrantFlag();
 
-            return Win32Helper.CallNextHookEx(_windowHook, code, wParam, lParam);
-        }
+		#endregion fields
 
-        public event EventHandler<FocusChangeEventArgs> FocusChanged;
+		#region Constructors
 
-        //public event EventHandler<WindowActivateEventArgs> Activate;
+		public WindowHookHandler()
+		{
+		}
 
-        ReentrantFlag _insideActivateEvent = new ReentrantFlag();
-    }
+		#endregion Constructors
+
+		#region Events
+
+		public event EventHandler<FocusChangeEventArgs> FocusChanged;
+
+		//public event EventHandler<WindowActivateEventArgs> Activate;
+
+		#endregion Events
+
+		#region Public Methods
+
+		public void Attach()
+		{
+			_hookProc = new Win32Helper.HookProc(this.HookProc);
+			_windowHook = Win32Helper.SetWindowsHookEx(
+				Win32Helper.HookType.WH_CBT,
+				_hookProc,
+				IntPtr.Zero,
+				(int)Win32Helper.GetCurrentThreadId());
+		}
+
+		public void Detach()
+		{
+			Win32Helper.UnhookWindowsHookEx(_windowHook);
+		}
+
+		public int HookProc(int code, IntPtr wParam, IntPtr lParam)
+		{
+			if (code == Win32Helper.HCBT_SETFOCUS)
+			{
+				if (FocusChanged != null)
+					FocusChanged(this, new FocusChangeEventArgs(wParam, lParam));
+			}
+			else if (code == Win32Helper.HCBT_ACTIVATE)
+			{
+				if (_insideActivateEvent.CanEnter)
+				{
+					using (_insideActivateEvent.Enter())
+					{
+						//if (Activate != null)
+						//    Activate(this, new WindowActivateEventArgs(wParam));
+					}
+				}
+			}
+
+			return Win32Helper.CallNextHookEx(_windowHook, code, wParam, lParam);
+		}
+
+		#endregion Public Methods
+	}
 }

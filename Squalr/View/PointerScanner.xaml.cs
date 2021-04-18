@@ -14,7 +14,7 @@
     /// <summary>
     /// Interaction logic for PointerScanner.xaml.
     /// </summary>
-    internal partial class PointerScanner : UserControl, IResultDataTypeObserver
+    public partial class PointerScanner : UserControl, IResultDataTypeObserver
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualScanner"/> class.

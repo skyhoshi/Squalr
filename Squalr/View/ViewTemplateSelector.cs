@@ -22,7 +22,7 @@
     /// <summary>
     /// Provides the template required to view a pane.
     /// </summary>
-    internal class ViewTemplateSelector : DataTemplateSelector
+    public class ViewTemplateSelector : DataTemplateSelector
     {
         /// <summary>
         /// The template for the Process Selector.

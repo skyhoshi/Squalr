@@ -8,7 +8,7 @@
     /// <summary>
     /// A scan result object that can be displayed to the user and added to the project explorer.
     /// </summary>
-    internal class ScanResult : INotifyPropertyChanged
+    public class ScanResult : INotifyPropertyChanged
     {
         /// <summary>
         /// The previous value of the scan result.

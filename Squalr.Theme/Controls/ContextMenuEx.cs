@@ -1,52 +1,48 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows;
 
 namespace Squalr.Theme.Controls
 {
-    public class ContextMenuEx : ContextMenu
-    {
-        static ContextMenuEx()
-        {
-        }
+	/// <summary>
+	/// Implements an extended <see cref="ContextMenu"/> for the <see cref="LayoutDocumentPaneControl"/>.
+	/// </summary>
+	public class ContextMenuEx : ContextMenu
+	{
+		#region Constructors
 
-        public ContextMenuEx()
-        {
+		static ContextMenuEx()
+		{
+		}
 
-        }
+		public ContextMenuEx()
+		{
+		}
 
-        protected override System.Windows.DependencyObject GetContainerForItemOverride()
-        {
-            return new MenuItemEx();
-        }
+		#endregion Constructors
 
-        protected override void OnOpened(System.Windows.RoutedEventArgs e)
-        {
-            BindingOperations.GetBindingExpression(this, ItemsSourceProperty).UpdateTarget();
+		#region Overrides
 
-            base.OnOpened(e);
-        }
+		protected override System.Windows.DependencyObject GetContainerForItemOverride()
+		{
+			return new MenuItemEx();
+		}
 
+		protected override void OnOpened(System.Windows.RoutedEventArgs e)
+		{
+			BindingOperations.GetBindingExpression(this, ItemsSourceProperty).UpdateTarget();
 
-    }
+			base.OnOpened(e);
+		}
+
+		#endregion Overrides
+	}
 }

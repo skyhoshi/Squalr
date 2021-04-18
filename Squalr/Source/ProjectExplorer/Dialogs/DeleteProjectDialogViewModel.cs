@@ -12,7 +12,7 @@
     /// <summary>
     /// The view model for the project deletion dialog.
     /// </summary>
-    internal class DeleteProjectDialogViewModel : ViewModelBase
+    public class DeleteProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="DeleteProjectDialogViewModel" /> class.

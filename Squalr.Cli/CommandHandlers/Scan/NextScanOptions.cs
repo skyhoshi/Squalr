@@ -61,19 +61,16 @@
                 SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
                 TrackableTask.UniversalIdentifier);
 
-            // Perform manual scan on value collection complete
-            valueCollectorTask.OnCompletedEvent += ((completedValueCollectionTask) =>
-            {
-                Snapshot snapshot = valueCollectorTask.Result;
-                TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
-                    snapshot,
-                    scanConstraints,
-                    TrackableTask.UniversalIdentifier);
+            // Perform manual scan
+            Snapshot snapshot = valueCollectorTask.Result;
+            TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
+                snapshot,
+                scanConstraints,
+                TrackableTask.UniversalIdentifier);
 
-                SessionManager.Session.SnapshotManager.SaveSnapshot(scanTask.Result);
+            SessionManager.Session.SnapshotManager.SaveSnapshot(scanTask.Result);
 
-                Console.WriteLine();
-            });
+            Console.WriteLine();
 
             return 0;
         }

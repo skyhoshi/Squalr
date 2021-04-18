@@ -9,7 +9,7 @@
     x:Name="SqualrPointerScanner"
     d:DesignHeight="320"
     d:DesignWidth="320"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding PointerScannerViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <Grid Background="{StaticResource SqualrColorPanel}">

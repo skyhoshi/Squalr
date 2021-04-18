@@ -7,7 +7,7 @@
     using System.Diagnostics;
     using System.Linq;
 
-    [Verb("list", HelpText = "List running processes.")]
+    [Verb("list", HelpText = "Lists running processes.")]
     public class ProcessListOptions
     {
         public Int32 Handle()

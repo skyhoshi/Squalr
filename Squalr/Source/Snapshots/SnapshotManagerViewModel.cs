@@ -11,7 +11,7 @@
     /// <summary>
     /// View model for the Snapshot Manager.
     /// </summary>
-    internal class SnapshotManagerViewModel : ToolViewModel
+    public class SnapshotManagerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="SnapshotManagerViewModel"/> class.

@@ -5,6 +5,8 @@
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
     using Squalr.Source.Updater;
+    using Squalr.Theme;
+    using Squalr.Theme.Themes;
     using System;
     using System.Numerics;
     using System.Threading;
@@ -14,7 +16,7 @@
     /// <summary>
     /// Main view model.
     /// </summary>
-    internal class MainViewModel : WindowHostViewModel
+    public class MainViewModel : WindowHostViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="MainViewModel" /> class

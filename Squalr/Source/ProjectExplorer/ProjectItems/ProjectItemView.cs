@@ -5,7 +5,7 @@
     using System;
     using System.ComponentModel;
 
-    internal class ProjectItemView : INotifyPropertyChanged
+    public class ProjectItemView : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

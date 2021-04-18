@@ -1,7 +1,8 @@
-﻿namespace Squalr.Cli.CommandHandlers.Process
+﻿using CommandLine;
+using System;
+
+namespace Squalr.Cli.CommandHandlers.Process
 {
-    using CommandLine;
-    using System;
 
     [Verb("close", HelpText = "Detaches from a running process.")]
     public class ProcessCloseOptions

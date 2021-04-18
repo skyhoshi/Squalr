@@ -5,7 +5,7 @@
     /// <summary>
     /// Interface for a class which listens for changes in the active data type.
     /// </summary>
-    internal interface IResultDataTypeObserver
+    public interface IResultDataTypeObserver
     {
         /// <summary>
         /// Recieves an update of the active type in the results.

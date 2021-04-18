@@ -1,38 +1,31 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Squalr.Theme.Layout
 {
-    public class LayoutElementEventArgs : EventArgs
-    {
-        public LayoutElementEventArgs(LayoutElement element)
-        {
-            Element = element;
-        }
+	/// <summary>
+	/// Provides an implmentation to raise an event concerning a particular <see cref="LayoutElement"/>.
+	/// (eg. This <see cref="LayoutElement"/> has been removed from my childrens collection)
+	/// </summary>
+	public class LayoutElementEventArgs : EventArgs
+	{
+		/// <summary>
+		/// Class constructor
+		/// </summary>
+		public LayoutElementEventArgs(LayoutElement element)
+		{
+			Element = element;
+		}
 
-
-        public LayoutElement Element
-        {
-            get;
-            private set;
-        }
-    }
+		/// <summary>Gets the particular <see cref="LayoutElement"/> for which this event has been raised.</summary>
+		public LayoutElement Element { get; private set; }
+	}
 }

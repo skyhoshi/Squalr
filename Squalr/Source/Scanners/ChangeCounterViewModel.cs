@@ -12,7 +12,7 @@
     /// <summary>
     /// View model for the Change Counter.
     /// </summary>
-    internal class ChangeCounterViewModel : ToolViewModel
+    public class ChangeCounterViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="ChangeCounterViewModel" /> class.

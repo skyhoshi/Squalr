@@ -1,105 +1,149 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
+using Squalr.Theme.Layout;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Media;
-using System.Diagnostics;
-using Squalr.Theme.Layout;
 
 namespace Squalr.Theme.Controls
 {
-    internal class DocumentPaneGroupDropTarget : DropTarget<LayoutDocumentPaneGroupControl>
-    {
-        internal DocumentPaneGroupDropTarget(LayoutDocumentPaneGroupControl paneControl, Rect detectionRect, DropTargetType type)
-            : base(paneControl, detectionRect, type)
-        {
-            _targetPane = paneControl;
-        }
+	/// <summary>
+	/// Implements a <see cref="LayoutDocumentPaneGroupControl"/> drop target
+	/// on which other items (<see cref="LayoutDocument"/>) can be dropped.
+	/// </summary>
+	internal class DocumentPaneGroupDropTarget : DropTarget<LayoutDocumentPaneGroupControl>
+	{
+		#region fields
 
-        LayoutDocumentPaneGroupControl _targetPane;
+		private LayoutDocumentPaneGroupControl _targetPane;
 
-        protected override void Drop(LayoutDocumentFloatingWindow floatingWindow)
-        {
-            ILayoutPane targetModel = _targetPane.Model as ILayoutPane;
+		#endregion fields
 
-            switch (Type)
-            {
-                case DropTargetType.DocumentPaneGroupDockInside:
-                    #region DropTargetType.DocumentPaneGroupDockInside
-                    {
-                        var paneGroupModel = targetModel as LayoutDocumentPaneGroup;
-                        var paneModel = paneGroupModel.Children[0] as LayoutDocumentPane;
-                        var sourceModel = floatingWindow.RootDocument;
+		#region Constructors
 
-                        paneModel.Children.Insert(0, sourceModel);
-                    }
-                    break;
-                    #endregion
-            }
-            base.Drop(floatingWindow);
-        }
+		/// <summary>
+		/// Class contructor
+		/// </summary>
+		/// <param name="paneControl"></param>
+		/// <param name="detectionRect"></param>
+		/// <param name="type"></param>
+		internal DocumentPaneGroupDropTarget(LayoutDocumentPaneGroupControl paneControl,
+											 Rect detectionRect,
+											 DropTargetType type)
+			: base(paneControl, detectionRect, type)
+		{
+			_targetPane = paneControl;
+		}
 
-        protected override void Drop(LayoutAnchorableFloatingWindow floatingWindow)
-        {
-            ILayoutPane targetModel = _targetPane.Model as ILayoutPane;
+		#endregion Constructors
 
-            switch (Type)
-            {
-                case DropTargetType.DocumentPaneGroupDockInside:
-                    #region DropTargetType.DocumentPaneGroupDockInside
-                    {
-                        var paneGroupModel = targetModel as LayoutDocumentPaneGroup;
-                        var paneModel = paneGroupModel.Children[0] as LayoutDocumentPane;
-                        var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
+		#region Overrides
 
-                        int i = 0;
-                        foreach (var anchorableToImport in layoutAnchorablePaneGroup.Descendents().OfType<LayoutAnchorable>().ToArray())
-                        {
-                            paneModel.Children.Insert(i, anchorableToImport);
-                            i++;
-                        }
-                    }
-                    break;
-                    #endregion
-            }
+		/// <summary>
+		/// Method is invoked to complete a drag & drop operation with a (new) docking position
+		/// by docking of the LayoutDocument <paramref name="floatingWindow"/> into this drop target.
+		/// </summary>
+		/// <param name="floatingWindow"></param>
+		protected override void Drop(LayoutDocumentFloatingWindow floatingWindow)
+		{
+			ILayoutPane targetModel = _targetPane.Model as ILayoutPane;
 
-            base.Drop(floatingWindow);
-        }
+			switch (Type)
+			{
+				case DropTargetType.DocumentPaneGroupDockInside:
 
-        public override System.Windows.Media.Geometry GetPreviewPath(OverlayWindow overlayWindow, LayoutFloatingWindow floatingWindowModel)
-        {
-            switch (Type)
-            {
-                case DropTargetType.DocumentPaneGroupDockInside:
-                    #region DropTargetType.DocumentPaneGroupDockInside
-                    {
-                        var targetScreenRect = TargetElement.GetScreenArea();
-                        targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+					#region DropTargetType.DocumentPaneGroupDockInside
 
-                        return new RectangleGeometry(targetScreenRect);
-                    } 
-                    #endregion
-            }
+					{
+						var paneGroupModel = targetModel as LayoutDocumentPaneGroup;
+						var paneModel = paneGroupModel as LayoutDocumentPaneGroup;
+						var sourceModel = floatingWindow.RootPanel as LayoutDocumentPaneGroup;
 
-            return null;
-        }
+						paneModel.Children.Insert(0, sourceModel);
+					}
+					break;
 
-    }
+					#endregion DropTargetType.DocumentPaneGroupDockInside
+			}
+
+			base.Drop(floatingWindow);
+		}
+
+		/// <summary>
+		/// Method is invoked to complete a drag & drop operation with a (new) docking position
+		/// by docking of the LayoutAnchorable <paramref name="floatingWindow"/> into this drop target.
+		/// </summary>
+		/// <param name="floatingWindow"></param>
+		protected override void Drop(LayoutAnchorableFloatingWindow floatingWindow)
+		{
+			ILayoutPane targetModel = _targetPane.Model as ILayoutPane;
+
+			switch (Type)
+			{
+				case DropTargetType.DocumentPaneGroupDockInside:
+
+					#region DropTargetType.DocumentPaneGroupDockInside
+
+					{
+						var paneGroupModel = targetModel as LayoutDocumentPaneGroup;
+						var paneModel = paneGroupModel.Children[0] as LayoutDocumentPane;
+						var layoutAnchorablePaneGroup = floatingWindow.RootPanel as LayoutAnchorablePaneGroup;
+
+						int i = 0;
+						foreach (var anchorableToImport in layoutAnchorablePaneGroup.Descendents().OfType<LayoutAnchorable>().ToArray())
+						{
+							// BD: 18.07.2020 Remove that bodge and handle CanClose=false && CanHide=true in XAML
+							//anchorableToImport.SetCanCloseInternal(true);
+
+							paneModel.Children.Insert(i, anchorableToImport);
+							i++;
+						}
+					}
+					break;
+
+					#endregion DropTargetType.DocumentPaneGroupDockInside
+			}
+
+			base.Drop(floatingWindow);
+		}
+
+		/// <summary>
+		/// Gets a <see cref="Geometry"/> that is used to highlight/preview the docking position
+		/// of this drop target for a <paramref name="floatingWindowModel"/> being docked inside an
+		/// <paramref name="overlayWindow"/>.
+		/// </summary>
+		/// <param name="overlayWindow"></param>
+		/// <param name="floatingWindowModel"></param>
+		/// <returns>The geometry of the preview/highlighting WPF figure path.</returns>
+		public override Geometry GetPreviewPath(OverlayWindow overlayWindow,
+												LayoutFloatingWindow floatingWindowModel)
+		{
+			switch (Type)
+			{
+				case DropTargetType.DocumentPaneGroupDockInside:
+
+					#region DropTargetType.DocumentPaneGroupDockInside
+
+					{
+						var targetScreenRect = TargetElement.GetScreenArea();
+						targetScreenRect.Offset(-overlayWindow.Left, -overlayWindow.Top);
+
+						return new RectangleGeometry(targetScreenRect);
+					}
+
+					#endregion DropTargetType.DocumentPaneGroupDockInside
+			}
+
+			return null;
+		}
+
+		#endregion Overrides
+	}
 }

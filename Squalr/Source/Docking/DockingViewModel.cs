@@ -26,14 +26,13 @@
         /// <summary>
         /// Collection of tools contained in the main docking panel.
         /// </summary>
-        private HashSet<ToolViewModel> tools;
+        private HashSet<ToolViewModel> tools = new HashSet<ToolViewModel>();
 
         /// <summary>
         /// Prevents a default instance of the <see cref="DockingViewModel" /> class from being created.
         /// </summary>
         private DockingViewModel()
         {
-            this.tools = new HashSet<ToolViewModel>();
         }
 
         /// <summary>
@@ -43,11 +42,6 @@
         {
             get
             {
-                if (this.tools == null)
-                {
-                    this.tools = new HashSet<ToolViewModel>();
-                }
-
                 return this.tools;
             }
         }

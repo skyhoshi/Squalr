@@ -1,30 +1,26 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 
 namespace Squalr.Theme.Layout
 {
-    public interface ILayoutElement : INotifyPropertyChanged, INotifyPropertyChanging
-    {
-        ILayoutContainer Parent { get; }
-        ILayoutRoot Root { get; }
-    }
+	/// <summary>This interface should be implemented by a classe that supports
+	/// - Manipulation of the children of a given parent <see cref="LayoutContainer"/> or
+	/// - Manipulation of the children of the <see cref="LayoutRoot"/>.
+	/// </summary>
+	public interface ILayoutElement : INotifyPropertyChanged, INotifyPropertyChanging
+	{
+		/// <summary>Gets the parent <see cref="LayoutContainer"/> for this layout element.</summary>
+		ILayoutContainer Parent { get; }
+
+		/// <summary>Gets the <see cref="LayoutRoot"/> for this layout element.</summary>
+		ILayoutRoot Root { get; }
+	}
 }

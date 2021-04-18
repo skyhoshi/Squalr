@@ -17,7 +17,7 @@
     /// <summary>
     /// Collect values for the current snapshot, or a new one if none exists. The values are then assigned to a new snapshot.
     /// </summary>
-    internal class ValueCollectorViewModel : ViewModelBase
+    public class ValueCollectorViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="ValueCollectorViewModel" /> class.

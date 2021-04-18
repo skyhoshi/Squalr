@@ -1,77 +1,83 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
 
 namespace Squalr.Theme.Controls
 {
-    public enum DropAreaType
-    {
-        DockingManager,
+	/// <summary>Determines the type of drop area of a <see cref="FrameworkElement"/> that may be valid as a drop target of a drag and drop operation.</summary>
+	public enum DropAreaType
+	{
+		/// <summary> This type of drop area identifies a <seealso cref="AvalonDock.DockingManager"/> which is the visual root of the AvalonDock control library.</summary>
+		DockingManager,
 
-        DocumentPane,
+		/// <summary>This type of drop area identifies a <see cref="LayoutDocumentPaneControl"/>.</summary>
+		DocumentPane,
 
-        DocumentPaneGroup,
+		/// <summary>This type of drop area identifies a <see cref="LayoutDocumentPaneGroupControl"/>.</summary>
+		DocumentPaneGroup,
 
-        AnchorablePane,
+		/// <summary>This type of drop area identifies a <see cref="LayoutAnchorablePaneControl"/>.</summary>
+		AnchorablePane,
+	}
 
-    }
+	/// <summary>Describes a drop target which can be the final position of an item that is being dragged and dropped to dock it somewhere else in the UI of the framework.</summary>
+	public interface IDropArea
+	{
+		/// <summary>Gets the width, height, and location of a rectangle that describes the drop target of a drag and drop operation on the users screen.</summary>
+		Rect DetectionRect { get; }
 
+		/// <summary> Gets the type of drop area for this drop target.</summary>
+		DropAreaType Type { get; }
+	}
 
-    public interface IDropArea
-    {
-        Rect DetectionRect { get; }
-        DropAreaType Type { get; }
-    }
+	/// <inheritdoc />
+	/// <summary>
+	/// Implements a control class that can act as a drop target. A drop target is a control that can
+	/// be the target of drag & drop (dock) operation of a second control.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <seealso cref="IDropArea"/>
+	/// <seealso cref="FrameworkElement"/>
+	public class DropArea<T> : IDropArea where T : FrameworkElement
+	{
+		#region Constructors
 
-    public class DropArea<T> : IDropArea where T : FrameworkElement
-    {
-        internal DropArea(T areaElement, DropAreaType type)
-        {
-            _element = areaElement;
-            _detectionRect = areaElement.GetScreenArea();
-            _type = type;
-        }
+		/// <summary>Class constructor from control that can be used as drop target and it's type of drop area. </summary>
+		/// <param name="areaElement"></param>
+		/// <param name="type">the type of drop area for this drop target.</param>
+		internal DropArea(T areaElement, DropAreaType type)
+		{
+			AreaElement = areaElement;
+			DetectionRect = areaElement.GetScreenArea();
+			Type = type;
+		}
 
-        Rect _detectionRect;
+		#endregion Constructors
 
-        public Rect DetectionRect
-        {
-            get { return _detectionRect; }
-        }
+		#region IDropArea
 
-        DropAreaType _type;
+		/// <inheritdoc />
+		public Rect DetectionRect { get; }
 
-        public DropAreaType Type
-        {
-            get { return _type; }
-        }
+		/// <inheritdoc />
+		public DropAreaType Type { get; }
 
-        T _element;
-        public T AreaElement
-        {
-            get
-            {
-                return _element;
-            }
-        }
+		#endregion IDropArea
 
-    }
+		#region Properties
+
+		/// <summary>Gets the <see cref="FrameworkElement"/> that implements a drop target for a drag & drop (dock) operation.</summary>
+		[Bindable(false), Description("Gets the FrameworkElement that implements a drop target for a drag & drop (dock) operation."), Category("Other")]
+		public T AreaElement { get; }
+
+		#endregion Properties
+	}
 }

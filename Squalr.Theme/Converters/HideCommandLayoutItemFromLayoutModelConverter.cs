@@ -1,52 +1,73 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Data;
-using Squalr.Theme.Layout;
 using Squalr.Theme.Controls;
+using Squalr.Theme.Layout;
+using System;
+using System.Windows.Data;
+using System.Windows.Markup;
 
 namespace Squalr.Theme.Converters
 {
-    public class HideCommandLayoutItemFromLayoutModelConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            //when this converter is called layout could be constructing so many properties here are potentially not valid
-            var layoutModel = value as LayoutContent;
-            if (layoutModel == null)
-                return null;
-            if (layoutModel.Root == null)
-                return null;
-            if (layoutModel.Root.Manager == null)
-                return null;
+	/// <summary>
+	/// Converts a <see cref="LayoutContent"/> into a <see cref="LayoutAnchorableItem.HideCommand"/>
+	/// and ensures that other essential properties (Root, Root.Manager) are available.
+	///
+	/// Returns null or Binding.DoNothing otherwise.
+	/// </summary>
+	public class HideCommandLayoutItemFromLayoutModelConverter : MarkupExtension, IValueConverter
+	{
+		/// <summary>
+		/// Converts a <see cref="LayoutContent"/> into a <see cref="LayoutAnchorableItem.HideCommand"/>
+		/// and ensures that other essential properties (Root, Root.Manager) are available.
+		///
+		/// Returns null or Binding.DoNothing otherwise.
+		/// </summary>
+		/// <param name="values">The value produced by the binding source.</param>
+		/// <param name="targetType">The type of the binding target property.</param>
+		/// <param name="parameter">The converter parameter to use.</param>
+		/// <param name="culture">The culture to use in the converter.</param>
+		/// <returns>A converted value.</returns>
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			//when this converter is called layout could be constructing so many properties here are potentially not valid
+			if (!(value is LayoutContent layoutModel))
+				return null;
 
-            var layoutItemModel = layoutModel.Root.Manager.GetLayoutItemFromModel(layoutModel) as LayoutAnchorableItem;
-            if (layoutItemModel == null)
-                return Binding.DoNothing;
+			if (layoutModel.Root == null)
+				return null;
 
-            return layoutItemModel.HideCommand;
-        }
+			if (layoutModel.Root.Manager == null)
+				return null;
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+			if (!(layoutModel.Root.Manager.GetLayoutItemFromModel(layoutModel) is LayoutAnchorableItem layoutItemModel))
+				return Binding.DoNothing;
+
+			return layoutItemModel.HideCommand;
+		}
+
+		/// <summary>
+		/// Method is not implemented and will raise <see cref="System.NotImplementedException"/> when called.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="targetType"></param>
+		/// <param name="parameter"></param>
+		/// <param name="culture"></param>
+		/// <returns><see cref="System.NotImplementedException"/></returns>
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override object ProvideValue(IServiceProvider serviceProvider)
+		{
+			return ConverterCreater.Get<HideCommandLayoutItemFromLayoutModelConverter>();
+		}
+	}
 }

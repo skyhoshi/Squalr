@@ -8,7 +8,7 @@
     x:Name="SqualrInputCorrelator"
     d:DesignHeight="256"
     d:DesignWidth="256"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding InputCorrelatorViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

@@ -10,7 +10,7 @@
     {
         public String GetCommandName()
         {
-            return "Scans";
+            return "scans";
         }
 
         public void TryHandle(ref Session session, Command command)

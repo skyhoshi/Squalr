@@ -19,7 +19,7 @@
     /// <summary>
     /// View model for the pointer scan results.
     /// </summary>
-    internal class PointerScanResultsViewModel : ToolViewModel
+    public class PointerScanResultsViewModel : ToolViewModel
     {
         /// <summary>
         /// The number of elements to display on each page.

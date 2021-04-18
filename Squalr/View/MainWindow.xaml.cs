@@ -4,6 +4,7 @@
     using Squalr.Source.Controls;
     using Squalr.Source.Results;
     using Squalr.Source.Scanning;
+    using Squalr.Theme.Themes;
     using System;
     using System.Threading.Tasks;
     using System.Windows;
@@ -11,7 +12,7 @@
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
     /// </summary>
-    internal partial class MainWindow : Window, IResultDataTypeObserver
+    public partial class MainWindow : Window, IResultDataTypeObserver
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualScanner"/> class.

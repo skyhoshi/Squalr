@@ -9,7 +9,7 @@
     /// <summary>
     /// Type editor for hot keys.
     /// </summary>
-    public class HotkeyEditorModel : UITypeEditor
+    public class HotkeyEditorModel // : UITypeEditor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HotkeyEditorModel" /> class.
@@ -17,7 +17,7 @@
         public HotkeyEditorModel()
         {
         }
-
+        /*
         /// <summary>
         /// Gets the editor style. This will be Modal, as it launches a custom editor.
         /// </summary>
@@ -56,6 +56,7 @@
 
             return value;
         }
+        */
     }
     //// End class
 }

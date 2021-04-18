@@ -8,7 +8,7 @@
     /// <summary>
     /// Type editor for scripts.
     /// </summary>
-    public class ScriptEditorModel : UITypeEditor
+    public class ScriptEditorModel // : UITypeEditor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ScriptEditorModel" /> class.
@@ -17,6 +17,7 @@
         {
         }
 
+        /*
         /// <summary>
         /// Gets the editor style. This will be Modal, as it launches a custom editor.
         /// </summary>
@@ -45,6 +46,7 @@
 
             return value;
         }
+        */
     }
     //// End class
 }

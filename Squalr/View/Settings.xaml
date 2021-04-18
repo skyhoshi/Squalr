@@ -8,7 +8,7 @@
     x:Name="SqualrSettings"
     d:DesignHeight="256"
     d:DesignWidth="416"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding SettingsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <TabControl Background="{StaticResource SqualrColorPanel}">

@@ -63,7 +63,7 @@
         [Browsable(true)]
         [ReadOnly(false)]
         [TypeConverter(typeof(ScriptConverter))]
-        [Editor(typeof(ScriptEditorModel), typeof(UITypeEditor))]
+        // [Editor(typeof(ScriptEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Script"), Description("C# script to interface with engine")]
         public String Script
         {

@@ -19,10 +19,9 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Windows.Forms;
     using System.Windows.Input;
 
-    internal class ProjectExplorerViewModel : ToolViewModel
+    public class ProjectExplorerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="ProjectExplorerViewModel" /> class.
@@ -207,6 +206,7 @@
         {
             try
             {
+                /*
                 using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
                 {
                     folderBrowserDialog.SelectedPath = SettingsViewModel.GetInstance().ProjectRoot;
@@ -223,6 +223,7 @@
                         throw new Exception("Folder not found");
                     }
                 }
+                */
             }
             catch (Exception ex)
             {
@@ -325,18 +326,18 @@
             {
                 ValueEditorModel valueEditor = new ValueEditorModel();
                 AddressItem addressItem = projectItem as AddressItem;
-                dynamic result = valueEditor.EditValue(null, null, addressItem);
+                /*dynamic result = valueEditor.EditValue(null, null, addressItem);
 
                 if (SyntaxChecker.CanParseValue(addressItem.DataType, result?.ToString()))
                 {
                     addressItem.AddressValue = result;
-                }
+                }*/
             }
             else if (projectItem is ScriptItem)
             {
                 ScriptEditorModel scriptEditor = new ScriptEditorModel();
                 ScriptItem scriptItem = projectItem as ScriptItem;
-                scriptItem.Script = scriptEditor.EditValue(null, null, scriptItem.Script) as String;
+                // scriptItem.Script = scriptEditor.EditValue(null, null, scriptItem.Script) as String;
             }
         }
 

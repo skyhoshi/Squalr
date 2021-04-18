@@ -1,90 +1,105 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Squalr.Theme.Layout;
+using System.ComponentModel;
 using System.Windows;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutDocumentItem : LayoutItem
-    {
-        LayoutDocument _document;
-        internal LayoutDocumentItem()
-        {
+	/// <inheritdoc />
+	/// <summary>
+	/// This is a wrapper for around the custom document content view of <see cref="LayoutElement"/>.
+	/// Implements the <see cref="AvalonDock.Controls.LayoutItem" />
+	///
+	/// All DPs implemented here can be bound in a corresponding style to control parameters
+	/// in dependency properties via binding in MVVM.
+	/// </summary>
+	/// <seealso cref="AvalonDock.Controls.LayoutItem" />
+	public class LayoutDocumentItem : LayoutItem
+	{
+		#region fields
 
-        }
+		private LayoutDocument _document;   // The content of this item
 
-        internal override void Attach(LayoutContent model)
-        {
-            _document = model as LayoutDocument;
-            base.Attach(model);
-        }
+		#endregion fields
 
-        protected override void Close()
-        {
-            var dockingManager = _document.Root.Manager;
-            dockingManager._ExecuteCloseCommand(_document);
-        }
+		#region Constructors
 
-        #region Description
+		/// <summary>Class constructor</summary>
+		internal LayoutDocumentItem()
+		{
+		}
 
-        /// <summary>
-        /// Description Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty DescriptionProperty =
-            DependencyProperty.Register("Description", typeof(string), typeof(LayoutDocumentItem),
-                new FrameworkPropertyMetadata((string)null,
-                    new PropertyChangedCallback(OnDescriptionChanged)));
+		#endregion Constructors
 
-        /// <summary>
-        /// Gets or sets the Description property.  This dependency property 
-        /// indicates the description to display for the document item.
-        /// </summary>
-        public string Description
-        {
-            get { return (string)GetValue(DescriptionProperty); }
-            set { SetValue(DescriptionProperty, value); }
-        }
+		#region Properties
 
-        /// <summary>
-        /// Handles changes to the Description property.
-        /// </summary>
-        private static void OnDescriptionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((LayoutDocumentItem)d).OnDescriptionChanged(e);
-        }
+		#region Description
 
-        /// <summary>
-        /// Provides derived classes an opportunity to handle changes to the Description property.
-        /// </summary>
-        protected virtual void OnDescriptionChanged(DependencyPropertyChangedEventArgs e)
-        {
-            _document.Description = (string)e.NewValue;
-        }
+		/// <summary><see cref="Description"/> dependency property.</summary>
+		public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(LayoutDocumentItem),
+					new FrameworkPropertyMetadata(null, OnDescriptionChanged));
 
-        #endregion
+		/// <summary>Gets/sets the description to display (in the <see cref="NavigatorWindow"/>) for the document item.</summary>
+		[Bindable(true), Description("Gets/sets the description to display (in the NavigatorWindow) for the document item."), Category("Other")]
+		public string Description
+		{
+			get => (string)GetValue(DescriptionProperty);
+			set => SetValue(DescriptionProperty, value);
+		}
 
-        internal override void Detach()
-        {
-            _document = null;
-            base.Detach();
-        }
-    }
+		/// <summary>Handles changes to the <see cref="Description"/> property.</summary>
+		private static void OnDescriptionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((LayoutDocumentItem)d).OnDescriptionChanged(e);
+
+		/// <summary>Provides derived classes an opportunity to handle changes to the <see cref="Description"/> property.</summary>
+		protected virtual void OnDescriptionChanged(DependencyPropertyChangedEventArgs e) => _document.Description = (string)e.NewValue;
+
+		#endregion Description
+
+		#endregion Properties
+
+		#region Overrides
+
+		/// <inheritdoc />
+		protected override void Close()
+		{
+			if (_document.Root?.Manager == null) return;
+			var dockingManager = _document.Root.Manager;
+			dockingManager.ExecuteCloseCommand(_document);
+		}
+
+		/// <inheritdoc />
+		protected override void OnVisibilityChanged()
+		{
+			if (_document?.Root != null)
+			{
+				_document.IsVisible = Visibility == Visibility.Visible;
+				if (_document.Parent is LayoutDocumentPane layoutDocumentPane) layoutDocumentPane.ComputeVisibility();
+			}
+			base.OnVisibilityChanged();
+		}
+
+		/// <inheritdoc />
+		internal override void Attach(LayoutContent model)
+		{
+			_document = model as LayoutDocument;
+			base.Attach(model);
+		}
+
+		/// <inheritdoc />
+		internal override void Detach()
+		{
+			_document = null;
+			base.Detach();
+		}
+
+		#endregion Overrides
+	}
 }

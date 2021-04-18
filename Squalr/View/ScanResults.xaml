@@ -11,7 +11,7 @@
     x:Name="SqualrScanResults"
     d:DesignHeight="256"
     d:DesignWidth="512"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding ScanResultsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

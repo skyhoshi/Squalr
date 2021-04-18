@@ -9,7 +9,7 @@
     {
         public String GetCommandName()
         {
-            return "Results";
+            return "results";
         }
 
         public void TryHandle(ref Session session, Command command)
@@ -35,8 +35,7 @@
             return new List<String>()
             {
                 "res",
-                "result",
-                "results"
+                "result"
             };
         }
     }

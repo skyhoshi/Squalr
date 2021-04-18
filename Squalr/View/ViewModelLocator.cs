@@ -21,12 +21,14 @@
     using Squalr.Source.PropertyViewer;
     using Squalr.Source.Scanning;
     using Squalr.Source.Tasks;
+    using System;
+    using System.ComponentModel;
 
     /// <summary>
     /// This class contains static references to all the view models in the
     /// application and provides an entry point for the bindings.
     /// </summary>
-    internal class ViewModelLocator
+    public class ViewModelLocator
     {
         /// <summary>
         /// Initializes a new instance of the ViewModelLocator class.

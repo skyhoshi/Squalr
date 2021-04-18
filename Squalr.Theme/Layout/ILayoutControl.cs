@@ -1,28 +1,21 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 namespace Squalr.Theme.Layout
 {
-    public interface ILayoutControl
-    {
-        ILayoutElement Model { get;  }
-    }
+	/// <summary>Defines a control class that hosts a <see cref="ILayoutElement"/> as its model</summary>
+	public interface ILayoutControl
+	{
+		/// <summary>Gets the <see cref="ILayoutElement"/> model for this control.</summary>
+		ILayoutElement Model
+		{
+			get;
+		}
+	}
 }

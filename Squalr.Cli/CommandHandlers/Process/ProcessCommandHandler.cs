@@ -9,7 +9,7 @@
     {
         public String GetCommandName()
         {
-            return "Processes";
+            return "process";
         }
 
         public void TryHandle(ref Session session, Command command)
@@ -17,8 +17,12 @@
             Parser.Default.ParseArguments<ProcessOpenOptions, ProcessCloseOptions, ProcessListOptions>(command.Args)
                 .MapResult(
                     (ProcessOpenOptions options) => options.Handle(),
-                    (ProcessCloseOptions options) => options.Handle(),
+                    (ProcessAttachOptions options) => options.Handle(),
                     (ProcessListOptions options) => options.Handle(),
+                    (ProcessCloseOptions options) => options.Handle(),
+                    (ProcessExitOptions options) => options.Handle(),
+                    (ProcessQuitOptions options) => options.Handle(),
+                    (ProcessDetachOptions options) => options.Handle(),
                     errs => 1
                 );
 
@@ -30,7 +34,6 @@
             return new List<String>()
             {
                 "proc",
-                "process",
                 "processes"
             };
         }

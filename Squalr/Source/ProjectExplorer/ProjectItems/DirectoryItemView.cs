@@ -9,7 +9,7 @@
     /// <summary>
     /// Decorates the base project item class with annotations for use in the view.
     /// </summary>
-    internal class DirectoryItemView : ProjectItemView
+    public class DirectoryItemView : ProjectItemView
     {
         private Boolean isExpanded;
 

@@ -8,7 +8,7 @@
     /// <summary>
     /// Type editor for text.
     /// </summary>
-    public class TextEditorModel : UITypeEditor
+    public class TextEditorModel // : UITypeEditor
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="TextEditorModel" /> class.
@@ -17,6 +17,7 @@
         {
         }
 
+        /*
         /// <summary>
         /// Gets the editor style. This will be Modal, as it launches a custom editor.
         /// </summary>
@@ -44,8 +45,9 @@
             }
 
             return value;
-        }
+        }*/
     }
     //// End class
 }
 //// End namespace
+                  

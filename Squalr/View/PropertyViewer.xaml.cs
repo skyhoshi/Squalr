@@ -17,7 +17,7 @@
         /// <summary>
         /// The property grid to display selected objects.
         /// </summary>
-        private System.Windows.Forms.PropertyGrid propertyGrid;
+        // private System.Windows.Forms.PropertyGrid propertyGrid;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyViewer" /> class.
@@ -27,6 +27,7 @@
             this.InitializeComponent();
 
             // Windows Forms hosting -- TODO: Phase this out
+            /*
             this.propertyGrid = new System.Windows.Forms.PropertyGrid();
 
             // Use reflection to set all propertygrid colors to dark, since some are otherwise not publically accessible
@@ -59,6 +60,7 @@
             PropertyViewerViewModel.GetInstance().Subscribe(this);
 
             this.propertyViewer.Children.Add(WinformsHostingHelper.CreateHostedControl(this.propertyGrid));
+            */
         }
 
         /// <summary>
@@ -67,12 +69,14 @@
         /// <param name="targetObjects">The selected target objects.</param>
         public void Update(Object[] targetObjects)
         {
+            /*
             ControlThreadingHelper.InvokeControlAction(
                 this.propertyGrid,
                 () =>
             {
                 this.propertyGrid.SelectedObjects = targetObjects == null || targetObjects.Contains(null) ? new Object[] { } : targetObjects;
             });
+            */
         }
     }
     //// End class

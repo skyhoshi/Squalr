@@ -14,7 +14,7 @@
     using System.Windows;
     using System.Windows.Input;
 
-    internal class SelectProjectDialogViewModel : ViewModelBase
+    public class SelectProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="SelectProjectDialogViewModel" /> class.

@@ -1,128 +1,120 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Controls.Primitives;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Diagnostics;
+using System.Windows.Controls.Primitives;
 
 namespace Squalr.Theme.Controls
 {
-    public class DropDownButton : ToggleButton
-    {
-        public DropDownButton()
-        {
-            this.Unloaded += new RoutedEventHandler(DropDownButton_Unloaded);
-        }
+	/// <inheritdoc />
+	/// <summary>
+	/// Implements a button that is used to display a <see cref="ContextMenuEx"/>
+	/// when the user clicks on it
+	/// (see templates for <see cref="LayoutAnchorableFloatingWindowControl"/>,
+	/// <see cref="AnchorablePaneTitle"/>, and <see cref="LayoutDocumentPaneControl"/>).
+	/// </summary>
+	/// <seealso cref="ToggleButton"/>
+	public class DropDownButton : ToggleButton
+	{
+		#region Constructors
 
+		public DropDownButton()
+		{
+			Unloaded += DropDownButton_Unloaded;
+		}
 
-        #region DropDownContextMenu
+		#endregion Constructors
 
-        /// <summary>
-        /// DropDownContextMenu Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty DropDownContextMenuProperty =
-            DependencyProperty.Register("DropDownContextMenu", typeof(ContextMenu), typeof(DropDownButton),
-                new FrameworkPropertyMetadata((ContextMenu)null,
-                    new PropertyChangedCallback(OnDropDownContextMenuChanged)));
+		#region Properties
 
-        /// <summary>
-        /// Gets or sets the DropDownContextMenu property.  This dependency property 
-        /// indicates drop down menu to show up when user click on an anchorable menu pin.
-        /// </summary>
-        public ContextMenu DropDownContextMenu
-        {
-            get { return (ContextMenu)GetValue(DropDownContextMenuProperty); }
-            set { SetValue(DropDownContextMenuProperty, value); }
-        }
+		#region DropDownContextMenu
 
-        /// <summary>
-        /// Handles changes to the DropDownContextMenu property.
-        /// </summary>
-        private static void OnDropDownContextMenuChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((DropDownButton)d).OnDropDownContextMenuChanged(e);
-        }
+		/// <summary><see cref="DropDownContextMenu"/> dependency property.</summary>
+		public static readonly DependencyProperty DropDownContextMenuProperty = DependencyProperty.Register(nameof(DropDownContextMenu), typeof(ContextMenu), typeof(DropDownButton),
+				new FrameworkPropertyMetadata(null, OnDropDownContextMenuChanged));
 
-        /// <summary>
-        /// Provides derived classes an opportunity to handle changes to the DropDownContextMenu property.
-        /// </summary>
-        protected virtual void OnDropDownContextMenuChanged(DependencyPropertyChangedEventArgs e)
-        {
-            var oldContextMenu = e.OldValue as ContextMenu;
-            if (oldContextMenu != null && IsChecked.GetValueOrDefault())
-                oldContextMenu.Closed -= new RoutedEventHandler(OnContextMenuClosed);
-        }
+		/// <summary>Gets/sets the drop down menu to show up when user click on an anchorable menu pin.</summary>
+		[Bindable(true), Description("Gets/sets the drop down menu to show up when user click on an anchorable menu pin."), Category("Menu")]
+		public ContextMenu DropDownContextMenu
+		{
+			get => (ContextMenu)GetValue(DropDownContextMenuProperty);
+			set => SetValue(DropDownContextMenuProperty, value);
+		}
 
-        #endregion
+		/// <summary>Handles changes to the <see cref="DropDownContextMenu"/> property.</summary>
+		private static void OnDropDownContextMenuChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((DropDownButton)d).OnDropDownContextMenuChanged(e);
 
-        #region DropDownContextMenuDataContext
+		/// <summary>Provides derived classes an opportunity to handle changes to the <see cref="DropDownContextMenu"/> property.</summary>
+		protected virtual void OnDropDownContextMenuChanged(DependencyPropertyChangedEventArgs e)
+		{
+			if (e.OldValue is ContextMenu oldContextMenu && IsChecked.GetValueOrDefault())
+				oldContextMenu.Closed -= OnContextMenuClosed;
+		}
 
-        /// <summary>
-        /// DropDownContextMenuDataContext Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty DropDownContextMenuDataContextProperty =
-            DependencyProperty.Register("DropDownContextMenuDataContext", typeof(object), typeof(DropDownButton),
-                new FrameworkPropertyMetadata((object)null));
+		#endregion DropDownContextMenu
 
-        /// <summary>
-        /// Gets or sets the DropDownContextMenuDataContext property.  This dependency property 
-        /// indicates data context to set for drop down context menu.
-        /// </summary>
-        public object DropDownContextMenuDataContext
-        {
-            get { return (object)GetValue(DropDownContextMenuDataContextProperty); }
-            set { SetValue(DropDownContextMenuDataContextProperty, value); }
-        }
+		#region DropDownContextMenuDataContext
 
-        #endregion
+		/// <summary><see cref="DropDownContextMenuDataContext"/> dependency property.</summary>
+		public static readonly DependencyProperty DropDownContextMenuDataContextProperty = DependencyProperty.Register(nameof(DropDownContextMenuDataContext), typeof(object), typeof(DropDownButton),
+				new FrameworkPropertyMetadata(null));
 
-        protected override void OnClick()
-        {
-            if (DropDownContextMenu != null)
-            {
-                //IsChecked = true;
-                DropDownContextMenu.PlacementTarget = this;
-                DropDownContextMenu.Placement = PlacementMode.Bottom;
-                DropDownContextMenu.DataContext = DropDownContextMenuDataContext;
-                DropDownContextMenu.Closed += new RoutedEventHandler(OnContextMenuClosed);
-                DropDownContextMenu.IsOpen = true;
-            }
+		/// <summary>Gets/sets the DataContext to set for the DropDownContext menu property.</summary>
+		[Bindable(true), Description("Gets/sets the DataContext to set for the DropDownContext menu property."), Category("Menu")]
+		public object DropDownContextMenuDataContext
+		{
+			get => GetValue(DropDownContextMenuDataContextProperty);
+			set => SetValue(DropDownContextMenuDataContextProperty, value);
+		}
 
-            base.OnClick();
-        }
+		#endregion DropDownContextMenuDataContext
 
-        void OnContextMenuClosed(object sender, RoutedEventArgs e)
-        {
-            //Debug.Assert(IsChecked.GetValueOrDefault());
-            var ctxMenu = sender as ContextMenu;
-            ctxMenu.Closed -= new RoutedEventHandler(OnContextMenuClosed);
-            IsChecked = false;
-        }
+		#endregion Properties
 
-        void DropDownButton_Unloaded(object sender, RoutedEventArgs e)
-        {
-            DropDownContextMenu = null;
-        }
+		#region Overrides
 
+		/// <inheritdoc />
+		protected override void OnClick()
+		{
+			if (DropDownContextMenu != null)
+			{
+				//IsChecked = true;
+				DropDownContextMenu.PlacementTarget = this;
+				DropDownContextMenu.Placement = PlacementMode.Bottom;
+				DropDownContextMenu.DataContext = DropDownContextMenuDataContext;
+				DropDownContextMenu.Closed += OnContextMenuClosed;
+				DropDownContextMenu.IsOpen = true;
+			}
+			base.OnClick();
+		}
 
-    }
+		#endregion Overrides
+
+		#region Private Methods
+
+		private void OnContextMenuClosed(object sender, RoutedEventArgs e)
+		{
+			//Debug.Assert(IsChecked.GetValueOrDefault());
+			var ctxMenu = sender as ContextMenu;
+			ctxMenu.Closed -= OnContextMenuClosed;
+			IsChecked = false;
+		}
+
+		private void DropDownButton_Unloaded(object sender, RoutedEventArgs e)
+		{
+			// When changing theme, Unloaded event is called, erasing the DropDownContextMenu.
+			// Prevent this on theme changes.
+			if (IsLoaded) DropDownContextMenu = null;
+		}
+
+		#endregion Private Methods
+	}
 }

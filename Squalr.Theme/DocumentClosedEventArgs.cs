@@ -1,38 +1,35 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Squalr.Theme.Layout;
+using System;
 
 namespace Squalr.Theme
 {
-    public class DocumentClosedEventArgs : EventArgs
-    {
-        public DocumentClosedEventArgs(LayoutDocument document)
-        {
-            Document = document;
-        }
+	/// <summary>
+	/// Implements an event that can be raised to inform the client application about a
+	/// document that been closed and removed its content (viewmodel) from the docking framework.
+	/// </summary>
+	public class DocumentClosedEventArgs : EventArgs
+	{
+		/// <summary>
+		/// Class constructor from the documents layout model.
+		/// </summary>
+		/// <param name="document"></param>
+		public DocumentClosedEventArgs(LayoutDocument document)
+		{
+			Document = document;
+		}
 
-        public LayoutDocument Document
-        {
-            get;
-            private set;
-        }
-    }
+		/// <summary>
+		/// Gets the model of the document that has been closed.
+		/// </summary>
+		public LayoutDocument Document { get; private set; }
+	}
 }

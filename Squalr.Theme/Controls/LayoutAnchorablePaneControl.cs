@@ -1,88 +1,120 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
-using System.Windows.Controls;
-using System.Windows;
-using System.Windows.Data;
 using Squalr.Theme.Layout;
+using System;
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutAnchorablePaneControl : TabControl, ILayoutControl//, ILogicalChildrenContainer
-    {
-        static LayoutAnchorablePaneControl()
-        {
-            FocusableProperty.OverrideMetadata(typeof(LayoutAnchorablePaneControl), new FrameworkPropertyMetadata(false));
-        }
+	/// <inheritdoc cref="TabControl"/>
+	/// <inheritdoc cref="ILayoutControl"/>
+	/// <summary>
+	/// Provides a control to display multible (or just one) LayoutAnchorable(s).
+	/// See also <seealso cref="AnchorablePaneTabPanel"/>.
+	/// </summary>
+	/// <seealso cref="TabControlEx"/>
+	/// <seealso cref="ILayoutControl"/>
+	public class LayoutAnchorablePaneControl : TabControlEx, ILayoutControl//, ILogicalChildrenContainer
+	{
+		#region fields
 
-        public LayoutAnchorablePaneControl(LayoutAnchorablePane model)
-        {
-            if (model == null)
-                throw new ArgumentNullException("model");
+		private readonly LayoutAnchorablePane _model;
 
-            _model = model;
+		#endregion fields
 
-            SetBinding(ItemsSourceProperty, new Binding("Model.Children") { Source = this });
-            SetBinding(FlowDirectionProperty, new Binding("Model.Root.Manager.FlowDirection") { Source = this });
+		#region Constructors
 
-            this.LayoutUpdated += new EventHandler(OnLayoutUpdated);
-        }
+		/// <summary>Static class constructor to register WPF style keys.</summary>
+		static LayoutAnchorablePaneControl()
+		{
+			FocusableProperty.OverrideMetadata(typeof(LayoutAnchorablePaneControl), new FrameworkPropertyMetadata(false));
+		}
 
-        void OnLayoutUpdated(object sender, EventArgs e)
-        {
-            var modelWithAtcualSize = _model as ILayoutPositionableElementWithActualSize;
-            modelWithAtcualSize.ActualWidth = ActualWidth;
-            modelWithAtcualSize.ActualHeight = ActualHeight;
-        }
+		/// <summary>Class constructor from model and virtualization parameter.</summary>
+		/// <param name="model"></param>
+		/// <param name="IsVirtualizing">Whether tabbed items are virtualized or not.</param>
+		internal LayoutAnchorablePaneControl(LayoutAnchorablePane model, bool IsVirtualizing)
+			: base(IsVirtualizing)
+		{
+			_model = model ?? throw new ArgumentNullException(nameof(model));
+			SetBinding(ItemsSourceProperty, new Binding("Model.Children") { Source = this });
+			SetBinding(FlowDirectionProperty, new Binding("Model.Root.Manager.FlowDirection") { Source = this });
+			// Handle SizeChanged event instead of LayoutUpdated. It will exclude fluctuations of Actual size values.
+			// this.LayoutUpdated += new EventHandler( OnLayoutUpdated );
+			SizeChanged += OnSizeChanged;
+		}
 
-        LayoutAnchorablePane _model;
+		#endregion Constructors
 
-        public ILayoutElement Model
-        {
-            get { return _model; }
-        }
+		#region Properties
 
-        protected override void OnGotKeyboardFocus(System.Windows.Input.KeyboardFocusChangedEventArgs e)
-        {
-            _model.SelectedContent.IsActive = true;
+		/// <summary>Gets the layout model of this control.</summary>
+		[Bindable(false), Description("Gets the layout model of this control."), Category("Other")]
+		public ILayoutElement Model => _model;
 
-            base.OnGotKeyboardFocus(e);
-        }
+		#endregion Properties
 
-        protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnMouseLeftButtonDown(e);
+		#region Overrides
 
-            if (!e.Handled && _model.SelectedContent != null)
-                _model.SelectedContent.IsActive = true;
-        }
+		/// <summary>
+		/// Invoked when an unhandled <see cref="System.Windows.Input.Keyboard.GotKeyboardFocus"/> attached
+		/// event reaches an element in its route that is derived from this class.
+		/// Implement this method to add class handling for this event.
+		/// </summary>
+		/// <param name="e">The <see cref="System.Windows.Input.KeyboardFocusChangedEventArgs"/> that contains the event data.</param>
+		protected override void OnGotKeyboardFocus(System.Windows.Input.KeyboardFocusChangedEventArgs e)
+		{
+			if (_model?.SelectedContent != null) _model.SelectedContent.IsActive = true;
+			base.OnGotKeyboardFocus(e);
+		}
 
-        protected override void OnMouseRightButtonDown(System.Windows.Input.MouseButtonEventArgs e)
-        {
-            base.OnMouseRightButtonDown(e);
+		/// <summary>
+		/// Invoked when an unhandled <see cref="System.Windows.UIElement.MouseLeftButtonDown"/> routed
+		/// event is raised on this element. Implement this method to add class handling
+		/// for this event.
+		/// </summary>
+		/// <param name="e">The <see cref="System.Windows.Input.MouseButtonEventArgs"/> that contains the event data.
+		/// The event data reports that the left mouse button was pressed.</param>
+		protected override void OnMouseLeftButtonDown(System.Windows.Input.MouseButtonEventArgs e)
+		{
+			base.OnMouseLeftButtonDown(e);
+			if (!e.Handled && _model?.SelectedContent != null) _model.SelectedContent.IsActive = true;
+		}
 
-            if (!e.Handled && _model.SelectedContent != null)
-                _model.SelectedContent.IsActive = true;
+		/// <summary>
+		/// Invoked when an unhandled <see cref="System.Windows.UIElement.MouseRightButtonDown"/> routed
+		/// event reaches an element in its route that is derived from this class. Implement
+		/// this method to add class handling for this event.
+		/// </summary>
+		/// <param name="e">The <see cref="System.Windows.Input.MouseButtonEventArgs"/> that contains the event data. The
+		/// event data reports that the right mouse button was pressed.</param>
+		protected override void OnMouseRightButtonDown(System.Windows.Input.MouseButtonEventArgs e)
+		{
+			base.OnMouseRightButtonDown(e);
+			if (!e.Handled && _model?.SelectedContent != null) _model.SelectedContent.IsActive = true;
+		}
 
-        }
+		#endregion Overrides
 
-    }
+		#region Private Methods
+
+		private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			var modelWithActualSize = _model as ILayoutPositionableElementWithActualSize;
+			modelWithActualSize.ActualWidth = ActualWidth;
+			modelWithActualSize.ActualHeight = ActualHeight;
+		}
+
+		#endregion Private Methods
+	}
 }

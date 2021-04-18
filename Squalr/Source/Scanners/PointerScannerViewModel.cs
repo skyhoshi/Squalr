@@ -16,7 +16,7 @@
     /// <summary>
     /// View model for the Input Correlator.
     /// </summary>
-    internal class PointerScannerViewModel : ToolViewModel
+    public class PointerScannerViewModel : ToolViewModel
     {
         /// <summary>
         /// An identifier to ensure only one pointer scan runs at a time.

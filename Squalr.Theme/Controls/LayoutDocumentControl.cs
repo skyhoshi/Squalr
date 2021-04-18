@@ -1,131 +1,143 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Squalr.Theme.Layout;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Squalr.Theme.Layout;
 
 namespace Squalr.Theme.Controls
 {
-    public class LayoutDocumentControl : Control
-    {
-        static LayoutDocumentControl()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutDocumentControl), new FrameworkPropertyMetadata(typeof(LayoutDocumentControl)));
-            FocusableProperty.OverrideMetadata(typeof(LayoutDocumentControl), new FrameworkPropertyMetadata(false));
-        }
+	/// <summary>
+	/// Implements the content part of the document control.
+	/// It hosts a <see cref="LayoutDocument"/> as its <see cref="Model"/>.
+	/// </summary>
+	public class LayoutDocumentControl : Control
+	{
+		#region Constructors
 
-        public LayoutDocumentControl()
-        {
-            //SetBinding(FlowDirectionProperty, new Binding("Model.Root.Manager.FlowDirection") { Source = this });
+		/// <summary>
+		/// Static class constructor
+		/// </summary>
+		static LayoutDocumentControl()
+		{
+			DefaultStyleKeyProperty.OverrideMetadata(typeof(LayoutDocumentControl), new FrameworkPropertyMetadata(typeof(LayoutDocumentControl)));
+			FocusableProperty.OverrideMetadata(typeof(LayoutDocumentControl), new FrameworkPropertyMetadata(true));
+		}
 
-        }
+		#endregion Constructors
 
+		#region Properties
 
-        #region Model
+		#region Model
 
-        /// <summary>
-        /// Model Dependency Property
-        /// </summary>
-        public static readonly DependencyProperty ModelProperty =
-            DependencyProperty.Register("Model", typeof(LayoutContent), typeof(LayoutDocumentControl),
-                new FrameworkPropertyMetadata((LayoutContent)null,
-                    new PropertyChangedCallback(OnModelChanged)));
+		/// <summary><see cref="Model"/> dependency property.</summary>
+		public static readonly DependencyProperty ModelProperty = DependencyProperty.Register(nameof(Model), typeof(LayoutContent), typeof(LayoutDocumentControl),
+		  new FrameworkPropertyMetadata(null, OnModelChanged));
 
-        /// <summary>
-        /// Gets or sets the Model property.  This dependency property 
-        /// indicates the model attached to this view.
-        /// </summary>
-        public LayoutContent Model
-        {
-            get { return (LayoutContent)GetValue(ModelProperty); }
-            set { SetValue(ModelProperty, value); }
-        }
+		/// <summary>
+		/// Gets or sets the <see cref="Model"/> property.
+		/// This dependency property indicates the model attached to this view.
+		/// </summary>
+		public LayoutContent Model
+		{
+			get => (LayoutContent)GetValue(ModelProperty);
+			set => SetValue(ModelProperty, value);
+		}
 
-        /// <summary>
-        /// Handles changes to the Model property.
-        /// </summary>
-        private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((LayoutDocumentControl)d).OnModelChanged(e);
-        }
+		/// <summary>Handles changes to the <see cref="Model"/> property.</summary>
+		private static void OnModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((LayoutDocumentControl)d).OnModelChanged(e);
 
-        /// <summary>
-        /// Provides derived classes an opportunity to handle changes to the Model property.
-        /// </summary>
-        protected virtual void OnModelChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (Model != null)
-                SetLayoutItem(Model.Root.Manager.GetLayoutItemFromModel(Model));
-            else
-                SetLayoutItem(null);
-        }
-        #endregion
+		/// <summary>Provides derived classes an opportunity to handle changes to the <see cref="Model"/> property.</summary>
+		protected virtual void OnModelChanged(DependencyPropertyChangedEventArgs e)
+		{
+			if (e.OldValue != null) ((LayoutContent)e.OldValue).PropertyChanged -= Model_PropertyChanged;
+			if (Model != null)
+			{
+				Model.PropertyChanged += Model_PropertyChanged;
+				SetLayoutItem(Model?.Root?.Manager?.GetLayoutItemFromModel(Model));
+			}
+			else
+				SetLayoutItem(null);
+		}
 
-        #region LayoutItem
+		private void Model_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName != nameof(LayoutContent.IsEnabled)) return;
+			if (Model == null) return;
+			IsEnabled = Model.IsEnabled;
+			if (IsEnabled || !Model.IsActive) return;
+			if (Model.Parent is LayoutDocumentPane layoutDocumentPane) layoutDocumentPane.SetNextSelectedIndex();
+		}
 
-        /// <summary>
-        /// LayoutItem Read-Only Dependency Property
-        /// </summary>
-        private static readonly DependencyPropertyKey LayoutItemPropertyKey
-            = DependencyProperty.RegisterReadOnly("LayoutItem", typeof(LayoutItem), typeof(LayoutDocumentControl),
-                new FrameworkPropertyMetadata((LayoutItem)null));
+		#endregion Model
 
-        public static readonly DependencyProperty LayoutItemProperty
-            = LayoutItemPropertyKey.DependencyProperty;
+		#region LayoutItem
 
-        /// <summary>
-        /// Gets the LayoutItem property.  This dependency property 
-        /// indicates the LayoutItem attached to this tag item.
-        /// </summary>
-        public LayoutItem LayoutItem
-        {
-            get { return (LayoutItem)GetValue(LayoutItemProperty); }
-        }
+		/// <summary><see cref="LayoutItem"/> Read-Only dependency property.</summary>
+		private static readonly DependencyPropertyKey LayoutItemPropertyKey = DependencyProperty.RegisterReadOnly(nameof(LayoutItem), typeof(LayoutItem), typeof(LayoutDocumentControl),
+		  new FrameworkPropertyMetadata(null));
 
-        /// <summary>
-        /// Provides a secure method for setting the LayoutItem property.  
-        /// This dependency property indicates the LayoutItem attached to this tag item.
-        /// </summary>
-        /// <param name="value">The new value for the property.</param>
-        protected void SetLayoutItem(LayoutItem value)
-        {
-            SetValue(LayoutItemPropertyKey, value);
-        }
+		public static readonly DependencyProperty LayoutItemProperty = LayoutItemPropertyKey.DependencyProperty;
 
-        #endregion
+		/// <summary>
+		/// Gets the <see cref="LayoutItem"/> property. This dependency property
+		/// indicates the LayoutItem attached to this tag item.
+		/// </summary>
+		public LayoutItem LayoutItem => (LayoutItem)GetValue(LayoutItemProperty);
 
-        protected override void OnPreviewGotKeyboardFocus(System.Windows.Input.KeyboardFocusChangedEventArgs e)
-        {
-            if (Model != null)
-                Model.IsActive = true;
-            base.OnPreviewGotKeyboardFocus(e);
-        }
+		/// <summary>
+		/// Provides a secure method for setting the <see cref="LayoutItem"/> property.
+		/// This dependency property indicates the LayoutItem attached to this tag item.
+		/// </summary>
+		/// <param name="value">The new value for the property.</param>
+		protected void SetLayoutItem(LayoutItem value) => SetValue(LayoutItemPropertyKey, value);
 
+		#endregion LayoutItem
 
-    }
+		#endregion Properties
+
+		#region Overrides
+
+		/// <inheritdoc />
+		protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
+		{
+			Debug.WriteLine($"{nameof(OnPreviewMouseLeftButtonUp)}: {LayoutItem.ContentId}");
+			SetIsActive();
+			base.OnPreviewMouseLeftButtonUp(e);
+		}
+
+		/// <inheritdoc />
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+		{
+			SetIsActive();
+			base.OnMouseLeftButtonDown(e);
+		}
+
+		/// <inheritdoc />
+		protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
+		{
+			SetIsActive();
+			base.OnMouseLeftButtonDown(e);
+		}
+
+		#endregion Overrides
+
+		#region Private Methods
+
+		private void SetIsActive()
+		{
+			if (Model != null && !Model.IsActive) Model.IsActive = true;
+		}
+
+		#endregion Private Methods
+	}
 }

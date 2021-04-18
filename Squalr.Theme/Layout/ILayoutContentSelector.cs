@@ -1,32 +1,34 @@
 ﻿/************************************************************************
-
    AvalonDock
 
-   Copyright (C) 2007-2013 Squalr Software Inc.
+   Copyright (C) 2007-2013 Xceed Software Inc.
 
-   This program is provided to you under the terms of the New BSD
-   License (BSD) as published at http://avalondock.codeplex.com/license 
-
-   For more features, controls, and fast professional support,
-   pick up AvalonDock in Extended WPF Toolkit Plus at http://Squalr.com/wpf_toolkit
-
-   Stay informed: follow @datagrid on Twitter or Like facebook.com/datagrids
-
-  **********************************************************************/
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+   This program is provided to you under the terms of the Microsoft Public
+   License (Ms-PL) as published at https://opensource.org/licenses/MS-PL
+ ************************************************************************/
 
 namespace Squalr.Theme.Layout
 {
-    public interface ILayoutContentSelector
-    {
-        int SelectedContentIndex { get; set; }
+	/// <summary>Defines an API for interacting with (selected) content in a pane.</summary>
+	public interface ILayoutContentSelector
+	{
+		#region Properties
 
-        int IndexOf(LayoutContent content);
+		/// <summary>Gets or sets the index of the selected content in the pane.</summary>
+		int SelectedContentIndex { get; set; }
 
-        LayoutContent SelectedContent { get; }
-    }
+		/// <summary>Gets the selected content in the pane.</summary>
+		LayoutContent SelectedContent { get; }
+
+		#endregion Properties
+
+		#region Methods
+
+		/// <summary>Gets the index or -1 of the specified child content.</summary>
+		/// <param name="content"></param>
+		/// <returns></returns>
+		int IndexOf(LayoutContent content);
+
+		#endregion Methods
+	}
 }

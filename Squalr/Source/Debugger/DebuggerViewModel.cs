@@ -8,7 +8,7 @@
     /// <summary>
     /// View model for the Debugger.
     /// </summary>
-    internal class DebuggerViewModel : ToolViewModel
+    public class DebuggerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="DebuggerViewModel" /> class.
