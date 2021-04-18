@@ -859,12 +859,12 @@
                                 <view:DataTemplateError />
                             </shell:DataTemplate>
                         </view:ViewTemplateSelector.DataTemplateErrorViewTemplate>
-                        <!--  Project Explorer  
+                        <!--  Project Explorer  -->
                         <view:ViewTemplateSelector.ProjectExplorerViewTemplate>
                             <shell:DataTemplate>
                                 <view:ProjectExplorer />
                             </shell:DataTemplate>
-                        </view:ViewTemplateSelector.ProjectExplorerViewTemplate>-->
+                        </view:ViewTemplateSelector.ProjectExplorerViewTemplate>
                         <!--  Change Counter  -->
                         <view:ViewTemplateSelector.ChangeCounterViewTemplate>
                             <shell:DataTemplate>

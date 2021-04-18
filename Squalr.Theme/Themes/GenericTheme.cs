@@ -17,7 +17,7 @@ namespace Squalr.Theme.Themes
         /// <inheritdoc/>
         public override Uri GetResourceUri()
         {
-            return new Uri("/Squalr.Theme;component/Themes/generic.xaml", UriKind.Relative);
+            return new Uri("/Squalr.Theme;component/Themes/Generic.xaml", UriKind.Relative);
         }
     }
 }

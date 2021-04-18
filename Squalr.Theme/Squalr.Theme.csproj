@@ -196,6 +196,9 @@
     <Page Update="Themes\DarkTheme.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Update="Themes\GenericDark.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
     <Page Update="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

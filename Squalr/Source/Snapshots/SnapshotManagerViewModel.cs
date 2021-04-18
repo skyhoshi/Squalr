@@ -55,6 +55,7 @@
         {
             get
             {
+                return new List<Snapshot>();
                 throw new NotImplementedException();
                 //return SnapshotManager.Snapshots;
             }
@@ -67,6 +68,7 @@
         {
             get
             {
+                return new List<Snapshot>();
                 throw new NotImplementedException();
                 //// return SnapshotManager.DeletedSnapshots;
             }

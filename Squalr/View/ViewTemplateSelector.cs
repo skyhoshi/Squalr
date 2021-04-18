@@ -150,6 +150,16 @@
         /// <returns>The template associated with the provided view model.</returns>
         public override DataTemplate SelectTemplate(Object item, DependencyObject container)
         {
+            if (item is ContentPresenter)
+            {
+                Object content = (item as ContentPresenter).Content;
+
+                if (content != null && this.DataTemplates.ContainsKey(content.GetType()))
+                {
+                    return this.DataTemplates[content.GetType()];
+                }
+            }
+
             if (this.DataTemplates.ContainsKey(item.GetType()))
             {
                 return this.DataTemplates[item.GetType()];
