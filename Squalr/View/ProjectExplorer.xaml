@@ -17,9 +17,6 @@
     x:ClassModifier="public"
     DataContext="{Binding ProjectExplorerViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
-    <x:Code>
-        <![CDATA[ public ProjectExplorer() { InitializeComponent(); }]]>
-    </x:Code>
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter

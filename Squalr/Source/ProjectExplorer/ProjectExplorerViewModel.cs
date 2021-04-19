@@ -459,13 +459,13 @@
 
         private void OpenFileExplorer(ProjectItemView projectItemView)
         {
-            String directory = (projectItemView.ProjectItem is DirectoryItem ? projectItemView.ProjectItem.FullPath : Path.GetDirectoryName(projectItemView.ProjectItem.FullPath));
+            String directory = projectItemView.ProjectItem is DirectoryItem ? projectItemView.ProjectItem.FullPath : Path.GetDirectoryName(projectItemView.ProjectItem.FullPath);
 
             if (Directory.Exists(directory))
             {
                 try
                 {
-                    Process.Start(directory);
+                    Process.Start("explorer.exe", @directory);
                 }
                 catch (Exception ex)
                 {

@@ -364,9 +364,6 @@
     <Page Update="View\PropertyViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="View\ProjectExplorer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Update="View\ScanResults.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
