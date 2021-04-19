@@ -32,11 +32,11 @@
         /// Initializes a new instance of the <see cref="ScanConstraint" /> class.
         /// </summary>
         /// <param name="valueConstraint">The constraint type.</param>
-        /// <param name="addressValue">The value associated with this constraint.</param>
-        public ScanConstraint(ConstraintType valueConstraint, Object addressValue = null, DataTypeBase elementType = null)
+        /// <param name="value">The value associated with this constraint.</param>
+        public ScanConstraint(ConstraintType valueConstraint, DataTypeBase elementType = null, Object value = null)
         {
             this.Constraint = valueConstraint;
-            this.ConstraintValue = addressValue;
+            this.ConstraintValue = value;
             this.SetElementType(elementType);
         }
 
@@ -164,7 +164,7 @@
         /// <returns>The cloned scan constraint.</returns>
         public ScanConstraint Clone()
         {
-            return new ScanConstraint(this.Constraint, this.ConstraintValue, this.ElementType);
+            return new ScanConstraint(this.Constraint, this.ElementType, this.ConstraintValue);
         }
 
         /// <summary>

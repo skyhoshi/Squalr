@@ -4,6 +4,7 @@
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
+    using Squalr.Engine.Processes;
     using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
@@ -45,24 +46,26 @@
         [Browsable(false)]
         protected UInt64 calculatedAddress;
 
+        [Browsable(false)]
+        protected ProcessSession processSession;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public AddressItem() : this(DataTypeBase.Int32, "New Address")
+        public AddressItem(ProcessSession processSession) : this(processSession, DataTypeBase.Int32, "New Address")
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        /// <param name="baseAddress">The base address. This will be added as an offset from the resolved base identifier.</param>
+        /// <param name="processSession">The process session used to resolve addresses and values.</param>
         /// <param name="dataType">The data type of the value at this address.</param>
         /// <param name="description">The description of this address.</param>
-        /// <param name="baseIdentifier">The identifier for the base address of this object.</param>
-        /// <param name="offsets">The pointer offsets of this address item.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public AddressItem(
+            ProcessSession processSession,
             DataTypeBase dataType,
             String description = "New Address",
             Boolean isValueHex = false,
@@ -70,6 +73,7 @@
             : base(description)
         {
             // Bypass setters to avoid running setter code
+            this.processSession = processSession;
             this.dataType = dataType;
             this.isValueHex = isValueHex;
 
@@ -232,7 +236,7 @@
                 Object previousValue = this.AddressValue;
 
                 // Otherwise we read as normal (bypass assigning setter and set value directly to avoid a write-back to memory)
-                this.addressValue = MemoryReader.Instance.Read(null, this.DataType, this.CalculatedAddress, out _);
+                this.addressValue = MemoryReader.Instance.Read(this.processSession.OpenedProcess, this.DataType, this.CalculatedAddress, out _);
 
                 if (!(this.AddressValue?.Equals(previousValue) ?? false))
                 {

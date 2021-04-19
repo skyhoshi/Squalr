@@ -40,7 +40,7 @@
         /// </summary>
         private Object AccessLock { get; set; }
 
-        public delegate void OnSnapshotsUpdated();
+        public delegate void OnSnapshotsUpdated(SnapshotManager snapshotManager);
 
         public event OnSnapshotsUpdated OnSnapshotsUpdatedEvent;
 
@@ -96,7 +96,7 @@
                 }
 
                 this.Snapshots.Push(this.DeletedSnapshots.Pop());
-                this.OnSnapshotsUpdatedEvent.Invoke();
+                this.OnSnapshotsUpdatedEvent.Invoke(this);
             }
         }
 
@@ -119,7 +119,7 @@
                     this.DeletedSnapshots.Pop();
                 }
 
-                this.OnSnapshotsUpdatedEvent.Invoke();
+                this.OnSnapshotsUpdatedEvent.Invoke(this);
             }
         }
 
@@ -132,7 +132,7 @@
             {
                 this.Snapshots.Clear();
                 this.DeletedSnapshots.Clear();
-                this.OnSnapshotsUpdatedEvent.Invoke();
+                this.OnSnapshotsUpdatedEvent.Invoke(this);
 
                 // There can be multiple GB of deleted snapshots, so run the garbage collector ASAP for a performance boost.
                 Task.Run(() => GC.Collect());
@@ -161,7 +161,7 @@
 
                 this.Snapshots.Push(snapshot);
                 this.DeletedSnapshots.Clear();
-                this.OnSnapshotsUpdatedEvent.Invoke();
+                this.OnSnapshotsUpdatedEvent.Invoke(this);
             }
         }
     }

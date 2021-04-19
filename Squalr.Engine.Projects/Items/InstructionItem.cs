@@ -3,6 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Processes;
     using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
@@ -48,11 +49,11 @@
         [DataMember]
         private Byte[] followingBytes;
 
-        public InstructionItem() : this(0, null, null, null)
+        public InstructionItem(ProcessSession processSession) : this(processSession, 0, null, null, null)
         {
         }
 
-        public InstructionItem(UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(DataTypeBase.ByteArray, "New Instruction")
+        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(processSession, DataTypeBase.ByteArray, "New Instruction")
         {
             this.ModuleOffset = BaseAddress;
             this.ModuleName = moduleName;

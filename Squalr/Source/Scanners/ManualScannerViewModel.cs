@@ -12,13 +12,12 @@
     using Squalr.Source.Tasks;
     using System;
     using System.Threading;
-    using System.Threading.Tasks;
     using System.Windows.Input;
 
     /// <summary>
     /// View model for the Manual Scanner.
     /// </summary>
-    public class ManualScannerViewModel : ToolViewModel, IResultDataTypeObserver
+    public class ManualScannerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="ManualScannerViewModel" /> class.
@@ -51,15 +50,10 @@
             this.SelectNotEqualCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.NotEqual), () => true);
             this.SelectUnchangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Unchanged), () => true);
 
-            // Constraint modifying commands cannot be async since they modify the observable collection, which must be done on the same thread as the GUI
-            this.AddCurrentConstraintCommand = new RelayCommand(() => this.AddCurrentConstraint(), () => true);
-            this.RemoveConstraintCommand = new RelayCommand<ScanConstraint>((ScanConstraint) => this.RemoveConstraint(ScanConstraint), (ScanConstraint) => true);
-            this.EditConstraintCommand = new RelayCommand<ScanConstraint>((ScanConstraint) => this.EditConstraint(ScanConstraint), (ScanConstraint) => true);
-            this.ClearConstraintsCommand = new RelayCommand(() => this.ClearConstraints(), () => true);
-            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal);
+            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal, DataTypeBase.Int32);
 
-            Task.Run(() => ScanResultsViewModel.GetInstance().Subscribe(this));
-            DockingViewModel.GetInstance().RegisterViewModel(this);
+            // Not registering this as a dockable window, since it is just part of the top bar now
+            // DockingViewModel.GetInstance().RegisterViewModel(this);
         }
 
         /// <summary>
@@ -71,26 +65,6 @@
         /// Gets the command to update the value of the active scan constraint.
         /// </summary>
         public ICommand UpdateActiveValueCommand { get; private set; }
-
-        /// <summary>
-        /// Gets the command to add the current constraint to the list of scan constraints.
-        /// </summary>
-        public ICommand AddCurrentConstraintCommand { get; private set; }
-
-        /// <summary>
-        /// Gets the command to remove the target constraint to the list of scan constraints.
-        /// </summary>
-        public ICommand RemoveConstraintCommand { get; private set; }
-
-        /// <summary>
-        /// Gets the command to edit the target constraint.
-        /// </summary>
-        public ICommand EditConstraintCommand { get; private set; }
-
-        /// <summary>
-        /// Gets the command to clear all added constraints.
-        /// </summary>
-        public ICommand ClearConstraintsCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to select the <see cref="ScanConstraint.ConstraintType.Changed"/> constraint.
@@ -243,48 +217,12 @@
         }
 
         /// <summary>
-        /// Adds the current constraint to the list of scan constraints.
-        /// </summary>
-        private void AddCurrentConstraint()
-        {
-            this.ActiveConstraint = new ScanConstraint(this.ActiveConstraint.Constraint, this.ActiveConstraint.ConstraintValue);
-            this.UpdateAllProperties();
-        }
-
-        /// <summary>
         /// Updates the value of the current scan constraint.
         /// </summary>
         /// <param name="newValue">The new value of the scan constraint.</param>
         private void UpdateActiveValue(Object newValue)
         {
             this.ActiveConstraint.ConstraintValue = newValue;
-            this.UpdateAllProperties();
-        }
-
-        /// <summary>
-        /// Edits the target constraint by removing it and making it the current constraint.
-        /// </summary>
-        /// <param name="scanConstraint">The constraint to edit.</param>
-        private void EditConstraint(ScanConstraint scanConstraint)
-        {
-            this.ActiveConstraint = scanConstraint;
-            this.UpdateAllProperties();
-        }
-
-        /// <summary>
-        /// Removes the target constraint from the list of scan constraints.
-        /// </summary>
-        /// <param name="scanConstraint">The constraint to remove.</param>
-        private void RemoveConstraint(ScanConstraint scanConstraint)
-        {
-            this.UpdateAllProperties();
-        }
-
-        /// <summary>
-        /// Clears all scan constraints.
-        /// </summary>
-        private void ClearConstraints()
-        {
             this.UpdateAllProperties();
         }
 

@@ -19,11 +19,7 @@
 
             this.WatchFileSystem(this.FilePath);
 
-            // Debugging
-            this.ProjectItems = new List<ProjectItem>()
-            {
-                new PointerItem()
-            };
+            this.ProjectItems = new List<ProjectItem>();
         }
 
         public String FilePath { get; private set; }

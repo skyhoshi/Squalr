@@ -110,12 +110,15 @@
             {
                 if (value == this.DetachProcess)
                 {
-                    SessionManager.Session = null;
-                    this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+                    if (SessionManager.Session != null)
+                    {
+                        SessionManager.Session.OpenedProcess = null;
+                        this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+                    }
                 }
                 else if (value != this.SelectedProcess)
                 {
-                    SessionManager.Session = new Session(value);
+                    SessionManager.Session.OpenedProcess = value;
                     this.RaisePropertyChanged(nameof(this.SelectedProcess));
                     this.RaisePropertyChanged(nameof(this.WindowedProcessList));
                 }

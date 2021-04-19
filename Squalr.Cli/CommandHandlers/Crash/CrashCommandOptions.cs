@@ -30,7 +30,7 @@
             // Scan for any changed values
             TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
                 valueRecollectorTask.Result,
-                new ScanConstraint(ScanConstraint.ConstraintType.Changed, null, DataTypeBase.Int32),
+                new ScanConstraint(ScanConstraint.ConstraintType.Changed, DataTypeBase.Int32),
                 TrackableTask.UniversalIdentifier);
 
             Random random = new Random();

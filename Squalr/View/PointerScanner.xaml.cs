@@ -14,7 +14,7 @@
     /// <summary>
     /// Interaction logic for PointerScanner.xaml.
     /// </summary>
-    public partial class PointerScanner : UserControl, IResultDataTypeObserver
+    public partial class PointerScanner : UserControl
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualScanner"/> class.
@@ -42,8 +42,6 @@
             this.PointerRadiusHexDecBoxViewModel.PropertyChanged += PointerRadiusHexDecBoxViewModelPropertyChanged;
             this.PointerRadiusHexDecBoxViewModel.DataType = DataTypeBase.Int32;
             this.PointerRadiusHexDecBoxViewModel.SetValue(PointerScannerViewModel.DefaultPointerScanRadius);
-
-            Task.Run(() => PointerScanResultsViewModel.GetInstance().Subscribe(this));
         }
 
         private void PointerScanAddressHexDecBoxViewModelPropertyChanged(Object sender, PropertyChangedEventArgs args)

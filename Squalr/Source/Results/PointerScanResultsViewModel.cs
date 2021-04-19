@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Source.Results
 {
     using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.DataTypes;
@@ -73,15 +74,12 @@
         /// </summary>
         private PointerScanResultsViewModel() : base("Pointer Scan Results")
         {
-            this.ObserverLock = new Object();
-
             this.ExtractPointerCommand = new RelayCommand<Int32>((levelIndex) => this.ExtractPointer(levelIndex), (levelIndex) => true);
             this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>(), (selectedItems) => true);
 
             this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => Task.Run(() => this.ChangeType(type)), (type) => true);
             this.NewPointerScanCommand = new RelayCommand(() => Task.Run(() => this.DiscoveredPointers = null), () => true);
 
-            this.ScanResultsObservers = new List<IResultDataTypeObserver>();
             this.ActiveType = DataTypeBase.Int32;
             this.pointers = new FullyObservableCollection<PointerItem>();
 
@@ -174,7 +172,6 @@
             {
                 this.activeType = value;
 
-                this.NotifyObservers();
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
             }
@@ -214,47 +211,6 @@
         }
 
         /// <summary>
-        /// Gets or sets the lock for accessing observers.
-        /// </summary>
-        private Object ObserverLock { get; set; }
-
-        /// <summary>
-        /// Gets or sets objects observing changes in the pointer scan results data type.
-        /// </summary>
-        private List<IResultDataTypeObserver> ScanResultsObservers { get; set; }
-
-        /// <summary>
-        /// Subscribes the given object to changes in the pointer scan results data type.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe pointer scan results data type changes.</param>
-        public void Subscribe(IResultDataTypeObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (!this.ScanResultsObservers.Contains(snapshotObserver))
-                {
-                    this.ScanResultsObservers.Add(snapshotObserver);
-                    snapshotObserver.Update(this.ActiveType);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Unsubscribes the given object from changes in the pointer scan results data type.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe pointer scan results data type changes.</param>
-        public void Unsubscribe(IResultDataTypeObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (this.ScanResultsObservers.Contains(snapshotObserver))
-                {
-                    this.ScanResultsObservers.Remove(snapshotObserver);
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets a singleton instance of the <see cref="PointerScanResultsViewModel"/> class.
         /// </summary>
         /// <returns>A singleton instance of the class.</returns>
@@ -269,7 +225,7 @@
 
             if (pointer != null)
             {
-                PointerItem pointerItem = new PointerItem(pointer.BaseAddress, this.ActiveType, "New Pointer", null, pointer.Offsets);
+                PointerItem pointerItem = new PointerItem(SessionManager.Session, pointer.BaseAddress, this.ActiveType, "New Pointer", null, pointer.Offsets);
                 ProjectExplorerViewModel.GetInstance().AddProjectItems(pointerItem);
             }
         }
@@ -281,20 +237,6 @@
         private void ChangeType(DataTypeBase newType)
         {
             this.ActiveType = newType;
-        }
-
-        /// <summary>
-        /// Notify all observing objects of an active type change.
-        /// </summary>
-        private void NotifyObservers()
-        {
-            lock (this.ObserverLock)
-            {
-                foreach (IResultDataTypeObserver observer in this.ScanResultsObservers)
-                {
-                    observer.Update(this.ActiveType);
-                }
-            }
         }
     }
     //// End class

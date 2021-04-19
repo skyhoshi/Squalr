@@ -156,7 +156,7 @@
         /// <param name="codeTraceResult">The code trace result to add to the project explorer.</param>
         private void AddCodeTraceResult(CodeTraceResult codeTraceResult)
         {
-            InstructionItem instructionItem = new InstructionItem(codeTraceResult.Address, "", "nop", new Byte[] { 0x90 });
+            InstructionItem instructionItem = new InstructionItem(SessionManager.Session, codeTraceResult.Address, "", "nop", new Byte[] { 0x90 });
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(instructionItem);
         }
@@ -173,7 +173,7 @@
             }
 
             IEnumerable<InstructionItem> projectItems = codeTraceResults.Select(
-                codeTraceEvent => new InstructionItem(codeTraceEvent.Address, "", "nop", new Byte[] { 0x90 }));
+                codeTraceEvent => new InstructionItem(SessionManager.Session, codeTraceEvent.Address, "", "nop", new Byte[] { 0x90 }));
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }

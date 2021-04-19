@@ -5,7 +5,7 @@
 
     public static class SessionManager
     {
-        private static Session session;
+        private static Session session = new Session(null);
 
         public static Session Session
         {
@@ -14,19 +14,13 @@
                 return SessionManager.session;
             }
 
-            set
+            private set
             {
                 SessionManager.session = value;
-                SessionManager.OnSessionChangedEvent.Invoke(value);
             }
         }
 
         public static Project Project { get; set; }
-
-
-        public delegate void OnSessionChanged(Session session);
-
-        public static event OnSessionChanged OnSessionChangedEvent;
     }
     //// End class
 }

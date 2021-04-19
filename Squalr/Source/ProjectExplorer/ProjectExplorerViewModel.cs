@@ -300,13 +300,13 @@
             switch (projectItemType)
             {
                 case Type _ when projectItemType == typeof(PointerItem):
-                    directoryItemView?.AddChild(new PointerItem());
+                    directoryItemView?.AddChild(new PointerItem(SessionManager.Session));
                     break;
                 case Type _ when projectItemType == typeof(ScriptItem):
                     directoryItemView?.AddChild(new ScriptItem());
                     break;
                 case Type _ when projectItemType == typeof(InstructionItem):
-                    directoryItemView?.AddChild(new InstructionItem());
+                    directoryItemView?.AddChild(new InstructionItem(SessionManager.Session));
                     break;
                 default:
                     Logger.Log(LogLevel.Error, "Unknown project item type - " + projectItemType.ToString());

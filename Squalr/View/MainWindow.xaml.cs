@@ -11,7 +11,7 @@
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
     /// </summary>
-    public partial class MainWindow : Window, IResultDataTypeObserver
+    public partial class MainWindow : Window
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualScanner"/> class.
@@ -22,8 +22,6 @@
 
             this.ValueHexDecBoxViewModel = this.ValueHexDecBox.DataContext as HexDecBoxViewModel;
             this.ValueHexDecBoxViewModel.PropertyChanged += HexDecBoxViewModelPropertyChanged;
-
-            Task.Run(() => ScanResultsViewModel.GetInstance().Subscribe(this));
         }
 
         private HexDecBoxViewModel ValueHexDecBoxViewModel { get; set; }

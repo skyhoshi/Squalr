@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Source.Results
 {
     using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.DataTypes;
@@ -72,8 +73,6 @@
         /// </summary>
         private ScanResultsViewModel() : base("Scan Results")
         {
-            this.ObserverLock = new Object();
-
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
             this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => this.ChangeType(type), (type) => true);
             this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
@@ -84,12 +83,18 @@
             this.AddScanResultCommand = new RelayCommand<ScanResult>((scanResult) => this.AddScanResult(scanResult), (scanResult) => true);
             this.AddScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.AddScanResults(this.SelectedScanResults), (selectedItems) => true);
 
-            this.ScanResultsObservers = new List<IResultDataTypeObserver>();
             this.ActiveType = DataTypeBase.Int32;
             this.addresses = new FullyObservableCollection<ScanResult>();
 
+            SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
+
             DockingViewModel.GetInstance().RegisterViewModel(this);
-            this.Update();
+            this.UpdateLoop();
+        }
+
+        private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
+        {
+            this.Update(snapshotManager.GetActiveSnapshot());
         }
 
         /// <summary>
@@ -171,7 +176,6 @@
                 // Update data type of addresses
                 this.Addresses?.ToArray().ForEach(address => address.PointerItem.DataType = this.ActiveType);
 
-                this.NotifyObservers();
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
             }
@@ -318,53 +322,12 @@
         }
 
         /// <summary>
-        /// Gets or sets the lock for accessing observers.
-        /// </summary>
-        private Object ObserverLock { get; set; }
-
-        /// <summary>
-        /// Gets or sets objects observing changes in the scan results data type.
-        /// </summary>
-        private List<IResultDataTypeObserver> ScanResultsObservers { get; set; }
-
-        /// <summary>
         /// Gets a singleton instance of the <see cref="ScanResultsViewModel"/> class.
         /// </summary>
         /// <returns>A singleton instance of the class.</returns>
         public static ScanResultsViewModel GetInstance()
         {
             return ScanResultsViewModel.scanResultsViewModelInstance.Value;
-        }
-
-        /// <summary>
-        /// Subscribes the given object to changes in the scan results data type.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe scan results data type changes.</param>
-        public void Subscribe(IResultDataTypeObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (!this.ScanResultsObservers.Contains(snapshotObserver))
-                {
-                    this.ScanResultsObservers.Add(snapshotObserver);
-                    snapshotObserver.Update(this.ActiveType);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Unsubscribes the given object from changes in the scan results data type.
-        /// </summary>
-        /// <param name="snapshotObserver">The object to observe scan results data type changes.</param>
-        public void Unsubscribe(IResultDataTypeObserver snapshotObserver)
-        {
-            lock (this.ObserverLock)
-            {
-                if (this.ScanResultsObservers.Contains(snapshotObserver))
-                {
-                    this.ScanResultsObservers.Remove(snapshotObserver);
-                }
-            }
         }
 
         /// <summary>
@@ -381,7 +344,7 @@
         /// <summary>
         /// Runs the update loop, updating all scan results.
         /// </summary>
-        public void Update()
+        public void UpdateLoop()
         {
             Task.Run(() =>
             {
@@ -434,7 +397,7 @@
                     String moduleName = String.Empty;
                     UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.BaseAddress, out moduleName);
 
-                    PointerItem pointerItem = new PointerItem(baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
+                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
                     newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
                 }
             }
@@ -511,20 +474,6 @@
             IEnumerable<PointerItem> projectItems = scanResults.Select(scanResult => scanResult.PointerItem?.ProjectItem as PointerItem);
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
-        }
-
-        /// <summary>
-        /// Notify all observing objects of an active type change.
-        /// </summary>
-        private void NotifyObservers()
-        {
-            lock (this.ObserverLock)
-            {
-                foreach (IResultDataTypeObserver observer in this.ScanResultsObservers)
-                {
-                    observer.Update(this.ActiveType);
-                }
-            }
         }
     }
     //// End class

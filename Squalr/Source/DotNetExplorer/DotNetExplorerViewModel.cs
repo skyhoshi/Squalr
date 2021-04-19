@@ -102,6 +102,7 @@
         {
             DotNetObject dotNetObject = dotNetObjectViewModel.DotNetObject;
             DotNetItem dotnetItem = new DotNetItem(
+                SessionManager.Session,
                 dotNetObject.Name,
                 dotNetObject.ElementType == DataTypeBase.Boolean ? DataTypeBase.Byte : dotNetObject.ElementType,
                 dotNetObject.GetFullName());

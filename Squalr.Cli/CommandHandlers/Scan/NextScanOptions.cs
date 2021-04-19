@@ -54,7 +54,7 @@
                 return -1;
             }
 
-            ScanConstraint scanConstraints = new ScanConstraint(constraintType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value), dataType);
+            ScanConstraint scanConstraints = new ScanConstraint(constraintType, dataType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value));
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(

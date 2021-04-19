@@ -33,9 +33,8 @@
             this.PointerItem = pointerItem;
             this.PreviousValue = previousValue;
             this.Label = label;
-
-            PropertyChangedEventHandler eventHandler = new PropertyChangedEventHandler(PointerItemChanged);
-            this.PointerItem.PropertyChanged += eventHandler;
+            
+            this.PointerItem.PropertyChanged += PointerItemChanged;
         }
 
         /// <summary>

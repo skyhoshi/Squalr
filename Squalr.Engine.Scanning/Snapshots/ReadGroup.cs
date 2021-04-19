@@ -104,7 +104,7 @@
             if (constraints == null
                 || !constraints.IsValid()
                 || this.CurrentValues == null
-                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && this.PreviousValues != null)
+                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && this.PreviousValues == null)
             {
                 return false;
             }

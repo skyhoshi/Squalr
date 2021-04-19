@@ -4,6 +4,7 @@
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory;
+    using Squalr.Engine.Processes;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -42,7 +43,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public PointerItem() : this(0, DataTypeBase.Int32, "New Address")
+        public PointerItem(ProcessSession processSession) : this(processSession, 0, DataTypeBase.Int32, "New Address")
         {
         }
 
@@ -52,12 +53,12 @@
         /// <param name="baseAddress">The base address. This will be added as an offset from the resolved base identifier.</param>
         /// <param name="dataType">The data type of the value at this address.</param>
         /// <param name="description">The description of this address.</param>
-        /// <param name="resolveType">The identifier type for this address item.</param>
         /// <param name="moduleName">The identifier for the base address of this object.</param>
         /// <param name="pointerOffsets">The pointer offsets of this address item.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public PointerItem(
+            ProcessSession processSession,
             UInt64 baseAddress,
             Type dataType,
             String description = "New Address",
@@ -65,7 +66,7 @@
             IEnumerable<Int32> pointerOffsets = null,
             Boolean isValueHex = false,
             Object value = null)
-            : base(dataType, description, isValueHex, value)
+            : base(processSession, dataType, description, isValueHex, value)
         {
             // Bypass setters to avoid running setter code
             this.moduleOffset = baseAddress;
@@ -211,7 +212,7 @@
         /// <returns>The base address of this object.</returns>
         protected override UInt64 ResolveAddress()
         {
-            UInt64 pointer = MemoryQueryer.Instance.ResolveModule(null, this.ModuleName);
+            UInt64 pointer = MemoryQueryer.Instance.ResolveModule(processSession?.OpenedProcess, this.ModuleName);
 
             pointer = pointer.Add(this.ModuleOffset);
 
@@ -222,25 +223,23 @@
 
             foreach (Int32 offset in this.PointerOffsets)
             {
-                throw new NotImplementedException();
-                /*
-                if (Processes.Instance.IsOpenedProcess32Bit())
+                bool successReading = false;
+
+                if (processSession?.OpenedProcess?.Is32Bit() ?? false)
                 {
-                    pointer = MemoryReader.Instance.Read<Int32>(pointer, out successReading).ToUInt64();
+                    pointer = MemoryReader.Instance.Read<Int32>(processSession?.OpenedProcess, pointer, out successReading).ToUInt64();
                 }
                 else
                 {
-                    pointer = MemoryReader.Instance.Read<UInt64>(pointer, out successReading);
+                    pointer = MemoryReader.Instance.Read<UInt64>(processSession?.OpenedProcess, pointer, out successReading);
                 }
 
                 if (pointer == 0 || !successReading)
                 {
-                    pointer = 0;
-                    break;
+                    return 0;
                 }
 
                 pointer = pointer.Add(offset);
-                */
             }
 
             return pointer;

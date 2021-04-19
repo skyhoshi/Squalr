@@ -27,24 +27,16 @@
         private SnapshotManagerViewModel() : base("Snapshot Manager")
         {
             // Note: Not async to avoid updates slower than the perception threshold
-            this.ClearSnapshotsCommand = new RelayCommand(() => SessionManager.Session.SnapshotManager.ClearSnapshots(), () => true);
-            this.UndoSnapshotCommand = new RelayCommand(() => SessionManager.Session.SnapshotManager.UndoSnapshot(), () => true);
-            this.RedoSnapshotCommand = new RelayCommand(() => SessionManager.Session.SnapshotManager.RedoSnapshot(), () => true);
+            this.ClearSnapshotsCommand = new RelayCommand(() => SessionManager.Session?.SnapshotManager?.ClearSnapshots(), () => true);
+            this.UndoSnapshotCommand = new RelayCommand(() => SessionManager.Session?.SnapshotManager?.UndoSnapshot(), () => true);
+            this.RedoSnapshotCommand = new RelayCommand(() => SessionManager.Session?.SnapshotManager?.RedoSnapshot(), () => true);
 
-            SessionManager.OnSessionChangedEvent += SessionManagerOnSessionChangedEvent;
+            SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
 
-        private void SessionManagerOnSessionChangedEvent(Session session)
-        {
-            if (session != null)
-            {
-                session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent; ;
-            }
-        }
-
-        private void SnapshotManagerOnSnapshotsUpdatedEvent()
+        private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
         {
             this.RaisePropertyChanged(nameof(this.Snapshots));
             this.RaisePropertyChanged(nameof(this.DeletedSnapshots));
