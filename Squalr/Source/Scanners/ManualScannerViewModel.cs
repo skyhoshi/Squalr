@@ -164,22 +164,12 @@
         }
 
         /// <summary>
-        /// Updates the active type.
-        /// </summary>
-        /// <param name="activeType">The new active type.</param>
-        public void Update(DataTypeBase activeType)
-        {
-            this.ActiveConstraint.SetElementType(activeType);
-            this.UpdateAllProperties();
-        }
-
-        /// <summary>
         /// Starts the scan using the current constraints.
         /// </summary>
         private void StartScan()
         {
             // Create a constraint manager that includes the current active constraint
-            Constraint scanConstraints = this.ActiveConstraint.Clone();
+            Constraint scanConstraints = this.ActiveConstraint?.Clone();
 
             if (!scanConstraints.IsValid())
             {
@@ -187,6 +177,7 @@
                 return;
             }
 
+            scanConstraints?.SetElementType(ScanResultsViewModel.GetInstance().ActiveType);
             DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
 
             try

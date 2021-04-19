@@ -72,7 +72,7 @@
         {
             get
             {
-                return this.RegionSize / this.ReadGroup.Alignment;
+                return this.RegionSize / this.ReadGroup.ElementDataType.Size;
             }
         }
 

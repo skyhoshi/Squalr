@@ -507,7 +507,7 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt64}"
                                         Style="{Binding .}"
                                         ToolTip="8 Byte Unsigned Integer">
@@ -526,7 +526,7 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Single}"
                                         Style="{Binding .}"
                                         ToolTip="Single Precision Floating Point Value">
@@ -545,7 +545,7 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Double}"
                                         Style="{Binding .}"
                                         ToolTip="Double Precision Floating Point Value">
