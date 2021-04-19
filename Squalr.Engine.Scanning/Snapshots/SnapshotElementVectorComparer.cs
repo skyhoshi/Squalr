@@ -15,30 +15,24 @@
     /// </summary>
     internal unsafe class SnapshotElementVectorComparer
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotElementVectorComparer" /> class.
-        /// </summary>
-        /// <param name="region">The parent region that contains this element.</param>
-        public SnapshotElementVectorComparer(SnapshotRegion region)
-        {
-            this.Region = region;
-            this.VectorSize = Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
-            this.VectorReadIndex = 0;
-            this.DataTypeSize = Conversions.SizeOf(this.Region.ReadGroup.ElementDataType);
-            this.ResultRegions = new List<SnapshotRegion>();
-
-            this.SetConstraintFunctions();
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotElementVectorComparer" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotElementVectorComparer(SnapshotRegion region, Constraint constraints) : this(region)
+        public SnapshotElementVectorComparer(SnapshotRegion region, ScanConstraints constraints)
         {
-            this.VectorCompare = this.BuildCompareActions(constraints);
+            this.Region = region;
+            this.VectorSize = Vectors.VectorSize;
+            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
+            this.VectorReadIndex = 0;
+            this.DataType = constraints.ElementType;
+            this.DataTypeSize = constraints.ElementType.Size;
+            this.ResultRegions = new List<SnapshotRegion>();
+
+            this.SetConstraintFunctions();
+            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
 
         /// <summary>
@@ -173,6 +167,11 @@
         /// Gets or sets the size of the data type being compared.
         /// </summary>
         private Int32 DataTypeSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data type being compared.
+        /// </summary>
+        private DataTypeBase DataType { get; set; }
 
         /// <summary>
         /// Gets or sets the list of discovered result regions.
@@ -322,7 +321,7 @@
         /// </summary>
         private unsafe void SetConstraintFunctions()
         {
-            switch (this.Region.ReadGroup.ElementDataType)
+            switch (this.DataType)
             {
                 case DataTypeBase type when type == DataTypeBase.Byte:
                     this.Changed = () => Vector.OnesComplement(Vector.Equals(this.CurrentValues, this.PreviousValues));

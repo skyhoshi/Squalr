@@ -169,7 +169,8 @@
         private void StartScan()
         {
             // Create a constraint manager that includes the current active constraint
-            Constraint scanConstraints = this.ActiveConstraint?.Clone();
+            DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
+            ScanConstraints scanConstraints = new ScanConstraints(dataType, this.ActiveConstraint?.Clone());
 
             if (!scanConstraints.IsValid())
             {
@@ -177,15 +178,14 @@
                 return;
             }
 
-            scanConstraints?.SetElementType(ScanResultsViewModel.GetInstance().ActiveType);
-            DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
-
             try
             {
                 // Collect values
                 TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                    SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
-                    TrackableTask.UniversalIdentifier);
+                    SessionManager.Session.OpenedProcess,
+                    SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
+                    TrackableTask.UniversalIdentifier
+                );
 
                 TaskTrackerViewModel.GetInstance().TrackTask(valueCollectorTask);
 

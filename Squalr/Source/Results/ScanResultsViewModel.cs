@@ -336,6 +336,7 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update(Snapshot snapshot)
         {
+            snapshot?.LoadMetaData(this.ActiveType.Size);
             this.ResultCount = snapshot == null ? 0 : snapshot.ElementCount;
             this.ByteCount = snapshot == null ? 0 : snapshot.ByteCount;
             this.CurrentPage = 0;
@@ -388,14 +389,14 @@
 
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
-                    SnapshotElementIndexer element = snapshot[index];
+                    SnapshotElementIndexer element = snapshot[index, this.ActiveType.Size];
 
                     String label = element.GetElementLabel() != null ? element.GetElementLabel().ToString() : String.Empty;
-                    Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue() : null;
-                    Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue() : null;
+                    Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
+                    Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
 
                     String moduleName = String.Empty;
-                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.BaseAddress, out moduleName);
+                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.GetBaseAddress(this.ActiveType.Size), out moduleName);
 
                     PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
                     newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));

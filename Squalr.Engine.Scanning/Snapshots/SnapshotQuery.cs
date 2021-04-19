@@ -26,18 +26,18 @@
         /// </summary>
         /// <param name="snapshotCreationMode">The method of snapshot retrieval.</param>
         /// <returns>The collected snapshot.</returns>
-        public static Snapshot GetSnapshot(Process process, SnapshotRetrievalMode snapshotCreationMode, DataTypeBase dataType)
+        public static Snapshot GetSnapshot(Process process, SnapshotRetrievalMode snapshotCreationMode)
         {
             switch (snapshotCreationMode)
             {
                 case SnapshotRetrievalMode.FromSettings:
-                    return SnapshotQuery.CreateSnapshotFromSettings(process, dataType);
+                    return SnapshotQuery.CreateSnapshotFromSettings(process);
                 case SnapshotRetrievalMode.FromUserModeMemory:
-                    return SnapshotQuery.CreateSnapshotFromUsermodeMemory(process, dataType);
+                    return SnapshotQuery.CreateSnapshotFromUsermodeMemory(process);
                 case SnapshotRetrievalMode.FromModules:
-                    return SnapshotQuery.CreateSnapshotFromModules(process, dataType);
+                    return SnapshotQuery.CreateSnapshotFromModules(process);
                 case SnapshotRetrievalMode.FromHeaps:
-                    return SnapshotQuery.CreateSnapshotFromHeaps(process, dataType);
+                    return SnapshotQuery.CreateSnapshotFromHeaps(process);
                 case SnapshotRetrievalMode.FromStack:
                     throw new NotImplementedException();
                 default:
@@ -50,7 +50,7 @@
         /// Creates a snapshot from all usermode memory. Will not read any memory.
         /// </summary>
         /// <returns>A snapshot created from usermode memory.</returns>
-        private static Snapshot CreateSnapshotFromUsermodeMemory(Process process, DataTypeBase dataType)
+        private static Snapshot CreateSnapshotFromUsermodeMemory(Process process)
         {
             MemoryProtectionEnum requiredPageFlags = 0;
             MemoryProtectionEnum excludedPageFlags = 0;
@@ -70,17 +70,18 @@
 
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
-                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize, dataType, ScanSettings.Alignment));
+                virtualPage.Align(ScanSettings.Alignment);
+                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(process, null, memoryRegions);
+            return new Snapshot(null, memoryRegions);
         }
 
         /// <summary>
         /// Creates a new snapshot of memory in the target process. Will not read any memory.
         /// </summary>
         /// <returns>The snapshot of memory taken in the target process.</returns>
-        private static Snapshot CreateSnapshotFromSettings(Process process, DataTypeBase dataType)
+        private static Snapshot CreateSnapshotFromSettings(Process process)
         {
             MemoryProtectionEnum requiredPageFlags = SnapshotQuery.GetRequiredProtectionSettings();
             MemoryProtectionEnum excludedPageFlags = SnapshotQuery.GetExcludedProtectionSettings();
@@ -112,20 +113,21 @@
             // Convert each virtual page to a snapshot region
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
-                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize, dataType, ScanSettings.Alignment));
+                virtualPage.Align(ScanSettings.Alignment);
+                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(process, null, memoryRegions);
+            return new Snapshot(null, memoryRegions);
         }
 
         /// <summary>
         /// Creates a snapshot from modules in the selected process.
         /// </summary>
         /// <returns>The created snapshot.</returns>
-        private static Snapshot CreateSnapshotFromModules(Process process, DataTypeBase dataType)
+        private static Snapshot CreateSnapshotFromModules(Process process)
         {
-            IList<ReadGroup> moduleGroups = MemoryQueryer.Instance.GetModules(process).Select(region => new ReadGroup(region.BaseAddress, region.RegionSize, dataType, ScanSettings.Alignment)).ToList();
-            Snapshot moduleSnapshot = new Snapshot(process, null, moduleGroups);
+            IList<ReadGroup> moduleGroups = MemoryQueryer.Instance.GetModules(process).Select(region => new ReadGroup(region.BaseAddress, region.RegionSize)).ToList();
+            Snapshot moduleSnapshot = new Snapshot(null, moduleGroups);
 
             return moduleSnapshot;
         }
@@ -134,10 +136,10 @@
         /// Creates a snapshot from modules in the selected process.
         /// </summary>
         /// <returns>The created snapshot.</returns>
-        private static Snapshot CreateSnapshotFromHeaps(Process process, DataTypeBase dataType)
+        private static Snapshot CreateSnapshotFromHeaps(Process process)
         {
             // TODO: This currently grabs all usermode memory and excludes modules. A better implementation would involve actually grabbing heaps.
-            Snapshot snapshot = SnapshotQuery.CreateSnapshotFromUsermodeMemory(process, dataType);
+            Snapshot snapshot = SnapshotQuery.CreateSnapshotFromUsermodeMemory(process);
             IEnumerable<NormalizedModule> modules = MemoryQueryer.Instance.GetModules(process);
 
             MemoryProtectionEnum requiredPageFlags = 0;
@@ -163,10 +165,11 @@
                     continue;
                 }
 
-                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize, dataType, ScanSettings.Alignment));
+                virtualPage.Align(ScanSettings.Alignment);
+                memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(process, null, memoryRegions);
+            return new Snapshot(null, memoryRegions);
         }
 
         /// <summary>

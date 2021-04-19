@@ -2,6 +2,7 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -46,16 +47,16 @@
                             stopwatch.Start();
 
                             // Step 1) Create a snapshot of the target address
-                            Snapshot targetAddress = new Snapshot(process, new SnapshotRegion[] { new SnapshotRegion(new ReadGroup(address, pointerSize.ToSize(), pointerSize.ToDataType(), alignment), 0, pointerSize.ToSize()) });
+                            Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(new ReadGroup(address, pointerSize.ToSize()), 0, pointerSize.ToSize()) });
 
                             // Step 2) Collect static pointers
-                            Snapshot staticPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromModules, pointerSize.ToDataType());
-                            TrackableTask<Snapshot> valueCollector = ValueCollector.CollectValues(staticPointers);
+                            Snapshot staticPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromModules);
+                            TrackableTask<Snapshot> valueCollector = ValueCollector.CollectValues(process, staticPointers);
                             staticPointers = valueCollector.Result;
 
                             // Step 3) Collect heap pointers
-                            Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps, pointerSize.ToDataType());
-                            TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(heapPointers);
+                            Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);
+                            TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(process, heapPointers);
                             heapPointers = heapValueCollector.Result;
 
                             // Step 4) Build levels
@@ -78,7 +79,7 @@
 
                             // Step 4) Rebase to filter out unwanted pointers
                             PointerBag newPointerBag = new PointerBag(levels, maxOffset, pointerSize);
-                            TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(newPointerBag, readMemory: false, performUnchangedScan: false);
+                            TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(process, newPointerBag, readMemory: false, performUnchangedScan: false);
                             PointerBag rebasedPointerBag = pointerRebaseTask.Result;
 
                             // Exit if canceled

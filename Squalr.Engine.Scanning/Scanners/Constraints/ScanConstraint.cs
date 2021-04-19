@@ -33,11 +33,10 @@
         /// </summary>
         /// <param name="valueConstraint">The constraint type.</param>
         /// <param name="value">The value associated with this constraint.</param>
-        public ScanConstraint(ConstraintType valueConstraint, DataTypeBase elementType = null, Object value = null)
+        public ScanConstraint(ConstraintType valueConstraint, Object value = null)
         {
             this.Constraint = valueConstraint;
             this.ConstraintValue = value;
-            this.SetElementType(elementType);
         }
 
         /// <summary>
@@ -128,10 +127,8 @@
             }
         }
 
-        public override void SetElementType(Type elementType)
+        public override void SetElementType(DataTypeBase elementType)
         {
-            base.SetElementType(elementType);
-
             if (this.ConstraintValue == null)
             {
                 return;
@@ -140,7 +137,7 @@
             try
             {
                 // Attempt to cast the value to the new type.
-                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, elementType);
+                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, elementType.Type);
             }
             catch
             {
@@ -162,9 +159,9 @@
         /// Clones this scan constraint.
         /// </summary>
         /// <returns>The cloned scan constraint.</returns>
-        public ScanConstraint Clone()
+        public override Constraint Clone()
         {
-            return new ScanConstraint(this.Constraint, this.ElementType, this.ConstraintValue);
+            return new ScanConstraint(this.Constraint, this.ConstraintValue);
         }
 
         /// <summary>

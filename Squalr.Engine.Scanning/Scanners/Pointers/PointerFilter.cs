@@ -3,7 +3,10 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
+    using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections.Concurrent;
@@ -28,7 +31,7 @@
         /// </summary>
         /// <param name="snapshot">The snapshot on which to perfrom the scan.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorSearchKernel searchKernel, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
+        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorSearchKernel searchKernel, PointerSize pointerSize, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
         {
             return TrackableTask<Snapshot>
                 .Create(PointerFilter.Name, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
@@ -58,7 +61,8 @@
                                     return;
                                 }
 
-                                SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region);
+                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null);
+                                SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 
                                 // SnapshotElementVectorComparer DEBUG_COMPARER = new SnapshotElementVectorComparer(region: region);
@@ -78,7 +82,7 @@
                         // Exit if canceled
                         parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                        snapshot = new Snapshot(snapshot.Process, PointerFilter.Name, regions.SelectMany(region => region));
+                        snapshot = new Snapshot(PointerFilter.Name, regions.SelectMany(region => region));
                     }
                     catch (OperationCanceledException ex)
                     {

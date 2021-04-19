@@ -90,8 +90,9 @@
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        SnapshotElementIndexer randomElement = snapshotRegion[Random.Next(0, snapshotRegion.ElementCount)];
-                        Int32 alignedOffset = pointer.Destination >= randomElement.BaseAddress ? -((Int32)(pointer.Destination - randomElement.BaseAddress)) : ((Int32)(randomElement.BaseAddress - pointer.Destination));
+                        SnapshotElementIndexer randomElement = snapshotRegion[Random.Next(0, snapshotRegion.GetElementCount(PointerSize.ToSize()))];
+                        UInt64 baseAddress = randomElement.GetBaseAddress(PointerSize.ToSize());
+                        Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
 
                         pointer = this.ExtractPointerFromElement(randomElement);
                         offsets.Add(alignedOffset);
@@ -113,14 +114,16 @@
         private ExtractedPointer ExtractRandomPointer(Snapshot snapshot)
         {
             SnapshotRegion extractedRegion = snapshot.SnapshotRegions[Random.Next(0, snapshot.SnapshotRegions.Length)];
-            SnapshotElementIndexer extractedElement = extractedRegion[Random.Next(0, extractedRegion.ElementCount)];
+            SnapshotElementIndexer extractedElement = extractedRegion[Random.Next(0, extractedRegion.GetElementCount(PointerSize.ToSize()))];
 
             return this.ExtractPointerFromElement(extractedElement);
         }
 
         private ExtractedPointer ExtractPointerFromElement(SnapshotElementIndexer element)
         {
-            return new ExtractedPointer(element.BaseAddress, element.HasCurrentValue() ? (this.PointerSize == PointerSize.Byte4 ? (UInt32)element.LoadCurrentValue() : (UInt64)element.LoadCurrentValue()) : 0);
+            return new ExtractedPointer(element.GetBaseAddress(PointerSize.ToSize()), element.HasCurrentValue()
+                ? (this.PointerSize == PointerSize.Byte4 ? (UInt32)element.LoadCurrentValue(PointerSize.ToDataType())
+                : (UInt64)element.LoadCurrentValue(PointerSize.ToDataType())) : 0);
         }
 
         public IEnumerator<Level> GetEnumerator()

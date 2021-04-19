@@ -94,7 +94,10 @@
         {
             foreach (T item in Items)
             {
-                item.PropertyChanged -= ChildPropertyChanged;
+                if (item != null)
+                {
+                    item.PropertyChanged -= ChildPropertyChanged;
+                }
             }
 
             base.ClearItems();
@@ -107,7 +110,10 @@
         {
             foreach (T item in Items)
             {
-                item.PropertyChanged += ChildPropertyChanged;
+                if (item != null)
+                {
+                    item.PropertyChanged += ChildPropertyChanged;
+                }
             }
         }
 

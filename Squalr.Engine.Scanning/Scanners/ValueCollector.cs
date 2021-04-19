@@ -1,7 +1,9 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Diagnostics;
@@ -19,7 +21,7 @@
         /// </summary>
         private const String Name = "Value Collector";
 
-        public static TrackableTask<Snapshot> CollectValues(Snapshot snapshot, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null)
         {
             try
             {
@@ -41,27 +43,32 @@
 
                             // Read memory to get current values for each region
                             Parallel.ForEach(
-                                    snapshot.OptimizedReadGroups,
-                                    options,
-                                    (readGroup) =>
+                                snapshot.OptimizedReadGroups,
+                                options,
+                                (readGroup) =>
+                                {
+                                    // Check for canceled scan
+                                    cancellationToken.ThrowIfCancellationRequested();
+
+                                    // Read the memory for this region
+                                    readGroup.ReadAllMemory(process);
+
+                                    // Update progress every N regions
+                                    if (Interlocked.Increment(ref processedRegions) % 32 == 0)
                                     {
-                                        // Check for canceled scan
-                                        cancellationToken.ThrowIfCancellationRequested();
+                                        updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
+                                    }
+                                });
 
-                                        // Read the memory for this region
-                                        readGroup.ReadAllMemory(snapshot.Process);
-
-                                        // Update progress every N regions
-                                        if (Interlocked.Increment(ref processedRegions) % 32 == 0)
-                                        {
-                                            updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
-                                        }
-                                    });
-
+                            // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
+
                             stopwatch.Stop();
+                            snapshot.LoadMetaData(DataTypeBase.Byte.Size);
+
                             Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
-                            Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                            Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+
                             return snapshot;
                         }
                         catch (OperationCanceledException ex)

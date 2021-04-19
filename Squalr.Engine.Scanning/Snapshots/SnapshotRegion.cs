@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
@@ -14,7 +15,7 @@
         /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
         /// </summary>
         /// <param name="readGroup">The read group of this snapshot region.</param>
-        /// <param name="baseAddress">The base address of this snapshot region.</param>
+        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
         /// <param name="regionSize">The size of this snapshot region.</param>
         public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 regionSize)
         {
@@ -67,13 +68,11 @@
 
         /// <summary>
         /// Gets the number of elements contained in this snapshot.
+        /// <param name="dataTypeSize">The size of an element.</param>
         /// </summary>
-        public Int32 ElementCount
+        public Int32 GetElementCount(int dataTypeSize)
         {
-            get
-            {
-                return this.RegionSize / this.ReadGroup.ElementDataType.Size;
-            }
+            return this.RegionSize / (dataTypeSize <= 0 ? 1 : dataTypeSize);
         }
 
         /// <summary>
@@ -92,13 +91,10 @@
         /// <summary>
         /// Gets the enumerator for an element reference within this snapshot region.
         /// </summary>
-        /// <param name="pointerIncrementMode">The method for incrementing pointers.</param>
-        /// <param name="compareActionConstraint">The constraint to use for the element quick action.</param>
-        /// <param name="compareActionValue">The value to use for the element quick action.</param>
         /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementIndexer> IterateElements()
+        public IEnumerator<SnapshotElementIndexer> IterateElements(Int32 elementSize)
         {
-            Int32 elementCount = this.ElementCount;
+            Int32 elementCount = this.GetElementCount(elementSize);
             SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this);
 
             for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
@@ -111,15 +107,12 @@
         /// Gets the enumerator for an element reference within this snapshot region.
         /// </summary>
         /// <param name="pointerIncrementMode">The method for incrementing pointers.</param>
-        /// <param name="compareActionConstraint">The constraint to use for the element quick action.</param>
-        /// <param name="compareActionValue">The value to use for the element quick action.</param>
+        /// <param name="constraints">The constraint to use for element comparisons.</param>
         /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementComparer> IterateComparer(
-            SnapshotElementComparer.PointerIncrementMode pointerIncrementMode,
-            Constraint constraints)
+        public IEnumerator<SnapshotElementComparer> IterateComparer(SnapshotElementComparer.PointerIncrementMode pointerIncrementMode, Constraint constraints, DataTypeBase dataType)
         {
-            Int32 elementCount = this.ElementCount;
-            SnapshotElementComparer snapshotElement = new SnapshotElementComparer(region: this, pointerIncrementMode: pointerIncrementMode, constraints: constraints);
+            Int32 elementCount = this.GetElementCount(dataType.Size);
+            SnapshotElementComparer snapshotElement = new SnapshotElementComparer(region: this, pointerIncrementMode: pointerIncrementMode, constraints: constraints, dataType: dataType);
 
             for (Int32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
             {

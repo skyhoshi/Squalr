@@ -19,11 +19,8 @@
         /// </summary>
         /// <param name="baseAddress">The base address of this memory region.</param>
         /// <param name="regionSize">The size of this memory region.</param>
-        public ReadGroup(UInt64 baseAddress, Int32 regionSize, DataTypeBase dataType, Int32 alignment) : base(baseAddress, regionSize)
+        public ReadGroup(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
         {
-            this.Alignment = alignment;
-            this.ElementDataType = dataType;
-
             this.SnapshotRegions = new List<SnapshotRegion>() { new SnapshotRegion(this, 0, Math.Max(Vectors.VectorSize, regionSize)) };
         }
 
@@ -32,10 +29,8 @@
         /// </summary>
         /// <param name="baseAddress">The base address of this memory region.</param>
         /// <param name="regionSize">The size of this memory region.</param>
-        public ReadGroup(UInt64 baseAddress, Byte[] initialBytes, DataTypeBase dataType, Int32 alignment) : base(baseAddress, initialBytes.Length)
+        public ReadGroup(UInt64 baseAddress, Byte[] initialBytes) : base(baseAddress, initialBytes.Length)
         {
-            this.Alignment = alignment;
-            this.ElementDataType = dataType;
             this.CurrentValues = initialBytes;
 
             this.SnapshotRegions = new List<SnapshotRegion>() { new SnapshotRegion(this, 0, initialBytes.Length) };
@@ -50,11 +45,6 @@
         /// Gets the previously read values.
         /// </summary>
         public unsafe Byte[] PreviousValues { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the data type of the elements of this region.
-        /// </summary>
-        public DataTypeBase ElementDataType { get; set; }
 
         /// <summary>
         /// Gets the element labels.

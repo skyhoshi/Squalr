@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
@@ -17,11 +18,10 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(
-            SnapshotRegion region,
-            PointerIncrementMode pointerIncrementMode)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, DataTypeBase dataType)
         {
             this.Region = region;
+            this.CurrentTypeCode = Type.GetTypeCode(dataType);
 
             // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
             this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
@@ -38,10 +38,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(
-            SnapshotRegion region,
-            PointerIncrementMode pointerIncrementMode,
-            Constraint constraints) : this(region, pointerIncrementMode)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, DataTypeBase dataType) : this(region, pointerIncrementMode, dataType)
         {
             this.ElementCompare = this.BuildCompareActions(constraints);
         }
@@ -338,7 +335,6 @@
         private unsafe void InitializePointers()
         {
             this.CurrentLabelIndex = 0;
-            this.CurrentTypeCode = Type.GetTypeCode(this.Region.ReadGroup.ElementDataType);
 
             if (this.Region.ReadGroup.CurrentValues != null && this.Region.ReadGroup.CurrentValues.Length > 0)
             {
@@ -523,9 +519,9 @@
         /// <param name="pointerIncrementMode">The method by which to increment pointers.</param>
         private unsafe void SetPointerFunction(PointerIncrementMode pointerIncrementMode)
         {
-            Int32 alignment = this.Region.ReadGroup.Alignment;
+            Int32 alignment = ScanSettings.Alignment;
 
-            if (this.Region.ReadGroup.Alignment == 1)
+            if (alignment == 1)
             {
                 switch (pointerIncrementMode)
                 {

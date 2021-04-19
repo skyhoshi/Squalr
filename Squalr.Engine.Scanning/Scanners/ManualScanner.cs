@@ -31,7 +31,7 @@
         /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
         /// <param name="taskIdentifier">The unique identifier to prevent duplicate tasks.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, Constraint constraints, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, ScanConstraints constraints, String taskIdentifier = null)
         {
             try
             {
@@ -86,8 +86,10 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(snapshot.Process, ManualScanner.Name, regions.SelectMany(region => region));
+                            result = new Snapshot(ManualScanner.Name, regions.SelectMany(region => region));
                             stopwatch.Stop();
+                            result.LoadMetaData(constraints.ElementType.Size);
+
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             Logger.Log(LogLevel.Info, "Results: " + result.ElementCount + " (" + Conversions.ValueToMetricSize(result.ByteCount) + ")");
                         }

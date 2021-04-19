@@ -238,7 +238,13 @@
         {
             try
             {
-                TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(PointerScanResultsViewModel.GetInstance().DiscoveredPointers, readMemory: true, performUnchangedScan: true, taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier);
+                TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(
+                    SessionManager.Session.OpenedProcess,
+                    PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
+                    readMemory: true,
+                    performUnchangedScan: true,
+                    taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier
+                );
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRebaseTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRebaseTask.Result;
             }

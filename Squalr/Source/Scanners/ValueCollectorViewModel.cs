@@ -56,8 +56,10 @@
             DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
 
             TrackableTask<Snapshot> valueCollectTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
-                TrackableTask.UniversalIdentifier);
+                SessionManager.Session?.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
+                TrackableTask.UniversalIdentifier
+            );
 
             TaskTrackerViewModel.GetInstance().TrackTask(valueCollectTask);
             SessionManager.Session.SnapshotManager.SaveSnapshot(valueCollectTask.Result);

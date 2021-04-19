@@ -1,14 +1,11 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Diagnostics;
     using System.Linq;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// A class to contain snapshots of memory, which can be compared by scanners.
@@ -27,53 +24,28 @@
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
         /// </summary>
         /// <param name="memoryRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(Process process, String snapshotName, IList<ReadGroup> memoryRegions = null)
+        public Snapshot(String snapshotName, IList<ReadGroup> memoryRegions = null) : this(snapshotName, memoryRegions?.SelectMany(readGroup => readGroup.SnapshotRegions))
         {
-            this.Process = process;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Snapshot" /> class.
+        /// </summary>
+        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
+        public Snapshot(IEnumerable<SnapshotRegion> snapshotRegions) : this(String.Empty, snapshotRegions)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Snapshot" /> class.
+        /// </summary>
+        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
+        /// <param name="snapshotName">The snapshot generation method name.</param>
+        public Snapshot(String snapshotName, IEnumerable<SnapshotRegion> snapshotRegions)
+        {
             this.SnapshotName = snapshotName ?? String.Empty;
-            this.ReadGroups = memoryRegions?.ToList();
+            this.SetSnapshotRegions(snapshotRegions);
         }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Snapshot" /> class.
-        /// </summary>
-        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(Process process, params SnapshotRegion[] snapshotRegions) : this(process, null, snapshotRegions)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Snapshot" /> class.
-        /// </summary>
-        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(Process process, IEnumerable<SnapshotRegion> snapshotRegions) : this(process, null, snapshotRegions)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Snapshot" /> class.
-        /// </summary>
-        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
-        /// <param name="snapshotName">The snapshot generation method name.</param>
-        public Snapshot(Process process, String snapshotName, IEnumerable<SnapshotRegion> snapshotRegions) : this(process, snapshotName)
-        {
-            this.AddSnapshotRegions(snapshotRegions);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Snapshot" /> class.
-        /// </summary>
-        /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
-        /// <param name="snapshotName">The snapshot generation method name.</param>
-        public Snapshot(Process process, String snapshotName = null, params SnapshotRegion[] snapshotRegions) : this(process, snapshotName)
-        {
-            this.AddSnapshotRegions(snapshotRegions);
-        }
-
-        /// <summary>
-        /// Gets the process associated with this snapshot.
-        /// </summary>
-        public Process Process { get; private set; }
 
         /// <summary>
         /// Gets the name associated with the method by which this snapshot was generated.
@@ -109,25 +81,12 @@
         }
 
         /// <summary>
-        /// Sets the alignment for all of the read groups.
+        /// Updates the base address of each region in this snapshot to match the provided alignment.
         /// </summary>
-        public Int32 Alignment
+        /// <param name="alignment">The base address alignment.</param>
+        public void Align(Int32 alignment)
         {
-            set
-            {
-                this.ReadGroups.ForEach(readGroup => readGroup.Alignment = value);
-            }
-        }
-
-        /// <summary>
-        /// Sets the data type for all of the read groups.
-        /// </summary>
-        public DataTypeBase ElementDataType
-        {
-            set
-            {
-                this.ReadGroups.ForEach(readGroup => readGroup.ElementDataType = value);
-            }
+            this.ReadGroups.ForEach(readGroup => readGroup.Align(alignment));
         }
 
         /// <summary>
@@ -148,7 +107,6 @@
             set
             {
                 this.readGroups = value;
-                this.LoadMetaData();
             }
         }
 
@@ -181,15 +139,15 @@
         }
 
         /// <summary>
-        /// Indexer to allow the retrieval of the element at the specified index. Notes: This does NOT index into a region.
+        /// Indexer to allow the retrieval of the element at the specified index. This does NOT index into a region.
         /// </summary>
         /// <param name="elementIndex">The index of the snapshot element.</param>
         /// <returns>Returns the snapshot element at the specified index.</returns>
-        public SnapshotElementIndexer this[UInt64 elementIndex]
+        public SnapshotElementIndexer this[UInt64 elementIndex, Int32 elementSize]
         {
             get
             {
-                SnapshotRegion region = this.BinaryRegionSearch(elementIndex);
+                SnapshotRegion region = this.BinaryRegionSearch(elementIndex, elementSize);
 
                 if (region == null)
                 {
@@ -207,23 +165,7 @@
         /// <returns>The shallow cloned snapshot.</returns>
         public Snapshot Clone(String newSnapshotName = null)
         {
-            return new Snapshot(this.Process, newSnapshotName, this.ReadGroups);
-        }
-
-        /// <summary>
-        /// Reads all memory for every region contained in this snapshot. TODO: This is not parallel, nor does it track progress.
-        /// </summary>
-        public void ReadAllMemory()
-        {
-            this.TimeSinceLastUpdate = DateTime.Now;
-
-            Parallel.ForEach(
-            this.OptimizedReadGroups,
-            ParallelSettings.ParallelSettingsFastest,
-            (readGroup) =>
-            {
-                readGroup.ReadAllMemory(this.Process);
-            });
+            return new Snapshot(newSnapshotName, this.ReadGroups);
         }
 
         /// <summary>
@@ -237,10 +179,10 @@
         }
 
         /// <summary>
-        /// Adds snapshot regions to the regions contained in this snapshot. Will automatically merge and sort regions.
+        /// Adds snapshot regions to the regions contained in this snapshot.
         /// </summary>
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
-        public void AddSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
+        public void SetSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
         {
             IEnumerable<IGrouping<ReadGroup, SnapshotRegion>> snapshotsByReadGroup = snapshotRegions.GroupBy(region => region.ReadGroup);
 
@@ -250,7 +192,23 @@
             }
 
             this.ReadGroups = snapshotsByReadGroup.Select(x => x.Key).OrderBy(group => group.BaseAddress).ToList();
+            this.SnapshotRegions = snapshotRegions.ToArray();
             this.TimeSinceLastUpdate = DateTime.Now;
+            this.SnapshotRegions = snapshotRegions.ToArray();
+            this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
+        }
+
+        public void LoadMetaData(Int32 elementSize)
+        {
+            this.ByteCount = 0;
+            this.ElementCount = 0;
+
+            this.SnapshotRegions?.ForEach(region =>
+            {
+                region.BaseElementIndex = this.ElementCount;
+                this.ByteCount += region.RegionSize.ToUInt64();
+                this.ElementCount += region.GetElementCount(elementSize).ToUInt64();
+            });
         }
 
         /// <summary>
@@ -266,32 +224,6 @@
             }
 
             return this.ContainsAddressHelper(address, this.SnapshotRegions.Length / 2, 0, this.SnapshotRegions.Length);
-        }
-
-        private SnapshotRegion BinaryRegionSearch(UInt64 elementIndex)
-        {
-            if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
-            {
-                return null;
-            }
-
-            return this.BinaryRegionSearchHelper(elementIndex, this.SnapshotRegions.Length / 2, 0, this.SnapshotRegions.Length);
-        }
-
-        private void LoadMetaData()
-        {
-            this.SnapshotRegions = this.ReadGroups?.SelectMany(readGroup => readGroup.SnapshotRegions)?.ToArray();
-
-            this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
-            this.ByteCount = 0;
-            this.ElementCount = 0;
-
-            this.SnapshotRegions?.ForEach(region =>
-            {
-                region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += region.RegionSize.ToUInt64();
-                this.ElementCount += region.ElementCount.ToUInt64();
-            });
         }
 
         /// <summary>
@@ -323,6 +255,16 @@
             }
         }
 
+        private SnapshotRegion BinaryRegionSearch(UInt64 elementIndex, Int32 elementSize)
+        {
+            if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
+            {
+                return null;
+            }
+
+            return this.BinaryRegionSearchHelper(elementIndex, this.SnapshotRegions.Length / 2, 0, this.SnapshotRegions.Length, elementSize);
+        }
+
         /// <summary>
         /// Helper function for searching for an address in this snapshot. Binary search that assumes this snapshot has sorted regions.
         /// </summary>
@@ -331,7 +273,7 @@
         /// <param name="min">The lower region index.</param>
         /// <param name="max">The upper region index.</param>
         /// <returns>True if the address was found.</returns>
-        private SnapshotRegion BinaryRegionSearchHelper(UInt64 elementIndex, Int32 middle, Int32 min, Int32 max)
+        private SnapshotRegion BinaryRegionSearchHelper(UInt64 elementIndex, Int32 middle, Int32 min, Int32 max, Int32 elementSize)
         {
             if (middle < 0 || middle == this.SnapshotRegions.Length || max < min)
             {
@@ -340,11 +282,11 @@
 
             if (elementIndex < this.SnapshotRegions[middle].BaseElementIndex)
             {
-                return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1);
+                return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].ElementCount.ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(elementSize).ToUInt64())
             {
-                return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max);
+                return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }
             else
             {

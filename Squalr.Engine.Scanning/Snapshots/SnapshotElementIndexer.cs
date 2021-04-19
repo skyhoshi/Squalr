@@ -15,9 +15,7 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(
-            SnapshotRegion region,
-            Int32 elementIndex = 0)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
@@ -26,12 +24,9 @@
         /// <summary>
         /// Gets the base address of this element.
         /// </summary>
-        public UInt64 BaseAddress
+        public UInt64 GetBaseAddress(Int32 dataTypeSize)
         {
-            get
-            {
-                return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * this.Region.ReadGroup.Alignment);
-            }
+            return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * dataTypeSize);
         }
 
         /// <summary>
@@ -60,11 +55,11 @@
         /// </summary>
         public Int32 ElementIndex { get; set; }
 
-        public Object LoadCurrentValue()
+        public Object LoadCurrentValue(DataTypeBase dataType)
         {
             fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex])
             {
-                switch (this.Region.ReadGroup.ElementDataType)
+                switch (dataType)
                 {
                     case DataTypeBase type when type == DataTypeBase.Byte:
                         return *pointerBase;
@@ -92,11 +87,11 @@
             }
         }
 
-        public Object LoadPreviousValue()
+        public Object LoadPreviousValue(DataTypeBase dataType)
         {
             fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex])
             {
-                switch (this.Region.ReadGroup.ElementDataType)
+                switch (dataType)
                 {
                     case DataTypeBase type when type == DataTypeBase.Byte:
                         return *pointerBase;

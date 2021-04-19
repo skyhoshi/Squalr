@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
+    using Squalr.Engine.Common.DataTypes;
     using System;
 
     /// <summary>
@@ -10,19 +11,19 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraintTree" /> class.
         /// </summary>
-        public OperationConstraint(OperationType operation)
+        public OperationConstraint(OperationType operation, Constraint left = null, Constraint right = null)
         {
             this.BinaryOperation = operation;
+            this.Left = left;
+            this.Right = right;
         }
 
         /// <summary>
         /// Sets the element type to which all constraints apply.
         /// </summary>
         /// <param name="elementType">The new element type.</param>
-        public override void SetElementType(Type elementType)
+        public override void SetElementType(DataTypeBase elementType)
         {
-            base.SetElementType(elementType);
-
             this.Left?.SetElementType(elementType);
             this.Right?.SetElementType(elementType);
         }
@@ -38,6 +39,11 @@
         public override Boolean IsValid()
         {
             return (this.Left?.IsValid() ?? false) && (this.Right?.IsValid() ?? false);
+        }
+
+        public override Constraint Clone()
+        {
+            return new OperationConstraint(this.BinaryOperation, this.Left?.Clone(), this.Right?.Clone());
         }
 
         public enum OperationType
