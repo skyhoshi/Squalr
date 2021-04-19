@@ -14,7 +14,7 @@
     x:Name="SqualrProjectExplorer"
     d:DesignHeight="256"
     d:DesignWidth="256"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding ProjectExplorerViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>

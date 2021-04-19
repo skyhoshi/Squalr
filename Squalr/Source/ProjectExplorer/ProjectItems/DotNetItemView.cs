@@ -150,7 +150,7 @@
         /// </summary>
         [Browsable(true)]
         [TypeConverter(typeof(TextConverter))]
-        // [Editor(typeof(TextEditorModel), typeof(UITypeEditor))]
+        [Editor(typeof(TextEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Description"), Description("The description of this cheat")]
         public String Description
         {
@@ -170,7 +170,7 @@
         /// </summary>
         [Browsable(true)]
         [TypeConverter(typeof(HotkeyConverter))]
-        // [Editor(typeof(HotkeyEditorModel), typeof(UITypeEditor))]
+        [Editor(typeof(HotkeyEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Hotkey"), Description("The hotkey for this item")]
         public Hotkey HotKey
         {

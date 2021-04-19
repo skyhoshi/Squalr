@@ -22,7 +22,11 @@
 
             this.ValueHexDecBoxViewModel = this.ValueHexDecBox.DataContext as HexDecBoxViewModel;
             this.ValueHexDecBoxViewModel.PropertyChanged += HexDecBoxViewModelPropertyChanged;
-            this.ValueHexDecBoxViewModel.DataType = addressItem.DataType;
+
+            if (addressItem != null)
+            {
+                this.ValueHexDecBoxViewModel.DataType = addressItem.DataType;
+            }
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+	<UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Squalr</AssemblyName>
     <RootNamespace>Squalr</RootNamespace>
     <!-- Ignore package downgrade warnings -->
@@ -284,9 +285,6 @@
     </Compile>
     <Compile Update="View\PointerScanner.xaml.cs">
       <DependentUpon>PointerScanner.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\PropertyViewer.xaml.cs">
-      <DependentUpon>PropertyViewer.xaml</DependentUpon>
     </Compile>
     <Compile Update="View\Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
