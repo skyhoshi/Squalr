@@ -236,7 +236,7 @@
                 Object previousValue = this.AddressValue;
 
                 // Otherwise we read as normal (bypass assigning setter and set value directly to avoid a write-back to memory)
-                this.addressValue = MemoryReader.Instance.Read(this.processSession.OpenedProcess, this.DataType, this.CalculatedAddress, out _);
+                this.addressValue = MemoryReader.Instance.Read(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, out _);
 
                 if (!(this.AddressValue?.Equals(previousValue) ?? false))
                 {
@@ -263,7 +263,7 @@
                 return;
             }
 
-            MemoryWriter.Instance.Write(null, this.DataType, this.CalculatedAddress, newValue);
+            MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
         }
     }
     //// End class
