@@ -358,7 +358,7 @@
                                                 Padding="4,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Foreground="{StaticResource SqualrColorWhite}"
-                                                Text="{Binding ActiveTypeName}" />
+                                                Text="{Binding ScanResultsViewModel.ActiveTypeName, Source={StaticResource ViewModelLocator}}" />
                                             <shell:Grid
                                                 x:Name="ArrowGlyph"
                                                 Grid.Column="1"
@@ -374,9 +374,9 @@
                                         </shell:StackPanel>
                                     </shell:MenuItem.Header>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.SByte}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="1 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -393,9 +393,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int16}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="2 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -412,9 +412,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int32}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="4 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -431,9 +431,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Int64}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="8 Byte Signed Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -450,9 +450,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.Byte}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="1 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -469,9 +469,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt16}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="2 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -488,9 +488,9 @@
                                         </shell:MenuItem.Header>
                                     </shell:MenuItem>
                                     <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt32}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="4 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -509,7 +509,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.UInt64}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="8 Byte Unsigned Integer">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -528,7 +528,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Single}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="Single Precision Floating Point Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -547,7 +547,7 @@
                                     <shell:MenuItem
                                         Command="{Binding ChangeTypeCommand}"
                                         CommandParameter="{x:Static types:DataTypeBase.Double}"
-                                        
+                                        Style="{Binding .}"
                                         ToolTip="Double Precision Floating Point Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
