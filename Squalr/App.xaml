@@ -11,6 +11,8 @@
         <ResourceDictionary>
             <viewModel:ViewModelLocator x:Key="ViewModelLocator" d:IsDataSource="True" />
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Squalr;component/View/Styles/AvalonDockOverrides/AnchorablePaneControl.xaml" />
+                <ResourceDictionary Source="/Squalr;component/View/Styles/AvalonDockOverrides/AnchorablePaneTitle.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/DarkBrushes.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/Button.xaml" />
                 <ResourceDictionary Source="/Squalr;component/View/Styles/CheckBox.xaml" />

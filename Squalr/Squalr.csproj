@@ -373,6 +373,10 @@
     <Page Update="View\SnapshotManager.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Update="View\Styles\AvalonDockOverrides\AnchorablePaneTitle.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="View\Styles\Button.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
@@ -387,6 +391,10 @@
     </Page>
     <Page Update="View\Styles\DarkBrushes.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="View\Styles\AvalonDockOverrides\AnchorablePaneControl.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
     </Page>
     <Page Update="View\Styles\GroupBox.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
