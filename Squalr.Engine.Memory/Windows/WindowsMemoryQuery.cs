@@ -20,7 +20,7 @@
     /// <summary>
     /// Class for memory editing a remote process.
     /// </summary>
-    internal class WindowsMemoryQuery : IMemoryQueryer
+    internal unsafe class WindowsMemoryQuery : IMemoryQueryer
     {
         /// <summary>
         /// The chunk size for memory regions. Prevents large allocations.
@@ -523,6 +523,80 @@
                 yield return memoryInfo;
             }
             while (startAddress < endAddress && queryResult != 0 && !wrappedAround);
+        }
+
+        /// <summary>
+        /// Gets all virtual pages for the target emulator in the opened process.
+        /// </summary>
+        /// <returns>A collection of regions in the process.</returns>
+        public IEnumerable<NormalizedRegion> GetEmulatorVirtualPages(Process process, EmulatorType emulatorType)
+        {
+            IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
+            IList<NormalizedRegion> regions = new List<NormalizedRegion>();
+
+            switch (emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    IEnumerable<NormalizedRegion> mappedRegions = this.GetVirtualPages(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process));
+                    IEnumerable<NormalizedRegion> privateRegions = this.GetVirtualPages(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process));
+
+                    foreach (NormalizedRegion region in mappedRegions)
+                    {
+                        // Dolphin stores main memory in a memory mapped region of this exact size.
+                        if (region.RegionSize == 0x2000000 && IsRegionBackedByPhysicalMemory(processHandle, region))
+                        {
+                            // Check to see if there is a game id. This should weed out any false positives.
+                            bool readSuccess = false;
+                            Byte[] gameId = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress, 6, out readSuccess);
+
+                            if (readSuccess)
+                            {
+                                String gameIdStr = Encoding.ASCII.GetString(gameId);
+
+                                if (!gameIdStr.StartsWith('G') || !gameIdStr.All(character => Char.IsLetterOrDigit(character)))
+                                {
+                                    // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
+                                    // Changing values in one will change the other. This means that we can just take the first one we find.
+                                    regions.Add(region);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (NormalizedRegion region in privateRegions)
+                    {
+                        // Dolphin stores wii memory in a memory mapped region of this exact size.
+                        if (region.RegionSize == 0x4000000 && IsRegionBackedByPhysicalMemory(processHandle, region))
+                        {
+                            regions.Add(region);
+                            break;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            return regions;
+        }
+
+        private Boolean IsRegionBackedByPhysicalMemory(IntPtr processHandle, NormalizedRegion region)
+        {
+            // Taken from Dolphin Memory Engine, this checks that the region is backed by physical memory, which apparently is required.
+            MemoryWorkingSetExInformation[] workingSetExInformation = new MemoryWorkingSetExInformation[1];
+
+            workingSetExInformation[0].VirtualAddress = region.BaseAddress.ToIntPtr();
+
+            if (NativeMethods.QueryWorkingSetEx(processHandle, workingSetExInformation, Marshal.SizeOf<MemoryWorkingSetExInformation>()))
+            {
+                if (workingSetExInformation[0].VirtualAttributes.Valid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
     //// End class

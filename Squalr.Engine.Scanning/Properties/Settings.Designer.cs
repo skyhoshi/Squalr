@@ -253,13 +253,13 @@ namespace Squalr.Engine.Scanning.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Squalr.Engine.Common.DataTypes.DataTypeBase.Int32")]
-        public global::Squalr.Engine.Common.DataTypes.DataTypeBase Emulator {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int EmulatorType {
             get {
-                return ((global::Squalr.Engine.Common.DataTypes.DataTypeBase)(this["Emulator"]));
+                return ((int)(this["EmulatorType"]));
             }
             set {
-                this["Emulator"] = value;
+                this["EmulatorType"] = value;
             }
         }
     }

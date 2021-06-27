@@ -3,11 +3,13 @@
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// A class representing a serializable data type.
+    /// A class representing an emulator target.
     /// </summary>
     [DataContract]
-    public enum Emulators
+    public enum EmulatorType
     {
+        Auto,
+        None,
         Dolphin,
     }
     //// End class

@@ -3,7 +3,6 @@
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
-    using Squalr.Engine.Scanning.Properties;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -74,7 +73,7 @@
                 memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(null, memoryRegions);
+            return new Snapshot(String.Empty, memoryRegions);
         }
 
         /// <summary>
@@ -83,32 +82,56 @@
         /// <returns>The snapshot of memory taken in the target process.</returns>
         private static Snapshot CreateSnapshotFromSettings(Process process)
         {
-            MemoryProtectionEnum requiredPageFlags = SnapshotQuery.GetRequiredProtectionSettings();
-            MemoryProtectionEnum excludedPageFlags = SnapshotQuery.GetExcludedProtectionSettings();
-            MemoryTypeEnum allowedTypeFlags = SnapshotQuery.GetAllowedTypeSettings();
+            EmulatorType emulatorType = ScanSettings.EmulatorType;
 
-            UInt64 startAddress;
-            UInt64 endAddress;
-
-            if (ScanSettings.IsUserMode)
+            // Determine if the target is an emulated game if automatic detection is enabled
+            if (emulatorType == EmulatorType.Auto && process != null && process.MainWindowTitle.StartsWith("Dolphin"))
             {
-                startAddress = 0;
-                endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(process);
+                emulatorType = EmulatorType.Dolphin;
             }
             else
             {
-                startAddress = ScanSettings.StartAddress;
-                endAddress = ScanSettings.EndAddress;
+                emulatorType = EmulatorType.None;
             }
 
             List<ReadGroup> memoryRegions = new List<ReadGroup>();
-            IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
-                process,
-                requiredPageFlags,
-                excludedPageFlags,
-                allowedTypeFlags,
-                startAddress,
-                endAddress);
+            IEnumerable<NormalizedRegion> virtualPages;
+
+            // Fetch virtual pages based on settings
+            switch (emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    virtualPages = MemoryQueryer.Instance.GetEmulatorVirtualPages(process, emulatorType);
+                    break;
+                case EmulatorType.None:
+                default:
+                    MemoryProtectionEnum requiredPageFlags = SnapshotQuery.GetRequiredProtectionSettings();
+                    MemoryProtectionEnum excludedPageFlags = SnapshotQuery.GetExcludedProtectionSettings();
+                    MemoryTypeEnum allowedTypeFlags = SnapshotQuery.GetAllowedTypeSettings();
+
+                    UInt64 startAddress;
+                    UInt64 endAddress;
+
+                    if (ScanSettings.IsUserMode)
+                    {
+                        startAddress = 0;
+                        endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(process);
+                    }
+                    else
+                    {
+                        startAddress = ScanSettings.StartAddress;
+                        endAddress = ScanSettings.EndAddress;
+                    }
+
+                    virtualPages = MemoryQueryer.Instance.GetVirtualPages(
+                        process,
+                        requiredPageFlags,
+                        excludedPageFlags,
+                        allowedTypeFlags,
+                        startAddress,
+                        endAddress);
+                    break;
+            }
 
             // Convert each virtual page to a snapshot region
             foreach (NormalizedRegion virtualPage in virtualPages)
@@ -117,7 +140,7 @@
                 memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(null, memoryRegions);
+            return new Snapshot(String.Empty, memoryRegions);
         }
 
         /// <summary>
@@ -169,7 +192,7 @@
                 memoryRegions.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(null, memoryRegions);
+            return new Snapshot(String.Empty, memoryRegions);
         }
 
         /// <summary>

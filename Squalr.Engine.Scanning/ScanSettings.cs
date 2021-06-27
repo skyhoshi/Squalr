@@ -251,6 +251,19 @@
                 Properties.Settings.Default.DataType = value;
             }
         }
+
+        public static EmulatorType EmulatorType
+        {
+            get
+            {
+                return (EmulatorType)Properties.Settings.Default.EmulatorType;
+            }
+
+            set
+            {
+                Properties.Settings.Default.EmulatorType = (int)value;
+            }
+        }
     }
     //// End class
 }

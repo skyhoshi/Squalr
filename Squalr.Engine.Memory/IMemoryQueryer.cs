@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
+    using Squalr.Engine.Common.DataTypes;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -82,6 +83,12 @@
         /// <param name="identifier">The module identifier, or name.</param>
         /// <returns>The base address of the module.</returns>
         UInt64 ResolveModule(Process process, String identifier);
+
+        /// <summary>
+        /// Gets all virtual pages for the target emulator in the opened process.
+        /// </summary>
+        /// <returns>A collection of regions in the process.</returns>
+        IEnumerable<NormalizedRegion> GetEmulatorVirtualPages(Process process, EmulatorType emulatorType);
     }
     //// End interface
 }

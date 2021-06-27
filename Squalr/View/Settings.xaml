@@ -63,6 +63,27 @@
                                 ...
                             </Button>
                         </Grid>
+                        <GroupBox
+                            Padding="4"
+                            BorderBrush="{StaticResource SqualrColorGray74}"
+                            BorderThickness="2"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Header="Emulator">
+                            <StackPanel>
+                                <WrapPanel>
+                                    <RadioButton Padding="0,0,4,0" IsChecked="{Binding IsEmulatorTypeAuto, Mode=TwoWay}" />
+                                    <TextBlock VerticalAlignment="Center" Text="Auto" />
+                                </WrapPanel>
+                                <WrapPanel>
+                                    <RadioButton Padding="0,0,4,0" IsChecked="{Binding IsEmulatorTypeNone, Mode=TwoWay}" />
+                                    <TextBlock VerticalAlignment="Center" Text="None" />
+                                </WrapPanel>
+                                <WrapPanel>
+                                    <RadioButton Padding="0,0,4,0" IsChecked="{Binding IsEmulatorTypeDolphin, Mode=TwoWay}" />
+                                    <TextBlock VerticalAlignment="Center" Text="Dolphin" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
                 </GroupBox>
             </Grid>
