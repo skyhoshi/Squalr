@@ -78,7 +78,6 @@
             this.isActivated = false;
             this.guid = Guid.NewGuid();
             this.ActivationLock = new Object();
-            this.HasAssociatedFileOrFolder = false;
         }
 
         public static ProjectItem FromFile(String filePath, DirectoryItem parent)
@@ -120,7 +119,6 @@
                     ProjectItem projectItem = serializer.ReadObject(fileStream) as ProjectItem;
                     projectItem.name = Path.GetFileNameWithoutExtension(filePath);
                     projectItem.Parent = parent;
-                    projectItem.HasAssociatedFileOrFolder = true;
 
                     return projectItem;
                 }
@@ -139,17 +137,10 @@
         {
             try
             {
-                if (!this.HasAssociatedFileOrFolder)
-                {
-                    throw new Exception("Unable to save project item. Project item is not part of a project.");
-                }
-
                 using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write))
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(this.GetType());
                     serializer.WriteObject(fileStream, this);
-
-                    this.HasAssociatedFileOrFolder = true;
                 }
             }
             catch (Exception ex)
@@ -161,7 +152,7 @@
 
         private void Rename(String newName)
         {
-            if (!this.HasAssociatedFileOrFolder)
+            if (this.Parent == null)
             {
                 return;
             }
@@ -188,7 +179,7 @@
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Gets or sets the parent of this project item.
+        /// Gets or sets the parent of this project item. This is also used to determine if this project item exists on disk.
         /// </summary>
         public DirectoryItem Parent { get; set; }
 
@@ -356,7 +347,7 @@
         {
             get
             {
-                return this.HasAssociatedFileOrFolder ? this.GetFilePathForName(this.Name) : this.Name;
+                return this.Parent != null ? this.GetFilePathForName(this.Name) : this.Name;
             }
         }
 
@@ -367,11 +358,6 @@
         {
             return String.Empty;
         }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether a file on disk is associated with this project item.
-        /// </summary>
-        protected Boolean HasAssociatedFileOrFolder { get; set; }
 
         /// <summary>
         /// Gets or sets a lock for activating project items.
@@ -527,7 +513,7 @@
         /// <returns>The resolved name, which appends a number at the end of the name to ensure uniqueness.</returns>
         private String MakeNameUnique(String newName)
         {
-            if (!this.HasAssociatedFileOrFolder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
+            if (this.Parent == null || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
             {
                 return newName;
             }

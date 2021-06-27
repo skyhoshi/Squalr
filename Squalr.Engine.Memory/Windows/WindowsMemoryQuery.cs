@@ -553,7 +553,7 @@
                             {
                                 String gameIdStr = Encoding.ASCII.GetString(gameId);
 
-                                if (!gameIdStr.StartsWith('G') || !gameIdStr.All(character => Char.IsLetterOrDigit(character)))
+                                if (gameIdStr.StartsWith('G') && gameIdStr.All(character => Char.IsLetterOrDigit(character)))
                                 {
                                     // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
                                     // Changing values in one will change the other. This means that we can just take the first one we find.
@@ -564,6 +564,7 @@
                         }
                     }
 
+                    /*
                     foreach (NormalizedRegion region in privateRegions)
                     {
                         // Dolphin stores wii memory in a memory mapped region of this exact size.
@@ -572,7 +573,7 @@
                             regions.Add(region);
                             break;
                         }
-                    }
+                    }*/
                     break;
                 default:
                     break;

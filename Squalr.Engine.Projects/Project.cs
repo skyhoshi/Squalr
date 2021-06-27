@@ -13,9 +13,8 @@
         /// Creates a new project from the given path or project name. If given as a project name, Squalr will use the user settings to decide where to place the folder.
         /// </summary>
         /// <param name="projectFilePathOrName">The project path, or the project name.</param>
-        public Project(String projectFilePathOrName) : base(Project.ToDirectory(projectFilePathOrName))
+        public Project(String projectFilePathOrName) : base(Project.ToDirectory(projectFilePathOrName), true)
         {
-            this.HasAssociatedFileOrFolder = true;
         }
 
         /// <summary>
