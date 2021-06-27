@@ -54,11 +54,12 @@
                 return -1;
             }
 
-            ScanConstraint scanConstraints = new ScanConstraint(constraintType, dataType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value));
+            ScanConstraints scanConstraints = new ScanConstraints(dataType, new ScanConstraint(constraintType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value)));
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
+                SessionManager.Session.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
                 TrackableTask.UniversalIdentifier);
 
             // Perform manual scan

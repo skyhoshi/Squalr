@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Squalr.Engine.Scanning" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Squalr.Engine.Scanning.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="ResultReadInterval" Type="System.Int32" Scope="User">
@@ -57,6 +57,9 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="DataType" Type="Squalr.Engine.Common.DataTypes.DataTypeBase" Scope="User">
+      <Value Profile="(Default)">Squalr.Engine.Common.DataTypes.DataTypeBase.Int32</Value>
+    </Setting>
+    <Setting Name="Emulator" Type="Squalr.Engine.Common.DataTypes.DataTypeBase" Scope="User">
       <Value Profile="(Default)">Squalr.Engine.Common.DataTypes.DataTypeBase.Int32</Value>
     </Setting>
   </Settings>

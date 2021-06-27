@@ -154,13 +154,16 @@
                         <shell:MenuItem
                             BorderThickness="0"
                             Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}"
+                            Style="{Binding .}"
                             Header="Select Project"
                              />
+                        <shell:Separator />
                         <shell:MenuItem
                             BorderThickness="0"
                             Command="{Binding MainViewModel.CloseCommand}"
                             CommandParameter="{Binding ElementName=SqualrWindow}"
-                            Header="Exit"
+                            Style="{Binding .}"
+                            Header="Exit Squalr"
                              />
                     </shell:MenuItem>
 
@@ -170,6 +173,7 @@
                             Header="Settings"
                             IsCheckable="True"
                             IsChecked="{Binding SettingsViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                     </shell:MenuItem>
 
@@ -178,8 +182,8 @@
                         <shell:MenuItem
                             Command="{Binding MainViewModel.ResetLayoutCommand}"
                             CommandParameter="{Binding ., ElementName=dockManager}"
-                            Header="Reset Layout"
-                             />
+                            Style="{Binding .}"
+                            Header="Reset Layout"/>
                     </shell:MenuItem>
 
                     <!--  Windows Header  -->
@@ -188,41 +192,48 @@
                             Header="Process Selector"
                             IsCheckable="True"
                             IsChecked="{Binding ProcessSelectorViewModel.IsVisible, Mode=TwoWay}"
-                             />
+                            Style="{Binding .}"/>
                         <shell:MenuItem
                             Header="Project Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding ProjectExplorerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Property Viewer"
                             IsCheckable="True"
                             IsChecked="{Binding PropertyViewerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Output"
                             IsCheckable="True"
                             IsChecked="{Binding OutputViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding ScanResultsViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Pointer Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScanResultsViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Snapshot Manager"
                             IsCheckable="True"
                             IsChecked="{Binding SnapshotManagerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header=".Net Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding DotNetExplorerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                     </shell:MenuItem>
 
@@ -232,24 +243,26 @@
                             Header="Change Counter"
                             IsCheckable="True"
                             IsChecked="{Binding ChangeCounterViewModel.IsVisible, Mode=TwoWay}"
-                            
+                            Style="{Binding .}"
                             Visibility="Collapsed" />
                         <shell:MenuItem
                             Header="Input Correlator"
                             IsCheckable="True"
                             IsChecked="{Binding InputCorrelatorViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Label Thresholder"
                             IsCheckable="True"
                             IsChecked="{Binding LabelThresholderViewModel.IsVisible, Mode=TwoWay}"
-                            
+                            Style="{Binding .}"
                             Visibility="Collapsed" />
                         <shell:Separator />
                         <shell:MenuItem
                             Header="Pointer Scanner"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScannerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                     </shell:MenuItem>
 
@@ -259,11 +272,13 @@
                             Header="Disassembly"
                             IsCheckable="True"
                             IsChecked="{Binding DisassemblyViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                         <shell:MenuItem
                             Header="Code Tracer"
                             IsCheckable="True"
                             IsChecked="{Binding CodeTracerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
                              />
                     </shell:MenuItem>
                 </shell:Menu>
@@ -284,7 +299,7 @@
                         </shell:MenuItem.Header>
                     </shell:MenuItem>
                     <shell:Separator Style="{DynamicResource VerticalSeparator}" />
-                    <shell:MenuItem Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}" ToolTip="Select Project">
+                    <shell:MenuItem Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}" ToolTip="Open Project Folder...">
                         <shell:MenuItem.Header>
                             <shell:Image
                                 Width="16"

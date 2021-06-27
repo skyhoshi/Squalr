@@ -120,7 +120,7 @@
         /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Data Type"), Description("The data type of this address")]
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
         public DataTypeBase DataType
         {
             get
@@ -181,7 +181,7 @@
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ValueEditorModel), typeof(UITypeEditor))]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Address Value"), Description("The value at the resolved address")]
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Value"), Description("The value at the resolved address")]
         public override Object DisplayValue
         {
             get

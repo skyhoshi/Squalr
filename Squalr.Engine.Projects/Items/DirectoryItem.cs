@@ -90,6 +90,29 @@
             }
         }
 
+        public void Rename(String newProjectPathOrName)
+        {
+            throw new NotImplementedException();
+            try
+            {
+                if (!Path.IsPathRooted(newProjectPathOrName))
+                {
+                    newProjectPathOrName = Path.Combine(ProjectSettings.ProjectRoot, newProjectPathOrName);
+                }
+
+                this.StopWatchingForUpdates();
+                Directory.Move(this.FullPath, newProjectPathOrName);
+
+                // this.FullPath = newProjectPathOrName;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Unable to rename project", ex);
+            }
+
+            this.WatchForUpdates();
+        }
+
         /// <summary>
         /// Adds the specified project item to this directory.
         /// </summary>
@@ -218,13 +241,27 @@
         /// </summary>
         private void WatchForUpdates()
         {
+            this.StopWatchingForUpdates();
+
             this.FileSystemWatcher = new FileSystemWatcher(this.FullPath, "*.*")
             {
                 NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                 EnableRaisingEvents = true,
             };
 
-            this.FileSystemWatcher.Changed += new FileSystemEventHandler(OnFilesOrDirectoriesChanged);
+            this.FileSystemWatcher.Changed += OnFilesOrDirectoriesChanged;
+        }
+
+        /// <summary>
+        /// Cancels and removes the current filesystem watcher.
+        /// </summary>
+        private void StopWatchingForUpdates()
+        {
+            if (this.FileSystemWatcher != null)
+            {
+                this.FileSystemWatcher.Changed -= OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher = null;
+            }
         }
 
         /// <summary>

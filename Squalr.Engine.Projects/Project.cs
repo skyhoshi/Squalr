@@ -1,106 +1,36 @@
 ﻿namespace Squalr.Engine.Projects
 {
-    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects.Items;
     using System;
-    using System.Collections.Generic;
     using System.IO;
 
-    public class Project
+    /// <summary>
+    /// Defines a Squalr project. This is the root directory that contains all other project items.
+    /// </summary>
+    public class Project : DirectoryItem
     {
-        public Project(String projectFilePathOrName)
+        /// <summary>
+        /// Creates a new project from the given path or project name. If given as a project name, Squalr will use the user settings to decide where to place the folder.
+        /// </summary>
+        /// <param name="projectFilePathOrName">The project path, or the project name.</param>
+        public Project(String projectFilePathOrName) : base(Project.ToDirectory(projectFilePathOrName))
+        {
+            this.HasAssociatedFileOrFolder = true;
+        }
+
+        /// <summary>
+        /// Converts a project name into a project path, if necessary.
+        /// </summary>
+        /// <param name="projectFilePathOrName">The project path, or the project name.</param>
+        /// <returns></returns>
+        private static String ToDirectory(String projectFilePathOrName)
         {
             if (!Path.IsPathRooted(projectFilePathOrName))
             {
                 projectFilePathOrName = Path.Combine(ProjectSettings.ProjectRoot, projectFilePathOrName);
             }
 
-            this.FilePath = projectFilePathOrName;
-
-            this.WatchFileSystem(this.FilePath);
-
-            this.ProjectItems = new List<ProjectItem>();
-        }
-
-        public String FilePath { get; private set; }
-
-        public String Name
-        {
-            get
-            {
-                return ProjectQueryer.ProjectPathToName(this.FilePath);
-            }
-        }
-
-        public IEnumerable<ProjectItem> ProjectItems { get; private set; }
-
-        private FileSystemWatcher FileSystemWatcher { get; set; }
-
-        public static Project Create(String projectFilePath)
-        {
-            try
-            {
-                Directory.CreateDirectory(projectFilePath);
-
-                return new Project(projectFilePath);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Error, "Error creating project", ex);
-                return null;
-            }
-        }
-
-        public void Rename(String newProjectPathOrName)
-        {
-            try
-            {
-                if (!Path.IsPathRooted(newProjectPathOrName))
-                {
-                    newProjectPathOrName = Path.Combine(ProjectSettings.ProjectRoot, newProjectPathOrName);
-                }
-
-                Directory.Move(this.FilePath, newProjectPathOrName);
-
-                this.FilePath = newProjectPathOrName;
-
-
-                this.WatchFileSystem(this.FilePath);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Error, "Unable to rename project", ex);
-            }
-        }
-
-        private void WatchFileSystem(String projectRootPath)
-        {
-            this.FileSystemWatcher = new FileSystemWatcher
-            {
-                Path = projectRootPath,
-                Filter = "*.*",
-                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                EnableRaisingEvents = true,
-            };
-
-            this.FileSystemWatcher.Changed += new FileSystemEventHandler(this.OnFileSystemChanged);
-        }
-
-        private void OnFileSystemChanged(Object source, FileSystemEventArgs args)
-        {
-            switch (args.ChangeType)
-            {
-                case WatcherChangeTypes.Changed:
-                    break;
-                case WatcherChangeTypes.Created:
-                    break;
-                case WatcherChangeTypes.Deleted:
-                    break;
-                case WatcherChangeTypes.Renamed:
-                    break;
-                default:
-                    break;
-            }
+            return projectFilePathOrName;
         }
     }
     //// End class

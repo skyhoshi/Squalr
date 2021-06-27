@@ -32,7 +32,6 @@
         public ReadGroup(UInt64 baseAddress, Byte[] initialBytes) : base(baseAddress, initialBytes.Length)
         {
             this.CurrentValues = initialBytes;
-
             this.SnapshotRegions = new List<SnapshotRegion>() { new SnapshotRegion(this, 0, initialBytes.Length) };
         }
 
@@ -65,17 +64,12 @@
         /// Reads all memory for this memory region.
         /// </summary>
         /// <returns>The bytes read from memory.</returns>
-        public Boolean ReadAllMemory(Process process)
+        public unsafe Boolean ReadAllMemory(Process process)
         {
-            Boolean readSuccess;
-            Byte[] newCurrentValues = MemoryReader.Instance.ReadBytes(process, this.BaseAddress, this.RegionSize, out readSuccess);
+            this.SetPreviousValues(this.CurrentValues);
+            this.SetCurrentValues(MemoryReader.Instance.ReadBytes(process, this.BaseAddress, this.RegionSize, out bool readSuccess));
 
-            if (readSuccess)
-            {
-                this.SetPreviousValues(this.CurrentValues);
-                this.SetCurrentValues(newCurrentValues);
-            }
-            else
+            if (!readSuccess)
             {
                 this.SetPreviousValues(null);
                 this.SetCurrentValues(null);

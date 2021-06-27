@@ -1,6 +1,7 @@
 ﻿namespace Squalr.View
 {
     using Squalr.Source.ProjectExplorer.ProjectItems;
+    using Squalr.Source.PropertyViewer;
     using System.Collections.Generic;
     using System.Reflection;
     using System.Windows.Controls;
@@ -61,7 +62,7 @@
                 else
                 {
                     // deselect all selected items except the current one
-                    selectedItems.ForEach(item => item.IsSelected = (item == treeViewItem));
+                    selectedItems.ForEach(item => item.IsSelected = item == treeViewItem);
                     selectedItems.Clear();
                 }
 
@@ -75,6 +76,8 @@
                     treeViewItem.IsSelected = false;
                     selectedItems.Remove(treeViewItem);
                 }
+
+                PropertyViewerViewModel.GetInstance().SetTargetObjects(selectedItems.ToArray());
             };
         }
     }
