@@ -151,7 +151,7 @@
 
         private void Rename(String newName)
         {
-            if (this.Parent == null)
+            if (!this.HasAssociatedFileOrFilder)
             {
                 return;
             }
@@ -181,6 +181,17 @@
         /// Gets or sets the parent of this project item. This is also used to determine if this project item exists on disk.
         /// </summary>
         public DirectoryItem Parent { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this project item is represented on disk.
+        /// </summary>
+        public Boolean HasAssociatedFileOrFilder
+        {
+            get
+            {
+                return this.Parent != null || this as DirectoryItem != null;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the file name for this project item.
@@ -346,7 +357,7 @@
         {
             get
             {
-                return this.Parent != null ? this.GetFilePathForName(this.Name) : this.Name;
+                return this.HasAssociatedFileOrFilder ? this.GetFilePathForName(this.Name) : this.Name;
             }
         }
 
