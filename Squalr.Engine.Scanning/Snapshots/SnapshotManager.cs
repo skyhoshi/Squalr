@@ -39,8 +39,10 @@
         private Object AccessLock { get; set; }
 
         public delegate void OnSnapshotsUpdated(SnapshotManager snapshotManager);
+        public delegate void OnNewSnapshot(SnapshotManager snapshotManager);
 
         public event OnSnapshotsUpdated OnSnapshotsUpdatedEvent;
+        public event OnNewSnapshot OnNewSnapshotEvent;
 
         /// <summary>
         /// Returns the memory regions associated with the current snapshot. If none exist, a query will be done. Will not read any memory.
@@ -161,6 +163,7 @@
                 this.Snapshots.Push(snapshot);
                 this.DeletedSnapshots.Clear();
                 this.OnSnapshotsUpdatedEvent.Invoke(this);
+                this.OnNewSnapshotEvent.Invoke(this);
             }
         }
     }

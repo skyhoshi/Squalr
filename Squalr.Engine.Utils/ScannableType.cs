@@ -1,11 +1,29 @@
-﻿namespace Squalr.Engine.Common
+﻿
+/// <summary>
+/// Custom data type classes, namespaced under System for consistency in naming patterns.
+/// This also avoids any potential project compatibility issues if Squalr namespaces change.
+/// Just be sure not to name any class something that might end up under the System namespace naturally.
+/// </summary>
+namespace System
+{
+    public class Int16BigEndian { };
+    public class Int32BigEndian { };
+    public class Int64BigEndian { };
+    public class UInt16BigEndian { };
+    public class UInt32BigEndian { };
+    public class UInt64BigEndian { };
+    public class SingleBigEndian { };
+    public class DoubleBigEndian { };
+}
+
+namespace Squalr.Engine.Common
 {
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// A class representing a serializable data type.
+    /// A class representing a serializable data type. This is a wrapper over the Type class.
     /// </summary>
     [DataContract]
     public class ScannableType
@@ -30,15 +48,6 @@
         /// Gets or sets the type wrapped by this class.
         /// </summary>
         public Type Type { get; set; }
-
-        private class Int16BigEndian { };
-        private class Int32BigEndian { };
-        private class Int64BigEndian { };
-        private class UInt16BigEndian { };
-        private class UInt32BigEndian { };
-        private class UInt64BigEndian { };
-        private class SingleBigEndian { };
-        private class DoubleBigEndian { };
 
         /// <summary>
         /// DataType for an array of bytes.
