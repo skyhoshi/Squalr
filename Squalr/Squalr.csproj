@@ -23,6 +23,7 @@
     <None Remove="Content\Images\BlueBlocks2.png" />
     <None Remove="Content\Images\BlueBlocks4.png" />
     <None Remove="Content\Images\BlueBlocks8.png" />
+    <None Remove="Content\Images\BlueBlocksArray.png" />
     <None Remove="Content\Images\Cancel.png" />
     <None Remove="Content\Images\Changed.png" />
     <None Remove="Content\Images\Cog.png" />
@@ -162,6 +163,7 @@
     <Resource Include="Content\Images\BlueBlocks2.png" />
     <Resource Include="Content\Images\BlueBlocks4.png" />
     <Resource Include="Content\Images\BlueBlocks8.png" />
+    <Resource Include="Content\Images\BlueBlocksArray.png" />
     <Resource Include="Content\Images\Cancel.png" />
     <Resource Include="Content\Images\Changed.png" />
     <Resource Include="Content\Images\Cog.png" />

@@ -13,6 +13,11 @@
         /// <summary>
         /// Image of one blue block.
         /// </summary>
+        public static readonly BitmapImage BlueBlocksArray = Images.LoadImage("BlueBlocksArray.png");
+
+        /// <summary>
+        /// Image of one blue block.
+        /// </summary>
         public static readonly BitmapImage BlueBlocks1 = Images.LoadImage("BlueBlocks1.png");
 
         /// <summary>

@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
 
     public abstract class Constraint
@@ -13,7 +13,7 @@
         /// Sets the element type to which all constraints apply.
         /// </summary>
         /// <param name="elementType">The new element type.</param>
-        public abstract void SetElementType(DataTypeBase elementType);
+        public abstract void SetElementType(ScannableType elementType);
 
         public abstract Boolean IsValid();
 

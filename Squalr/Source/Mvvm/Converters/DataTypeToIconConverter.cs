@@ -1,13 +1,13 @@
 ﻿namespace Squalr.Source.Mvvm.Converters
 {
     using Squalr.Content;
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Globalization;
     using System.Windows.Data;
 
     /// <summary>
-    /// Converts DataTypeBases to an icon format readily usable by the view.
+    /// Converts ScannableTypes to an icon format readily usable by the view.
     /// </summary>
     public class DataTypeToIconConverter : IValueConverter
     {
@@ -28,36 +28,48 @@
 
             if (value is Type)
             {
-                value = new DataTypeBase(value as Type);
+                value = new ScannableType(value as Type);
             }
 
             switch (value)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte:
+                case ScannableType type when type == ScannableType.Byte:
                     return Images.PurpleBlocks1;
-                case DataTypeBase type when type == DataTypeBase.Char:
+                case ScannableType type when type == ScannableType.Char:
                     return Images.PurpleBlocks1;
-                case DataTypeBase type when type == DataTypeBase.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     return Images.BlueBlocks1;
-                case DataTypeBase type when type == DataTypeBase.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
+                case ScannableType type when type == ScannableType.Int16:
                     return Images.BlueBlocks2;
-                case DataTypeBase type when type == DataTypeBase.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
+                case ScannableType type when type == ScannableType.Int32:
                     return Images.BlueBlocks4;
-                case DataTypeBase type when type == DataTypeBase.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
+                case ScannableType type when type == ScannableType.Int64:
                     return Images.BlueBlocks8;
-                case DataTypeBase type when type == DataTypeBase.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
+                case ScannableType type when type == ScannableType.UInt16:
                     return Images.PurpleBlocks2;
-                case DataTypeBase type when type == DataTypeBase.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
+                case ScannableType type when type == ScannableType.UInt32:
                     return Images.PurpleBlocks4;
-                case DataTypeBase type when type == DataTypeBase.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
+                case ScannableType type when type == ScannableType.UInt64:
                     return Images.PurpleBlocks8;
-                case DataTypeBase type when type == DataTypeBase.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
+                case ScannableType type when type == ScannableType.Single:
                     return Images.OrangeBlocks4;
-                case DataTypeBase type when type == DataTypeBase.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
+                case ScannableType type when type == ScannableType.Double:
                     return Images.OrangeBlocks8;
-                case DataTypeBase type when type == DataTypeBase.IntPtr:
+                case ScannableType type when type == ScannableType.ByteArray:
+                    return Images.BlueBlocksArray;
+                case ScannableType type when type == ScannableType.String:
+                    return Images.LetterS;
+                case ScannableType type when type == ScannableType.IntPtr:
                     return !Environment.Is64BitProcess ? Images.BlueBlocks4 : Images.BlueBlocks8;
-                case DataTypeBase type when type == DataTypeBase.UIntPtr:
+                case ScannableType type when type == ScannableType.UIntPtr:
                     return !Environment.Is64BitProcess ? Images.PurpleBlocks4 : Images.PurpleBlocks8;
                 default:
                     return null;

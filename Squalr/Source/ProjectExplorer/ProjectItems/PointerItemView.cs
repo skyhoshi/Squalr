@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Source.ProjectExplorer.ProjectItems
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Controls;
     using Squalr.Source.Editors.OffsetEditor;
@@ -121,7 +121,7 @@
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
-        public DataTypeBase DataType
+        public ScannableType DataType
         {
             get
             {

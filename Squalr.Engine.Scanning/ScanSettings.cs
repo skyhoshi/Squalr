@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
 
     public static class ScanSettings
@@ -239,7 +239,7 @@
             }
         }
 
-        public static DataTypeBase DataType
+        public static ScannableType DataType
         {
             get
             {

@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
@@ -72,7 +72,7 @@
         /// <summary>
         /// Sets the label data type for all read groups.
         /// </summary>
-        public DataTypeBase LabelDataType
+        public ScannableType LabelDataType
         {
             set
             {

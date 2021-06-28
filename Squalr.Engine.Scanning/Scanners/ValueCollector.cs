@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
@@ -64,7 +63,7 @@
                             cancellationToken.ThrowIfCancellationRequested();
 
                             stopwatch.Stop();
-                            snapshot.LoadMetaData(DataTypeBase.Byte.Size);
+                            snapshot.LoadMetaData(ScannableType.Byte.Size);
 
                             Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
                             Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");

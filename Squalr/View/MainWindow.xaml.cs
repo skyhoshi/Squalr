@@ -1,11 +1,9 @@
 ﻿namespace Squalr.View
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Source.Controls;
-    using Squalr.Source.Results;
     using Squalr.Source.Scanning;
     using System;
-    using System.Threading.Tasks;
     using System.Windows;
 
     /// <summary>
@@ -30,7 +28,7 @@
         /// Updates the active type.
         /// </summary>
         /// <param name="activeType">The new active type.</param>
-        public void Update(DataTypeBase activeType)
+        public void Update(ScannableType activeType)
         {
             this.ValueHexDecBoxViewModel.DataType = activeType;
         }

@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.OS;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -53,7 +53,7 @@
         /// <summary>
         /// Gets or sets the data type of the labels of this region.
         /// </summary>
-        public DataTypeBase LabelDataType { get; set; }
+        public ScannableType LabelDataType { get; set; }
 
         /// <summary>
         /// Gets or sets the collection of snapshot regions within this read group.

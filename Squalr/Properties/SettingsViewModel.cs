@@ -1,11 +1,9 @@
 ﻿namespace Squalr.Properties
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
-    using Squalr.Engine.Projects.Properties;
     using Squalr.Engine.Scanning;
-    using Squalr.Engine.Scanning.Properties;
     using Squalr.Source.Docking;
     using System;
     using System.ComponentModel;

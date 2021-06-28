@@ -2,7 +2,6 @@
 {
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -50,7 +49,7 @@
             this.SelectNotEqualCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.NotEqual), () => true);
             this.SelectUnchangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Unchanged), () => true);
 
-            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal, DataTypeBase.Int32);
+            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal, ScannableType.Int32);
 
             // Not registering this as a dockable window, since it is just part of the top bar now
             // DockingViewModel.GetInstance().RegisterViewModel(this);
@@ -169,7 +168,7 @@
         private void StartScan()
         {
             // Create a constraint manager that includes the current active constraint
-            DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
+            ScannableType dataType = ScanResultsViewModel.GetInstance().ActiveType;
             ScanConstraints scanConstraints = new ScanConstraints(dataType, this.ActiveConstraint?.Clone());
 
             if (!scanConstraints.IsValid())

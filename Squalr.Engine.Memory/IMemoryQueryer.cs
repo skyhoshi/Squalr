@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

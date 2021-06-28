@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Source.Utils.TypeConverters
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using System;
     using System.ComponentModel;
     using System.Globalization;
@@ -21,9 +20,9 @@
         /// <returns>The converted value.</returns>
         public override Object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (SyntaxChecker.CanParseValue(DataTypeBase.UInt64, value?.ToString()))
+            if (SyntaxChecker.CanParseValue(ScannableType.UInt64, value?.ToString()))
             {
-                return Conversions.ToHex(Conversions.ParsePrimitiveStringAsPrimitive(DataTypeBase.UInt64, value?.ToString()), formatAsAddress: true, includePrefix: false);
+                return Conversions.ToHex(Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.UInt64, value?.ToString()), formatAsAddress: true, includePrefix: false);
             }
 
             return base.ConvertTo(context, culture, value, destinationType);
@@ -54,7 +53,7 @@
         /// <returns>True if this converter can convert to the given type.</returns>
         public override Boolean CanConvertTo(ITypeDescriptorContext context, Type sourceType)
         {
-            return sourceType == DataTypeBase.IntPtr || sourceType == DataTypeBase.UInt64;
+            return sourceType == ScannableType.IntPtr || sourceType == ScannableType.UInt64;
         }
 
         /// <summary>

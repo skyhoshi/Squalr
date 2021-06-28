@@ -241,10 +241,10 @@ namespace Squalr.Engine.Scanning.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Squalr.Engine.Common.DataTypes.DataTypeBase.Int32")]
-        public global::Squalr.Engine.Common.DataTypes.DataTypeBase DataType {
+        [global::System.Configuration.DefaultSettingValueAttribute("Squalr.Engine.Common.ScannableType.Int32")]
+        public global::Squalr.Engine.Common.ScannableType DataType {
             get {
-                return ((global::Squalr.Engine.Common.DataTypes.DataTypeBase)(this["DataType"]));
+                return ((global::Squalr.Engine.Common.ScannableType)(this["DataType"]));
             }
             set {
                 this["DataType"] = value;

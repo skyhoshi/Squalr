@@ -32,7 +32,7 @@
             // Scan for any changed values
             TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
                 valueRecollectorTask.Result,
-                new ScanConstraints(DataTypeBase.Byte, new ScanConstraint(ScanConstraint.ConstraintType.Changed)),
+                new ScanConstraints(ScannableType.Byte, new ScanConstraint(ScanConstraint.ConstraintType.Changed)),
                 TrackableTask.UniversalIdentifier);
 
             Random random = new Random();
@@ -40,11 +40,11 @@
             // Start overwriting any memory that changed with 0s
             foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
             {
-                for (Int32 index = 0; index < region.GetElementCount(DataTypeBase.Byte.Size); index++)
+                for (Int32 index = 0; index < region.GetElementCount(ScannableType.Byte.Size); index++)
                 {
                     if (random.NextDouble() <= Intensity)
                     {
-                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].GetBaseAddress(DataTypeBase.Byte.Size), 0);
+                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].GetBaseAddress(ScannableType.Byte.Size), 0);
                     }
                 }
             }

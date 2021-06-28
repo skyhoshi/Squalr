@@ -2,7 +2,6 @@
 {
     using SharpDX.DirectInput;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Input.HotKeys;
@@ -528,8 +527,8 @@
                     IEnumerable<Int32> neighboringNumberedFiles = this.Parent.ChildItems
                         .Where(childItem => childItem.Name.StartsWith(newName, StringComparison.OrdinalIgnoreCase))
                         .Select(childItem => childItem.Name.Substring(0, newName.Length).Trim())
-                        .Where(childSuffix => SyntaxChecker.CanParseValue(DataTypeBase.Int32, childSuffix))
-                        .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(DataTypeBase.Int32, childSuffix));
+                        .Where(childSuffix => SyntaxChecker.CanParseValue(ScannableType.Int32, childSuffix))
+                        .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, childSuffix));
 
                     Int32 neighboringNumberedFileCount = neighboringNumberedFiles.Count();
                     IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(0, neighboringNumberedFileCount).Except(neighboringNumberedFiles);

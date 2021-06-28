@@ -14,7 +14,7 @@
     {
         public Int32 Handle()
         {
-            DataTypeBase dataType = ScanSettings.DataType;
+            ScannableType dataType = ScanSettings.DataType;
             ScanConstraint.ConstraintType constraintType = ScanConstraint.ConstraintType.Equal;
 
             if (String.IsNullOrWhiteSpace(this.Constraint))

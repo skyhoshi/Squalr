@@ -1,14 +1,9 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
-    using Squalr.Engine.Common.Extensions;
-    using Squalr.Engine.Memory;
     using Squalr.Engine.Processes;
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -25,7 +20,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="DolphinAddressItem" /> class.
         /// </summary>
-        public DolphinAddressItem(ProcessSession processSession) : this(processSession, DataTypeBase.Int32, "New Address")
+        public DolphinAddressItem(ProcessSession processSession) : this(processSession, ScannableType.Int32, "New Address")
         {
         }
 
@@ -41,7 +36,7 @@
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public DolphinAddressItem(
             ProcessSession processSession,
-            DataTypeBase dataType,
+            ScannableType dataType,
             String description = "New Address",
             Boolean isValueHex = false,
             Object value = null)

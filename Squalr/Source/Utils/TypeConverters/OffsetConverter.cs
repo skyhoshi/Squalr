@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Source.Utils.TypeConverters
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -57,9 +56,9 @@
             {
                 IEnumerable<String> offsetStrings = (value as String).Split(',').Select(offset => offset.Trim());
 
-                if (offsetStrings.All(offset => SyntaxChecker.CanParseHex(DataTypeBase.Int32, offset)))
+                if (offsetStrings.All(offset => SyntaxChecker.CanParseHex(ScannableType.Int32, offset)))
                 {
-                    return offsetStrings.Select(offset => (Int32)Conversions.ParseHexStringAsPrimitive(DataTypeBase.Int32, offset)).ToArray();
+                    return offsetStrings.Select(offset => (Int32)Conversions.ParseHexStringAsPrimitive(ScannableType.Int32, offset)).ToArray();
                 }
             }
 

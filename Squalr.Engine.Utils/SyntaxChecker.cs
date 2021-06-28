@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Common
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Globalization;
 
@@ -50,34 +50,34 @@
         /// <param name="dataType">The type of the given value.</param>
         /// <param name="value">The value to be parsed.</param>
         /// <returns>A boolean indicating if the value is parseable.</returns>
-        public static Boolean CanParseValue(DataTypeBase dataType, String value)
+        public static Boolean CanParseValue(ScannableType dataType, String value)
         {
-            if (dataType == (DataTypeBase)null)
+            if (dataType == (ScannableType)null)
             {
                 return false;
             }
 
             switch (dataType)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte:
+                case ScannableType type when type == ScannableType.Byte:
                     return SyntaxChecker.IsByte(value);
-                case DataTypeBase type when type == DataTypeBase.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     return SyntaxChecker.IsSByte(value);
-                case DataTypeBase type when type == DataTypeBase.Int16:
+                case ScannableType type when type == ScannableType.Int16:
                     return SyntaxChecker.IsInt16(value);
-                case DataTypeBase type when type == DataTypeBase.Int32:
+                case ScannableType type when type == ScannableType.Int32:
                     return SyntaxChecker.IsInt32(value);
-                case DataTypeBase type when type == DataTypeBase.Int64:
+                case ScannableType type when type == ScannableType.Int64:
                     return SyntaxChecker.IsInt64(value);
-                case DataTypeBase type when type == DataTypeBase.UInt16:
+                case ScannableType type when type == ScannableType.UInt16:
                     return SyntaxChecker.IsUInt16(value);
-                case DataTypeBase type when type == DataTypeBase.UInt32:
+                case ScannableType type when type == ScannableType.UInt32:
                     return SyntaxChecker.IsUInt32(value);
-                case DataTypeBase type when type == DataTypeBase.UInt64:
+                case ScannableType type when type == ScannableType.UInt64:
                     return SyntaxChecker.IsUInt64(value);
-                case DataTypeBase type when type == DataTypeBase.Single:
+                case ScannableType type when type == ScannableType.Single:
                     return SyntaxChecker.IsSingle(value);
-                case DataTypeBase type when type == DataTypeBase.Double:
+                case ScannableType type when type == ScannableType.Double:
                     return SyntaxChecker.IsDouble(value);
                 default:
                     return false;
@@ -90,7 +90,7 @@
         /// <param name="dataType">The type of the given value.</param>
         /// <param name="value">The value to be parsed.</param>
         /// <returns>A boolean indicating if the value is parseable as hex.</returns>
-        public static Boolean CanParseHex(DataTypeBase dataType, String value)
+        public static Boolean CanParseHex(ScannableType dataType, String value)
         {
             if (value == null)
             {
@@ -112,7 +112,7 @@
             // Remove negative sign from signed integer types, as TryParse methods do not handle negative hex values
             switch (dataType)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte || type == DataTypeBase.Int16 || type == DataTypeBase.Int32 || type == DataTypeBase.Int64:
+                case ScannableType type when type == ScannableType.Byte || type == ScannableType.Int16 || type == ScannableType.Int32 || type == ScannableType.Int64:
                     if (value.StartsWith("-"))
                     {
                         value = value.Substring(1);
@@ -125,25 +125,25 @@
 
             switch (dataType)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte:
+                case ScannableType type when type == ScannableType.Byte:
                     return IsByte(value, true);
-                case DataTypeBase type when type == DataTypeBase.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     return IsSByte(value, true);
-                case DataTypeBase type when type == DataTypeBase.Int16:
+                case ScannableType type when type == ScannableType.Int16:
                     return IsInt16(value, true);
-                case DataTypeBase type when type == DataTypeBase.Int32:
+                case ScannableType type when type == ScannableType.Int32:
                     return IsInt32(value, true);
-                case DataTypeBase type when type == DataTypeBase.Int64:
+                case ScannableType type when type == ScannableType.Int64:
                     return IsInt64(value, true);
-                case DataTypeBase type when type == DataTypeBase.UInt16:
+                case ScannableType type when type == ScannableType.UInt16:
                     return IsUInt16(value, true);
-                case DataTypeBase type when type == DataTypeBase.UInt32:
+                case ScannableType type when type == ScannableType.UInt32:
                     return IsUInt32(value, true);
-                case DataTypeBase type when type == DataTypeBase.UInt64:
+                case ScannableType type when type == ScannableType.UInt64:
                     return IsUInt64(value, true);
-                case DataTypeBase type when type == DataTypeBase.Single:
+                case ScannableType type when type == ScannableType.Single:
                     return IsSingle(value, true);
-                case DataTypeBase type when type == DataTypeBase.Double:
+                case ScannableType type when type == ScannableType.Double:
                     return IsDouble(value, true);
                 default:
                     return false;
@@ -304,7 +304,7 @@
         {
             if (isHex && IsUInt32(value, isHex))
             {
-                return Single.TryParse(Conversions.ParseHexStringAsPrimitiveString(DataTypeBase.Single, value), out _);
+                return Single.TryParse(Conversions.ParseHexStringAsPrimitiveString(ScannableType.Single, value), out _);
             }
             else
             {
@@ -322,7 +322,7 @@
         {
             if (isHex && IsUInt64(value, isHex))
             {
-                return Double.TryParse(Conversions.ParseHexStringAsPrimitiveString(DataTypeBase.Double, value), out _);
+                return Double.TryParse(Conversions.ParseHexStringAsPrimitiveString(ScannableType.Double, value), out _);
             }
             else
             {

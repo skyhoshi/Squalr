@@ -3,7 +3,6 @@
     using Native;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory.Windows.PEB;
@@ -172,11 +171,11 @@
         /// <returns>The maximum address possible in the target process.</returns>
         public UInt64 GetMaximumAddress(Process process)
         {
-            if (IntPtr.Size == Conversions.SizeOf(DataTypeBase.Int32))
+            if (IntPtr.Size == Conversions.SizeOf(ScannableType.Int32))
             {
                 return unchecked(UInt32.MaxValue);
             }
-            else if (IntPtr.Size == Conversions.SizeOf(DataTypeBase.Int64))
+            else if (IntPtr.Size == Conversions.SizeOf(ScannableType.Int64))
             {
                 return unchecked(UInt64.MaxValue);
             }

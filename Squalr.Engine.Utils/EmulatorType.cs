@@ -1,4 +1,4 @@
-﻿namespace Squalr.Engine.Common.DataTypes
+﻿namespace Squalr.Engine.Common
 {
     using System.Runtime.Serialization;
 

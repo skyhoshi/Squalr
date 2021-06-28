@@ -1,10 +1,8 @@
 ﻿namespace Squalr.Source.Results
 {
     using GalaSoft.MvvmLight.Command;
-    using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Projects.Items;
@@ -74,7 +72,7 @@
         private ScanResultsViewModel() : base("Scan Results")
         {
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
-            this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => this.ChangeType(type), (type) => true);
+            this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => this.ChangeType(type), (type) => true);
             this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
             this.FirstPageCommand = new RelayCommand(() => Task.Run(() => this.FirstPage()), () => true);
             this.LastPageCommand = new RelayCommand(() => Task.Run(() => this.LastPage()), () => true);
@@ -83,7 +81,7 @@
             this.AddScanResultCommand = new RelayCommand<ScanResult>((scanResult) => this.AddScanResult(scanResult), (scanResult) => true);
             this.AddScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.AddScanResults(this.SelectedScanResults), (selectedItems) => true);
 
-            this.ActiveType = DataTypeBase.Int32;
+            this.ActiveType = ScannableType.Int32;
             this.addresses = new FullyObservableCollection<ScanResult>();
 
             SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
@@ -162,7 +160,7 @@
         /// <summary>
         /// Gets or sets the active scan results data type.
         /// </summary>
-        public DataTypeBase ActiveType
+        public ScannableType ActiveType
         {
             get
             {
@@ -415,7 +413,7 @@
         /// Changes the active scan results type.
         /// </summary>
         /// <param name="newType">The new scan results type.</param>
-        private void ChangeType(DataTypeBase newType)
+        private void ChangeType(ScannableType newType)
         {
             this.ActiveType = newType;
         }

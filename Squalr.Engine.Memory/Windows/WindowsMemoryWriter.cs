@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Memory.Windows
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory.Windows.Native;
@@ -27,43 +27,43 @@
         /// <param name="elementType">The data type to write.</param>
         /// <param name="address">The address to write to.</param>
         /// <param name="value">The value to write.</param>
-        public void Write(Process process, DataTypeBase elementType, UInt64 address, Object value)
+        public void Write(Process process, ScannableType elementType, UInt64 address, Object value)
         {
             Byte[] bytes;
 
             switch (elementType)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte || type == typeof(Boolean):
+                case ScannableType type when type == ScannableType.Byte || type == typeof(Boolean):
                     bytes = new Byte[] { (Byte)value };
                     break;
-                case DataTypeBase type when type == DataTypeBase.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     bytes = new Byte[] { unchecked((Byte)(SByte)value) };
                     break;
-                case DataTypeBase type when type == DataTypeBase.Char:
+                case ScannableType type when type == ScannableType.Char:
                     bytes = Encoding.UTF8.GetBytes(new Char[] { (Char)value });
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int16:
+                case ScannableType type when type == ScannableType.Int16:
                     bytes = BitConverter.GetBytes((Int16)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int32:
+                case ScannableType type when type == ScannableType.Int32:
                     bytes = BitConverter.GetBytes((Int32)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int64:
+                case ScannableType type when type == ScannableType.Int64:
                     bytes = BitConverter.GetBytes((Int64)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt16:
+                case ScannableType type when type == ScannableType.UInt16:
                     bytes = BitConverter.GetBytes((UInt16)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt32:
+                case ScannableType type when type == ScannableType.UInt32:
                     bytes = BitConverter.GetBytes((UInt32)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt64:
+                case ScannableType type when type == ScannableType.UInt64:
                     bytes = BitConverter.GetBytes((UInt64)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Single:
+                case ScannableType type when type == ScannableType.Single:
                     bytes = BitConverter.GetBytes((Single)value);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Double:
+                case ScannableType type when type == ScannableType.Double:
                     bytes = BitConverter.GetBytes((Double)value);
                     break;
                 default:

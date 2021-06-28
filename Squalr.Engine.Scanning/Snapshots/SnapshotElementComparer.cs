@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
@@ -18,7 +18,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, DataTypeBase dataType)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, ScannableType dataType)
         {
             this.Region = region;
             this.CurrentTypeCode = Type.GetTypeCode(dataType);
@@ -38,7 +38,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, DataTypeBase dataType) : this(region, pointerIncrementMode, dataType)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, ScannableType dataType) : this(region, pointerIncrementMode, dataType)
         {
             this.ElementCompare = this.BuildCompareActions(constraints);
         }
