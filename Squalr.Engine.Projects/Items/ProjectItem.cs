@@ -41,13 +41,6 @@
         protected String description;
 
         /// <summary>
-        /// The unique identifier of this project item.
-        /// </summary>
-        [Browsable(false)]
-        [DataMember]
-        protected Guid guid;
-
-        /// <summary>
         /// The hotkey associated with this project item.
         /// </summary>
         [Browsable(false)]
@@ -58,6 +51,8 @@
         /// </summary>
         [Browsable(false)]
         protected Boolean isActivated;
+
+        private DirectoryItem parent;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
@@ -75,7 +70,6 @@
             // Bypass setters/getters to avoid triggering any view updates in constructor
             this.name = name ?? String.Empty;
             this.isActivated = false;
-            this.guid = Guid.NewGuid();
             this.ActivationLock = new Object();
         }
 
@@ -151,12 +145,13 @@
 
         private void Rename(String newName)
         {
-            if (!this.HasAssociatedFileOrFilder)
+            if (!this.HasAssociatedFileOrFilder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
-            String newPath = this.GetFilePathForName(this.MakeNameUnique(newName));
+            newName = this.MakeNameUnique(newName);
+            String newPath = this.GetFilePathForName(newName);
 
             // Attempt to move the existing associated file if possible
             try
@@ -168,7 +163,7 @@
                 Logger.Log(LogLevel.Error, "Error moving existing project file during rename. The old file may still exist.", ex);
             }
 
-            this.name = newPath;
+            this.name = newName;
             this.Save();
         }
 
@@ -180,7 +175,23 @@
         /// <summary>
         /// Gets or sets the parent of this project item. This is also used to determine if this project item exists on disk.
         /// </summary>
-        public DirectoryItem Parent { get; set; }
+        public DirectoryItem Parent
+        {
+            get
+            {
+                return parent;
+            }
+
+            set
+            {
+                this.parent = value;
+
+                // Bypass normal setter to avoid calling rename logic
+                this.name = this.MakeNameUnique(this.Name);
+                this.Save();
+                this.RaisePropertyChanged(nameof(this.Name));
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this project item is represented on disk.
@@ -205,7 +216,7 @@
 
             set
             {
-                if (this.Name == value || !this.Name.IsValidFileName())
+                if (this.Name == value)
                 {
                     return;
                 }
@@ -258,30 +269,6 @@
                 this.hotkey = value;
                 this.HotKey?.SetCallBackFunction(() => this.IsActivated = !this.IsActivated);
                 this.RaisePropertyChanged(nameof(this.HotKey));
-                this.Save();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the unique identifier of this project item.
-        /// </summary>
-        [Browsable(false)]
-        public Guid Guid
-        {
-            get
-            {
-                return this.guid;
-            }
-
-            set
-            {
-                if (this.guid == value)
-                {
-                    return;
-                }
-
-                this.guid = value;
-                this.RaisePropertyChanged(nameof(this.Guid));
                 this.Save();
             }
         }
@@ -381,11 +368,6 @@
         [OnDeserialized]
         public void OnDeserialized(StreamingContext streamingContext)
         {
-            if (this.Guid == null || this.Guid == Guid.Empty)
-            {
-                this.guid = Guid.NewGuid();
-            }
-
             this.ActivationLock = new Object();
         }
 
@@ -413,8 +395,6 @@
                 {
                     ProjectItem result = serializer.ReadObject(deserializeMemoryStream) as ProjectItem;
 
-                    result?.ResetGuid();
-
                     return result;
                 }
             }
@@ -434,14 +414,6 @@
         public void Dispose()
         {
             this.HotKey?.Dispose();
-        }
-
-        /// <summary>
-        /// Randomizes the guid of this project item.
-        /// </summary>
-        public void ResetGuid()
-        {
-            this.Guid = Guid.NewGuid();
         }
 
         /// <summary>
@@ -523,7 +495,7 @@
         /// <returns>The resolved name, which appends a number at the end of the name to ensure uniqueness.</returns>
         private String MakeNameUnique(String newName)
         {
-            if (this.Parent == null || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
+            if (this.Parent == null || this.Parent.ChildItems == null || !this.HasAssociatedFileOrFilder)
             {
                 return newName;
             }
@@ -532,24 +504,24 @@
 
             try
             {
-                if (this.Parent.ChildItems.Any(childItem => childItem.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
+                if (this.Parent.ChildItems.Any(childItem => childItem?.Name?.Equals(newName, StringComparison.OrdinalIgnoreCase) ?? false))
                 {
                     // Find all files that match the pattern of {newfilename #}, and extract the numbers
-                    IEnumerable<Int32> neighboringNumberedFiles = this.Parent.ChildItems
-                        .Where(childItem => childItem.Name.StartsWith(newName, StringComparison.OrdinalIgnoreCase))
-                        .Select(childItem => childItem.Name.Substring(0, newName.Length).Trim())
+                    IEnumerable<String> numberedSuffixStrings = this.Parent.ChildItems
+                        .Where(childItem => childItem?.Name?.StartsWith(newName, StringComparison.OrdinalIgnoreCase) ?? false)
+                        .Select(childItem => childItem.Name.Substring(newName.Length).Trim());
+                    IEnumerable<Int32> neighboringNumberedFiles = numberedSuffixStrings
                         .Where(childSuffix => SyntaxChecker.CanParseValue(ScannableType.Int32, childSuffix))
                         .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, childSuffix));
 
                     Int32 neighboringNumberedFileCount = neighboringNumberedFiles.Count();
-                    IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(0, neighboringNumberedFileCount).Except(neighboringNumberedFiles);
+                    IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(1, neighboringNumberedFileCount).Except(neighboringNumberedFiles);
 
                     // Find the first gap in the numbers. If no gap, just take the next number in the sequence
                     Int32 numberToAppend = missingNumbersInSequence.IsEmpty() ? neighboringNumberedFileCount + 1 : missingNumbersInSequence.First();
                     String suffix = numberToAppend == 0 ? String.Empty : " " + numberToAppend.ToString();
-                    String resolvedName = Path.Combine(ProjectSettings.ProjectRoot, newName + suffix);
 
-                    newName = resolvedName;
+                    newName = newName + suffix;
                 }
             }
             catch (Exception ex)
