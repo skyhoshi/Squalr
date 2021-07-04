@@ -34,6 +34,14 @@
         IEnumerable<NormalizedRegion> GetAllVirtualPages(Process process);
 
         /// <summary>
+        /// Gets a value indicating whether an address is writable.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        bool IsAddressWritable(Process process, UInt64 address);
+
+        /// <summary>
         /// Gets the maximum address possible in the target process.
         /// </summary>
         /// <returns>The maximum address possible in the target process.</returns>
@@ -91,7 +99,16 @@
         /// <param name="emulatorAddress"></param>
         /// <param name="emulatorType"></param>
         /// <returns></returns>
-        UInt64 ResolveEmulatorAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType);
+        UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType);
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="realAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType);
 
         /// <summary>
         /// Gets all virtual pages for the target emulator in the opened process.

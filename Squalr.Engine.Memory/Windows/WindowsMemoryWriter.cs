@@ -5,6 +5,7 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory.Windows.Native;
     using System;
+    using System.Buffers.Binary;
     using System.Diagnostics;
     using System.Text;
     using static Squalr.Engine.Memory.Windows.Native.Enumerations;
@@ -14,6 +15,8 @@
     /// </summary>
     internal class WindowsMemoryWriter : IMemoryWriter
     {
+        private WindowsMemoryQuery windowsMemoryQuery = new WindowsMemoryQuery();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowsMemoryWriter"/> class.
         /// </summary>
@@ -45,26 +48,50 @@
                 case ScannableType type when type == ScannableType.Int16:
                     bytes = BitConverter.GetBytes((Int16)value);
                     break;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int16)value));
+                    break;
                 case ScannableType type when type == ScannableType.Int32:
                     bytes = BitConverter.GetBytes((Int32)value);
+                    break;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int32)value));
                     break;
                 case ScannableType type when type == ScannableType.Int64:
                     bytes = BitConverter.GetBytes((Int64)value);
                     break;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int64)value));
+                    break;
                 case ScannableType type when type == ScannableType.UInt16:
                     bytes = BitConverter.GetBytes((UInt16)value);
+                    break;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt16)value));
                     break;
                 case ScannableType type when type == ScannableType.UInt32:
                     bytes = BitConverter.GetBytes((UInt32)value);
                     break;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt32)value));
+                    break;
                 case ScannableType type when type == ScannableType.UInt64:
                     bytes = BitConverter.GetBytes((UInt64)value);
+                    break;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt64)value));
                     break;
                 case ScannableType type when type == ScannableType.Single:
                     bytes = BitConverter.GetBytes((Single)value);
                     break;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits((Single)value)));
+                    break;
                 case ScannableType type when type == ScannableType.Double:
                     bytes = BitConverter.GetBytes((Double)value);
+                    break;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits((Double)value)));
                     break;
                 default:
                     throw new ArgumentException("Invalid type provided");
@@ -93,12 +120,18 @@
         {
             IntPtr processHandle = process == null ? IntPtr.Zero : process.Handle;
 
-            MemoryProtectionFlags oldProtection;
+            MemoryProtectionFlags oldProtection = MemoryProtectionFlags.NoAccess;
             Int32 bytesWritten;
 
             try
             {
-                NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, MemoryProtectionFlags.ExecuteReadWrite, out oldProtection);
+                bool isAddressWritable = windowsMemoryQuery.IsAddressWritable(process, address);
+
+                // Make address writable if it is not so already
+                if (!isAddressWritable)
+                {
+                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, MemoryProtectionFlags.ExecuteReadWrite, out oldProtection);
+                }
 
                 // Write the data to the target process
                 if (NativeMethods.WriteProcessMemory(processHandle, address.ToIntPtr(), byteArray, byteArray.Length, out bytesWritten))
@@ -109,7 +142,11 @@
                     }
                 }
 
-                NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, oldProtection, out oldProtection);
+                // Restore old protection after doing the write, if it was previously unwritable
+                if (!isAddressWritable)
+                {
+                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, oldProtection, out oldProtection);
+                }
             }
             catch (Exception ex)
             {

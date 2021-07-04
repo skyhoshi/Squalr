@@ -1,6 +1,5 @@
 ﻿namespace Squalr.Engine.Common
 {
-    using Squalr.Engine.Common;
     using System;
     using System.Globalization;
 
@@ -64,20 +63,28 @@
                 case ScannableType type when type == ScannableType.SByte:
                     return SyntaxChecker.IsSByte(value);
                 case ScannableType type when type == ScannableType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
                     return SyntaxChecker.IsInt16(value);
                 case ScannableType type when type == ScannableType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
                     return SyntaxChecker.IsInt32(value);
                 case ScannableType type when type == ScannableType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
                     return SyntaxChecker.IsInt64(value);
                 case ScannableType type when type == ScannableType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
                     return SyntaxChecker.IsUInt16(value);
                 case ScannableType type when type == ScannableType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
                     return SyntaxChecker.IsUInt32(value);
                 case ScannableType type when type == ScannableType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
                     return SyntaxChecker.IsUInt64(value);
                 case ScannableType type when type == ScannableType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
                     return SyntaxChecker.IsSingle(value);
                 case ScannableType type when type == ScannableType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return SyntaxChecker.IsDouble(value);
                 default:
                     return false;
@@ -130,20 +137,28 @@
                 case ScannableType type when type == ScannableType.SByte:
                     return IsSByte(value, true);
                 case ScannableType type when type == ScannableType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
                     return IsInt16(value, true);
                 case ScannableType type when type == ScannableType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
                     return IsInt32(value, true);
                 case ScannableType type when type == ScannableType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
                     return IsInt64(value, true);
                 case ScannableType type when type == ScannableType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
                     return IsUInt16(value, true);
                 case ScannableType type when type == ScannableType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
                     return IsUInt32(value, true);
                 case ScannableType type when type == ScannableType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
                     return IsUInt64(value, true);
                 case ScannableType type when type == ScannableType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
                     return IsSingle(value, true);
                 case ScannableType type when type == ScannableType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return IsDouble(value, true);
                 default:
                     return false;

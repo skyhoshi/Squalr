@@ -2,7 +2,6 @@
 {
     using SharpDX.DirectInput;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Input.HotKeys;
     using System;
@@ -23,6 +22,7 @@
     [KnownType(typeof(PointerItem))]
     [KnownType(typeof(DotNetItem))]
     [KnownType(typeof(JavaItem))]
+    [KnownType(typeof(DolphinAddressItem))]
     [DataContract]
     public class ProjectItem : INotifyPropertyChanged, IDisposable
     {
@@ -57,7 +57,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
         /// </summary>
-        internal ProjectItem() : this( String.Empty)
+        internal ProjectItem() : this(String.Empty)
         {
         }
 

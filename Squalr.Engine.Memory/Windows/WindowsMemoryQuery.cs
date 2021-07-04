@@ -31,13 +31,16 @@
         /// </summary>
         public WindowsMemoryQuery()
         {
-            this.ModuleCache = new TtlCache<Int32, List<NormalizedModule>>(TimeSpan.FromSeconds(10.0));
+            this.ModuleCache = new TtlCache<Int32, IList<NormalizedModule>>(TimeSpan.FromSeconds(10.0));
+            this.DolphinRegionCache = new SingleItemTtlCache<IList<NormalizedRegion>>(TimeSpan.FromSeconds(10.0));
         }
 
         /// <summary>
         /// Gets or sets the module cache of process modules.
         /// </summary>
-        private TtlCache<Int32, List<NormalizedModule>> ModuleCache { get; set; }
+        private TtlCache<Int32, IList<NormalizedModule>> ModuleCache { get; set; }
+
+        private SingleItemTtlCache<IList<NormalizedRegion>> DolphinRegionCache { get; set; }
 
         /// <summary>
         /// Gets the address of the stacks in the opened process.
@@ -125,7 +128,6 @@
 
             foreach (MemoryBasicInformation64 next in memoryInfo)
             {
-
                 if (next.RegionSize < ChunkSize)
                 {
                     regions.Add(new NormalizedRegion(next.BaseAddress.ToUInt64(), next.RegionSize.ToInt32()));
@@ -164,6 +166,21 @@
 
             return this.GetVirtualPages(process, 0, 0, flags, 0, this.GetMaximumAddress(process));
         }
+
+        public bool IsAddressWritable(Process process, UInt64 address)
+        {
+            MemoryTypeEnum flags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
+
+            IEnumerable<MemoryBasicInformation64> memoryInfo = WindowsMemoryQuery.VirtualPages(process == null ? IntPtr.Zero : process.Handle, address, address + 1, 0, 0, flags);
+
+            if (memoryInfo.Count() > 0)
+            {
+                return (memoryInfo.First().Protect & (MemoryProtectionFlags.ExecuteReadWrite | MemoryProtectionFlags.ReadWrite)) != 0;
+            }
+
+            return false;
+        }
+
 
         /// <summary>
         /// Gets the maximum address possible in the target process.
@@ -217,7 +234,7 @@
             // Query all modules in the target process
             IntPtr[] modulePointers = new IntPtr[0];
             Int32 bytesNeeded = 0;
-            List<NormalizedModule> modules = new List<NormalizedModule>();
+            IList<NormalizedModule> modules = new List<NormalizedModule>();
 
             if (process == null)
             {
@@ -400,7 +417,7 @@
         /// <returns>
         /// A collection of <see cref="MemoryBasicInformation64"/> structures containing info about all virtual pages in the target process.
         /// </returns>
-        private static IEnumerable<MemoryBasicInformation64> VirtualPages(
+        public static IEnumerable<MemoryBasicInformation64> VirtualPages(
             IntPtr processHandle,
             UInt64 startAddress,
             UInt64 endAddress,
@@ -531,16 +548,73 @@
         /// <param name="emulatorAddress"></param>
         /// <param name="emulatorType"></param>
         /// <returns></returns>
-        public UInt64 ResolveEmulatorAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType)
+        public UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType)
         {
-            IEnumerable<NormalizedRegion> regions = GetEmulatorVirtualPages(process, emulatorType).OrderByDescending(region => region.BaseAddress);
-
-            foreach (NormalizedRegion region in regions)
+            switch (emulatorType)
             {
-                if (emulatorAddress >= region.BaseAddress)
-                {
-                    return emulatorAddress - region.BaseAddress;
-                }
+                case EmulatorType.Dolphin:
+                    const UInt64 MemoryBase = 0x80000000;
+                    const UInt64 WiiMemoryBase = 0x90000000;
+
+                    if (emulatorAddress < MemoryBase)
+                    {
+                        return 0;
+                    }
+
+                    bool isWiiExtendedMemory = emulatorAddress >= WiiMemoryBase;
+                    UInt64 baseRelativeAddress = emulatorAddress - (isWiiExtendedMemory ? WiiMemoryBase : MemoryBase);
+                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetEmulatorVirtualPages(process, emulatorType).OrderByDescending(region => region.BaseAddress);
+
+                    if (isWiiExtendedMemory && dolphinRegions.Count() >= 2)
+                    {
+                        return dolphinRegions.First().BaseAddress + baseRelativeAddress;
+                    }
+
+                    if (dolphinRegions.Count() >= 1)
+                    {
+                        return dolphinRegions.Last().BaseAddress + baseRelativeAddress;
+                    }
+
+                    break;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="realAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        public UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType)
+        {
+            switch (emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    const UInt64 MemoryBase = 0x80000000;
+                    const UInt64 WiiMemoryBase = 0x90000000;
+                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetEmulatorVirtualPages(process, emulatorType).OrderByDescending(region => region.BaseAddress);
+
+                    if (dolphinRegions.Count() >= 2)
+                    {
+                        NormalizedRegion region = dolphinRegions.First();
+                        if (realAddress >= region.BaseAddress)
+                        {
+                            return realAddress - region.BaseAddress + WiiMemoryBase;
+                        }
+                    }
+
+                    if (dolphinRegions.Count() >= 1)
+                    {
+                        NormalizedRegion region = dolphinRegions.Last();
+                        if (realAddress >= region.BaseAddress)
+                        {
+                            return realAddress - region.BaseAddress + MemoryBase;
+                        }
+                    }
+                    break;
             }
 
             return 0;
@@ -552,6 +626,11 @@
         /// <returns>A collection of regions in the process.</returns>
         public IEnumerable<NormalizedRegion> GetEmulatorVirtualPages(Process process, EmulatorType emulatorType)
         {
+            if (this.DolphinRegionCache.HasValue())
+            {
+                return this.DolphinRegionCache.GetValue();
+            }
+
             IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
             IList<NormalizedRegion> regions = new List<NormalizedRegion>();
 
@@ -564,7 +643,7 @@
                     foreach (NormalizedRegion region in mappedRegions)
                     {
                         // Dolphin stores main memory in a memory mapped region of this exact size.
-                        if (region.RegionSize == 0x2000000 && IsRegionBackedByPhysicalMemory(processHandle, region))
+                        if (region.RegionSize == 0x2000000 && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                         {
                             // Check to see if there is a game id. This should weed out any false positives.
                             bool readSuccess = false;
@@ -599,6 +678,11 @@
                     break;
                 default:
                     break;
+            }
+
+            if (regions.Count > 0)
+            {
+            this.DolphinRegionCache.Add(regions);
             }
 
             return regions;

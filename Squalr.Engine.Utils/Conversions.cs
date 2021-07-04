@@ -4,6 +4,7 @@
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Buffers.Binary;
+    using System.Globalization;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -28,37 +29,29 @@
                 case ScannableType type when type == ScannableType.SByte:
                     return SByte.Parse(value);
                 case ScannableType type when type == ScannableType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
                     return Int16.Parse(value);
                 case ScannableType type when type == ScannableType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
                     return Int32.Parse(value);
                 case ScannableType type when type == ScannableType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
                     return Int64.Parse(value);
                 case ScannableType type when type == ScannableType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
                     return UInt16.Parse(value);
                 case ScannableType type when type == ScannableType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
                     return UInt32.Parse(value);
                 case ScannableType type when type == ScannableType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
                     return UInt64.Parse(value);
                 case ScannableType type when type == ScannableType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
                     return Single.Parse(value.EndsWith("f") ? value.Remove(value.LastIndexOf("f")) : value);
                 case ScannableType type when type == ScannableType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return Double.Parse(value);
-                case ScannableType type when type == ScannableType.Int16BE:
-                    return BinaryPrimitives.ReverseEndianness(Int16.Parse(value));
-                case ScannableType type when type == ScannableType.Int32BE:
-                    return BinaryPrimitives.ReverseEndianness(Int32.Parse(value));
-                case ScannableType type when type == ScannableType.Int64BE:
-                    return BinaryPrimitives.ReverseEndianness(Int64.Parse(value));
-                case ScannableType type when type == ScannableType.UInt16BE:
-                    return BinaryPrimitives.ReverseEndianness(UInt16.Parse(value));
-                case ScannableType type when type == ScannableType.UInt32BE:
-                    return BinaryPrimitives.ReverseEndianness(UInt32.Parse(value));
-                case ScannableType type when type == ScannableType.UInt64BE:
-                    return BinaryPrimitives.ReverseEndianness(UInt64.Parse(value));
-                case ScannableType type when type == ScannableType.SingleBE:
-                    return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits(Single.Parse(value.EndsWith("f") ? value.Remove(value.LastIndexOf("f")) : value))));
-                case ScannableType type when type == ScannableType.DoubleBE:
-                    return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits(Double.Parse(value))));
                 // TODO: AoB
                 case ScannableType type when type == ScannableType.String:
                     return value;
@@ -270,7 +263,10 @@
                 return 0;
             }
 
-            return UInt64.Parse(address, System.Globalization.NumberStyles.HexNumber);
+            UInt64 result;
+            UInt64.TryParse(address, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out result);
+
+            return result;
         }
 
         /// <summary>

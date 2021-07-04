@@ -4,6 +4,7 @@
     using System;
     using System.ComponentModel;
     using System.Globalization;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Address type converter for use in the property viewer.
@@ -37,12 +38,15 @@
         /// <returns>The converted value.</returns>
         public override Object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
         {
-            if (SyntaxChecker.CanParseAddress(value?.ToString()))
+            String valueAsStr = value?.ToString() ?? String.Empty;
+            valueAsStr = Regex.Replace(valueAsStr, @"\s+", "");
+
+            if (SyntaxChecker.CanParseAddress(valueAsStr))
             {
-                return Conversions.AddressToValue(value?.ToString());
+                return Conversions.AddressToValue(valueAsStr);
             }
 
-            return base.ConvertFrom(context, culture, value);
+            return null;
         }
 
         /// <summary>

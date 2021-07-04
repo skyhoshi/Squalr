@@ -398,6 +398,7 @@
             {
                 UInt64 startIndex = Math.Min(ScanResultsViewModel.PageSize * this.CurrentPage, snapshot.ElementCount);
                 UInt64 endIndex = Math.Min((ScanResultsViewModel.PageSize * this.CurrentPage) + ScanResultsViewModel.PageSize, snapshot.ElementCount);
+                EmulatorType emulatorType = SessionManager.Session.DetectedEmulator;
 
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
@@ -406,12 +407,25 @@
                     String label = element.GetElementLabel() != null ? element.GetElementLabel().ToString() : String.Empty;
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
+                    UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
 
-                    string moduleName;
-                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.GetBaseAddress(this.ActiveType.Size), out moduleName);
+                    switch (emulatorType)
+                    {
+                        case EmulatorType.None:
+                        default:
+                            string moduleName;
+                            address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, address, out moduleName);
 
-                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
-                    newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
+                            PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
+                            newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
+                            break;
+                        case EmulatorType.Dolphin:
+                            address = MemoryQueryer.Instance.RealAddressToEmulatorAddress(SessionManager.Session.OpenedProcess, address, emulatorType);
+
+                            DolphinAddressItem dolphinItem = new DolphinAddressItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, value: currentValue);
+                            newAddresses.Add(new ScanResult(new DolphinItemView(dolphinItem), previousValue, label));
+                            break;
+                    }
                 }
             }
 

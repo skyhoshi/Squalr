@@ -19,7 +19,7 @@
         /// <summary>
         /// The extension for this project item type.
         /// </summary>
-        public new const String Extension = ".ptr";
+        public new const String Extension = ".dol";
 
         /// <summary>
         /// The address of this item in emulator memory.
@@ -82,7 +82,7 @@
                     return;
                 }
 
-                this.CalculatedAddress = value;
+                this.CalculatedAddress = MemoryQueryer.Instance.EmulatorAddressToRealAddress(processSession?.OpenedProcess, value, EmulatorType.Dolphin);
                 this.emulatorAddress = value;
                 this.RaisePropertyChanged(nameof(this.EmulatorAddress));
                 this.RaisePropertyChanged(nameof(this.AddressSpecifier));
@@ -160,9 +160,7 @@
         /// <returns>The base address of this object.</returns>
         protected override UInt64 ResolveAddress()
         {
-            UInt64 pointer = MemoryQueryer.Instance.ResolveEmulatorAddress(processSession?.OpenedProcess, this.EmulatorAddress, EmulatorType.Dolphin);
-
-            pointer = pointer.Add(this.EmulatorAddress);
+            UInt64 pointer = MemoryQueryer.Instance.EmulatorAddressToRealAddress(processSession?.OpenedProcess, this.EmulatorAddress, EmulatorType.Dolphin);
 
             if (this.PointerOffsets == null || this.PointerOffsets.Count() == 0)
             {
@@ -190,7 +188,6 @@
                 pointer = pointer.Add(offset);
             }
 
-            // TODO: Unresolve?
             return pointer;
         }
     }
