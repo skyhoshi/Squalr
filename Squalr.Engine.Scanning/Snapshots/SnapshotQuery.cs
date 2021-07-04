@@ -25,12 +25,12 @@
         /// </summary>
         /// <param name="snapshotCreationMode">The method of snapshot retrieval.</param>
         /// <returns>The collected snapshot.</returns>
-        public static Snapshot GetSnapshot(Process process, SnapshotRetrievalMode snapshotCreationMode)
+        public static Snapshot GetSnapshot(Process process, SnapshotRetrievalMode snapshotCreationMode, EmulatorType emulatorType = EmulatorType.None)
         {
             switch (snapshotCreationMode)
             {
                 case SnapshotRetrievalMode.FromSettings:
-                    return SnapshotQuery.CreateSnapshotFromSettings(process);
+                    return SnapshotQuery.CreateSnapshotFromSettings(process, emulatorType);
                 case SnapshotRetrievalMode.FromUserModeMemory:
                     return SnapshotQuery.CreateSnapshotFromUsermodeMemory(process);
                 case SnapshotRetrievalMode.FromModules:
@@ -80,20 +80,8 @@
         /// Creates a new snapshot of memory in the target process. Will not read any memory.
         /// </summary>
         /// <returns>The snapshot of memory taken in the target process.</returns>
-        private static Snapshot CreateSnapshotFromSettings(Process process)
+        private static Snapshot CreateSnapshotFromSettings(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
-            EmulatorType emulatorType = ScanSettings.EmulatorType;
-
-            // Determine if the target is an emulated game if automatic detection is enabled
-            if (emulatorType == EmulatorType.Auto && process != null && process.MainWindowTitle.StartsWith("Dolphin"))
-            {
-                emulatorType = EmulatorType.Dolphin;
-            }
-            else
-            {
-                emulatorType = EmulatorType.None;
-            }
-
             List<ReadGroup> memoryRegions = new List<ReadGroup>();
             IEnumerable<NormalizedRegion> virtualPages;
 

@@ -2,6 +2,7 @@
 {
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
     using Squalr.Source.Updater;
@@ -41,7 +42,7 @@
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
-
+            
             // this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
         }
 

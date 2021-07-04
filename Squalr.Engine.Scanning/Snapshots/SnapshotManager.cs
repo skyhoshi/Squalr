@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using System;
     using System.Collections.Generic;
@@ -48,13 +49,13 @@
         /// Returns the memory regions associated with the current snapshot. If none exist, a query will be done. Will not read any memory.
         /// </summary>
         /// <returns>The current active snapshot of memory in the target process.</returns>
-        public Snapshot GetActiveSnapshotCreateIfNone(Process process)
+        public Snapshot GetActiveSnapshotCreateIfNone(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
             lock (this.AccessLock)
             {
                 if (this.Snapshots.Count == 0 || this.Snapshots.Peek() == null || this.Snapshots.Peek().ElementCount == 0)
                 {
-                    Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings);
+                    Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings, emulatorType);
                     snapshot.Align(ScanSettings.Alignment);
 
                     return snapshot;

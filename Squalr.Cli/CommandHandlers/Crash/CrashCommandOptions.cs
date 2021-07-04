@@ -20,7 +20,7 @@
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
                 SessionManager.Session.OpenedProcess,
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
                 TrackableTask.UniversalIdentifier);
 
             // Recollect values

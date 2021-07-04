@@ -205,6 +205,15 @@
             }
         }
 
+        public override ProjectItem Clone()
+        {
+            ProjectItem clone = base.Clone();
+
+            (clone as AddressItem).processSession = this.processSession;
+
+            return clone;
+        }
+
         /// <summary>
         /// Gets the extension for this project item.
         /// </summary>

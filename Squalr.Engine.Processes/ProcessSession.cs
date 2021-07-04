@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Processes
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
     using System.Diagnostics;
     using System.Threading.Tasks;
@@ -18,6 +19,7 @@
                 Logger.Log(LogLevel.Info, "Attached to process: " + processToOpen.ProcessName + " (" + processToOpen.Id.ToString() + ")");
             }
 
+            DetectedEmulator = EmulatorType.None;
             this.OpenedProcess = processToOpen;
 
             this.ListenForProcessDeath();
@@ -32,11 +34,25 @@
             {
                 return openedProcess;
             }
+
             set
             {
-                openedProcess = value;
+                if (value == DetachProcess.Instance)
+                {
+                    openedProcess = null;
+                }
+                else
+                {
+                    openedProcess = value;
+                }
             }
         }
+
+        /// <summary>
+        /// Gets or sets the detected emulator type. This is not automatically set, because the detection could have dependencies on scanning.
+        /// It is up to the caller to store and reuse the detected emulator type here.
+        /// </summary>
+        public EmulatorType DetectedEmulator { get; set; }
 
         public void Destroy()
         {

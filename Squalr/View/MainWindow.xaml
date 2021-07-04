@@ -25,6 +25,7 @@
     <shell:Window.Resources>
         <converters:ConstraintToIconConverter x:Key="ConstraintToIconConverter" />
         <converters:IconConverter x:Key="IconConverter" />
+        <converters:ProcessNameConverter x:Key="ProcessNameConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter
             x:Key="BooleanToHiddenConverter"
@@ -331,7 +332,7 @@
                                 <shell:TextBlock
                                     Grid.Column="1"
                                     Foreground="{StaticResource SqualrColorWhite}"
-                                    Text="{Binding Path=ProcessName}" />
+                                    Text="{Binding Path=., Converter={StaticResource ProcessNameConverter}}" />
                             </shell:Grid>
                         </shell:DataTemplate>
                     </shell:ComboBox.ItemTemplate>

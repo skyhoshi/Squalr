@@ -525,6 +525,28 @@
         }
 
         /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        public UInt64 ResolveEmulatorAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType)
+        {
+            IEnumerable<NormalizedRegion> regions = GetEmulatorVirtualPages(process, emulatorType).OrderByDescending(region => region.BaseAddress);
+
+            foreach (NormalizedRegion region in regions)
+            {
+                if (emulatorAddress >= region.BaseAddress)
+                {
+                    return emulatorAddress - region.BaseAddress;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
         /// Gets all virtual pages for the target emulator in the opened process.
         /// </summary>
         /// <returns>A collection of regions in the process.</returns>
@@ -563,6 +585,7 @@
                         }
                     }
 
+                    // Disabled for now: Fetching Wii extended memory. We should find a consistent signature for this.
                     /*
                     foreach (NormalizedRegion region in privateRegions)
                     {

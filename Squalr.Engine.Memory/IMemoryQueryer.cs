@@ -85,6 +85,15 @@
         UInt64 ResolveModule(Process process, String identifier);
 
         /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 ResolveEmulatorAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType);
+
+        /// <summary>
         /// Gets all virtual pages for the target emulator in the opened process.
         /// </summary>
         /// <returns>A collection of regions in the process.</returns>

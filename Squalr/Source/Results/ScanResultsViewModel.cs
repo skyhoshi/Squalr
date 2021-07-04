@@ -172,7 +172,21 @@
                 this.activeType = value;
 
                 // Update data type of addresses
-                this.Addresses?.ToArray().ForEach(address => address.PointerItem.DataType = this.ActiveType);
+                this.Addresses?.ForEach(scanResult =>
+                {
+                    switch (scanResult?.ProjectItemView)
+                    {
+                        case PointerItemView view:
+                            view.DataType = this.ActiveType;
+                            break;
+                        case DolphinItemView view:
+                            view.DataType = this.ActiveType;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+
 
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
@@ -355,7 +369,7 @@
                     {
                         foreach (ScanResult result in scanResults)
                         {
-                            result?.PointerItem?.ProjectItem.Update();
+                            result?.ProjectItemView?.ProjectItem.Update();
                         }
                     }
 
@@ -369,7 +383,7 @@
         /// </summary>
         private void EditValue(ScanResult scanResult)
         {
-            ValueEditorViewModel.GetInstance().ShowDialog(scanResult?.PointerItem?.ProjectItem as PointerItem);
+            ValueEditorViewModel.GetInstance().ShowDialog(scanResult?.ProjectItemView?.ProjectItem as PointerItem);
         }
 
         /// <summary>
@@ -393,7 +407,7 @@
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
 
-                    String moduleName = String.Empty;
+                    string moduleName;
                     UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.GetBaseAddress(this.ActiveType.Size), out moduleName);
 
                     PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
@@ -456,7 +470,7 @@
         /// <param name="scanResult">The scan result to add to the project explorer.</param>
         private void AddScanResult(ScanResult scanResult)
         {
-            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.PointerItem?.ProjectItem);
+            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.ProjectItemView?.ProjectItem?.Clone());
         }
 
         /// <summary>
@@ -470,7 +484,7 @@
                 return;
             }
 
-            IEnumerable<PointerItem> projectItems = scanResults.Select(scanResult => scanResult.PointerItem?.ProjectItem as PointerItem);
+            IEnumerable<ProjectItem> projectItems = scanResults.Select(scanResult => scanResult.ProjectItemView?.ProjectItem?.Clone());
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }

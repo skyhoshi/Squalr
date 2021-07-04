@@ -1,9 +1,13 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Memory;
     using Squalr.Engine.Processes;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -15,12 +19,24 @@
         /// <summary>
         /// The extension for this project item type.
         /// </summary>
-        public new const String Extension = ".dol";
+        public new const String Extension = ".ptr";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DolphinAddressItem" /> class.
+        /// The address of this item in emulator memory.
         /// </summary>
-        public DolphinAddressItem(ProcessSession processSession) : this(processSession, ScannableType.Int32, "New Address")
+        [DataMember]
+        protected UInt64 emulatorAddress;
+
+        /// <summary>
+        /// The pointer offsets of this address item.
+        /// </summary>
+        [DataMember]
+        protected IEnumerable<Int32> pointerOffsets;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddressItem" /> class.
+        /// </summary>
+        public DolphinAddressItem(ProcessSession processSession) : this(processSession, 0, ScannableType.Int32, "New Address")
         {
         }
 
@@ -36,12 +52,67 @@
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public DolphinAddressItem(
             ProcessSession processSession,
-            ScannableType dataType,
+            UInt64 baseAddress,
+            Type dataType,
             String description = "New Address",
+            IEnumerable<Int32> pointerOffsets = null,
             Boolean isValueHex = false,
             Object value = null)
             : base(processSession, dataType, description, isValueHex, value)
         {
+            // Bypass setters to avoid running setter code
+            this.emulatorAddress = baseAddress;
+            this.pointerOffsets = pointerOffsets;
+        }
+
+        /// <summary>
+        /// Gets or sets the emulator address of this object.
+        /// </summary>
+        public virtual UInt64 EmulatorAddress
+        {
+            get
+            {
+                return this.emulatorAddress;
+            }
+
+            set
+            {
+                if (this.emulatorAddress == value)
+                {
+                    return;
+                }
+
+                this.CalculatedAddress = value;
+                this.emulatorAddress = value;
+                this.RaisePropertyChanged(nameof(this.EmulatorAddress));
+                this.RaisePropertyChanged(nameof(this.AddressSpecifier));
+                this.Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the pointer offsets of this address item.
+        /// </summary>
+        public virtual IEnumerable<Int32> PointerOffsets
+        {
+            get
+            {
+                return this.pointerOffsets;
+            }
+
+            set
+            {
+                if (this.pointerOffsets != null && this.pointerOffsets.SequenceEqual(value))
+                {
+                    return;
+                }
+
+                this.pointerOffsets = value;
+                this.RaisePropertyChanged(nameof(this.PointerOffsets));
+                this.RaisePropertyChanged(nameof(this.IsPointer));
+                this.RaisePropertyChanged(nameof(this.AddressSpecifier));
+                this.Save();
+            }
         }
 
         /// <summary>
@@ -52,7 +123,26 @@
         {
             get
             {
-                return String.Empty;
+                if (this.IsPointer)
+                {
+                    return Conversions.ToHex(this.CalculatedAddress);
+                }
+                else
+                {
+                    return Conversions.ToHex(this.EmulatorAddress);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating if this object is a true pointer and not just an address.
+        /// </summary>
+        [Browsable(false)]
+        public Boolean IsPointer
+        {
+            get
+            {
+                return !this.PointerOffsets.IsNullOrEmpty();
             }
         }
 
@@ -70,7 +160,38 @@
         /// <returns>The base address of this object.</returns>
         protected override UInt64 ResolveAddress()
         {
-            return 0;
+            UInt64 pointer = MemoryQueryer.Instance.ResolveEmulatorAddress(processSession?.OpenedProcess, this.EmulatorAddress, EmulatorType.Dolphin);
+
+            pointer = pointer.Add(this.EmulatorAddress);
+
+            if (this.PointerOffsets == null || this.PointerOffsets.Count() == 0)
+            {
+                return pointer;
+            }
+
+            foreach (Int32 offset in this.PointerOffsets)
+            {
+                bool successReading = false;
+
+                if (processSession?.OpenedProcess?.Is32Bit() ?? false)
+                {
+                    pointer = MemoryReader.Instance.Read<Int32>(processSession?.OpenedProcess, pointer, out successReading).ToUInt64();
+                }
+                else
+                {
+                    pointer = MemoryReader.Instance.Read<UInt64>(processSession?.OpenedProcess, pointer, out successReading);
+                }
+
+                if (pointer == 0 || !successReading)
+                {
+                    return 0;
+                }
+
+                pointer = pointer.Add(offset);
+            }
+
+            // TODO: Unresolve?
+            return pointer;
         }
     }
     //// End class

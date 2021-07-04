@@ -169,7 +169,7 @@
         {
             Icon icon = null;
 
-            if (WindowsProcessInfo.NoIconProcessCache.Contains(process.Id))
+            if (process == DetachProcess.Instance || WindowsProcessInfo.NoIconProcessCache.Contains(process.Id))
             {
                 return WindowsProcessInfo.NoIcon;
             }

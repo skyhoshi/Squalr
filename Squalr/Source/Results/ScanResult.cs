@@ -23,24 +23,22 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanResult" /> class.
         /// </summary>
-        /// <param name="pointerItem">The inner pointer item.</param>
-        /// <param name="dataType">The data type of the value at this address.</param>
-        /// <param name="value">The initial value of this result.</param>
+        /// <param name="projectItem">The inner pointer item.</param>
         /// <param name="previousValue">The previous scan value.</param>
         /// <param name="label">The label of this result.</param>
-        public ScanResult(PointerItemView pointerItem, Object previousValue, String label)
+        public ScanResult(ProjectItemView projectItem, Object previousValue, String label)
         {
-            this.PointerItem = pointerItem;
+            this.ProjectItemView = projectItem;
             this.PreviousValue = previousValue;
             this.Label = label;
             
-            this.PointerItem.PropertyChanged += PointerItemChanged;
+            this.ProjectItemView.PropertyChanged += PointerItemChanged;
         }
 
         /// <summary>
         /// Gets the pointer item this scan result contains.
         /// </summary>
-        public PointerItemView PointerItem { get; private set; }
+        public ProjectItemView ProjectItemView { get; private set; }
 
         /// <summary>
         /// Gets or sets the display value of the scan result.
@@ -50,12 +48,12 @@
         {
             get
             {
-                return this.PointerItem.DisplayValue;
+                return this.ProjectItemView.DisplayValue;
             }
 
             set
             {
-                this.PointerItem.DisplayValue = value;
+                this.ProjectItemView.DisplayValue = value;
             }
         }
 
@@ -67,7 +65,15 @@
         {
             get
             {
-                return this.PointerItem.AddressSpecifier;
+                switch (this.ProjectItemView.ProjectItem)
+                {
+                    case PointerItem type:
+                        return type.AddressSpecifier;
+                    case DolphinAddressItem type:
+                        return type.AddressSpecifier;
+                    default:
+                        return String.Empty;
+                }
             }
         }
 
