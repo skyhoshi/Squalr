@@ -93,6 +93,9 @@
                 case ScannableType type when type == ScannableType.DoubleBE:
                     bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits((Double)value)));
                     break;
+                case ByteArrayType type:
+                    bytes = (Byte[])value;
+                    break;
                 default:
                     throw new ArgumentException("Invalid type provided");
             }

@@ -91,6 +91,9 @@
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     value = BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(this.Read<Int64>(process, address, out success)));
                     break;
+                case ByteArrayType type:
+                    value = this.ReadBytes(process, address, type.Length, out success);
+                    break;
                 default:
                     value = "?";
                     success = false;
