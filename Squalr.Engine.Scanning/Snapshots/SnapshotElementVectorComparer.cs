@@ -6,6 +6,7 @@
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
     using System.Buffers.Binary;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
@@ -15,7 +16,6 @@
     /// </summary>
     internal unsafe class SnapshotElementVectorComparer
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotElementVectorComparer" /> class.
         /// </summary>
@@ -26,14 +26,22 @@
             this.Region = region;
             this.VectorSize = Vectors.VectorSize;
             this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
+            this.ByteArrayReadIndex = 0;
             this.VectorReadIndex = 0;
             this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size;
             this.ResultRegions = new List<SnapshotRegion>();
 
+            this.Compare = this.DataType is ByteArrayType ? this.ArrayOfBytesCompare : this.ElementCompare;
+
             this.SetConstraintFunctions();
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
+
+        /// <summary>
+        /// Gets or sets the index for the beginning of the byte array scan.
+        /// </summary>
+        public Int32 ByteArrayReadIndex { get; private set; }
 
         /// <summary>
         /// Gets or sets the index of this element.
@@ -186,6 +194,11 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
+        public Func<IList<SnapshotRegion>> Compare { get; private set; }
+
+        /// <summary>
+        /// Gets an action based on the element iterator scan constraint.
+        /// </summary>
         private Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
@@ -300,9 +313,9 @@
         /// <summary>
         /// Performs all vector comparisons, returning the discovered regions.
         /// </summary>
-        public IList<SnapshotRegion> Compare()
+        public IList<SnapshotRegion> ElementCompare()
         {
-            while (this.VectorReadIndex < this.Region.RegionSize)
+            for (; this.VectorReadIndex < this.Region.RegionSize; this.VectorReadIndex += this.VectorSize)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 
@@ -311,7 +324,9 @@
                 {
                     this.RunLength += this.VectorSize;
                     this.Encoding = true;
+                    continue;
                 }
+
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
@@ -321,32 +336,51 @@
                         this.RunLength = 0;
                         this.Encoding = false;
                     }
-                }
-                // Otherwise the vector contains a mixture of true and false
-                else
-                {
-                    for (Int32 index = 0; index < this.VectorSize; index += this.DataTypeSize)
-                    {
-                        // Vector result was false
-                        if (scanResults[unchecked((Int32)index)] == 0)
-                        {
-                            if (this.Encoding)
-                            {
-                                this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.VectorReadBase + this.VectorReadIndex + index - this.RunLength, this.RunLength));
-                                this.RunLength = 0;
-                                this.Encoding = false;
-                            }
-                        }
-                        // Vector result was true
-                        else
-                        {
-                            this.RunLength += this.DataTypeSize;
-                            this.Encoding = true;
-                        }
-                    }
+                    continue;
                 }
 
-                this.VectorReadIndex += this.VectorSize;
+                // Otherwise the vector contains a mixture of true and false
+                for (Int32 index = 0; index < this.VectorSize; index += this.DataTypeSize)
+                {
+                    // Vector result was false
+                    if (scanResults[unchecked(index)] == 0)
+                    {
+                        if (this.Encoding)
+                        {
+                            this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.VectorReadBase + this.VectorReadIndex + index - this.RunLength, this.RunLength));
+                            this.RunLength = 0;
+                            this.Encoding = false;
+                        }
+                    }
+                    // Vector result was true
+                    else
+                    {
+                        this.RunLength += this.DataTypeSize;
+                        this.Encoding = true;
+                    }
+                }
+            }
+
+            return this.GatherCollectedRegions();
+        }
+
+        /// <summary>
+        /// Performs all vector comparisons, returning the discovered regions.
+        /// </summary>
+        public IList<SnapshotRegion> ArrayOfBytesCompare()
+        {
+            Int32 ByteArraySize = (this.DataType as ByteArrayType)?.Length ?? 0;
+
+            if (ByteArraySize <= 0)
+            {
+                return new List<SnapshotRegion>();
+            }
+
+            while (this.ByteArrayReadIndex < this.Region.RegionSize - ByteArraySize)
+            {
+                Vector<Byte> scanResults = this.VectorCompare();
+
+                ByteArrayReadIndex++;
             }
 
             return this.GatherCollectedRegions();
@@ -365,6 +399,7 @@
                 this.Encoding = false;
             }
 
+            /*
             // Remove vector misaligned leading regions
             SnapshotRegion firstRegion = this.ResultRegions.FirstOrDefault();
             Int32 adjustedIndex = 0;
@@ -421,7 +456,7 @@
                 }
 
                 lastRegion = this.ResultRegions.Reverse().Skip(adjustedIndex).FirstOrDefault();
-            }
+            }*/
 
             return this.ResultRegions;
         }
@@ -684,6 +719,20 @@
                     this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
                     this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
                     this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
+                    break;
+                case ByteArrayType type:
+                    this.Changed = () => new Vector<Byte>(Convert.ToByte(!Vector.EqualsAll(this.CurrentValues, this.PreviousValues)));
+                    this.Unchanged = () => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValues, this.PreviousValues)));
+                    this.Increased = () => new Vector<Byte>(Convert.ToByte(Vector.GreaterThanAll(this.CurrentValues, this.PreviousValues)));
+                    this.Decreased = () => new Vector<Byte>(Convert.ToByte(Vector.LessThanAll(this.CurrentValues, this.PreviousValues)));
+                    this.EqualToValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.NotEqualToValue = (value) => new Vector<Byte>(Convert.ToByte(!Vector.EqualsAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.GreaterThanValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.GreaterThanAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.GreaterThanOrEqualToValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.GreaterThanOrEqualAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.LessThanValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.LessThanAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.LessThanOrEqualToValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.LessThanOrEqualAll(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)))));
+                    this.IncreasedByValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValues, Vector.Add(this.PreviousValues, new Vector<Byte>(unchecked((Byte)value))))));
+                    this.DecreasedByValue = (value) => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValues, Vector.Subtract(this.PreviousValues, new Vector<Byte>(unchecked((Byte)value))))));
                     break;
                 default:
                     throw new ArgumentException();

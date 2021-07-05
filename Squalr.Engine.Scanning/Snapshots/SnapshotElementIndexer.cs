@@ -5,6 +5,7 @@
     using System;
     using System.Buffers.Binary;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Defines a reference to an element within a snapshot region.
@@ -96,6 +97,10 @@
                     return *(Single*)pointerBase;
                 case ScannableType type when type == ScannableType.Double:
                     return *(Double*)pointerBase;
+                case ByteArrayType type:
+                    Byte[] byteArray = new Byte[type.Length];
+                    Marshal.Copy((IntPtr)pointerBase, byteArray, 0, type.Length);
+                    return byteArray;
                 case ScannableType type when type == ScannableType.Int16BE:
                     return BinaryPrimitives.ReverseEndianness(*(Int16*)pointerBase);
                 case ScannableType type when type == ScannableType.Int32BE:
