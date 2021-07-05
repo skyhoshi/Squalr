@@ -22,11 +22,6 @@
     internal unsafe class WindowsMemoryQuery : IMemoryQueryer
     {
         /// <summary>
-        /// The chunk size for memory regions. Prevents large allocations.
-        /// </summary>
-        private const Int32 ChunkSize = 2000000000;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="WindowsMemoryQuery"/> class.
         /// </summary>
         public WindowsMemoryQuery()
@@ -128,29 +123,7 @@
 
             foreach (MemoryBasicInformation64 next in memoryInfo)
             {
-                if (next.RegionSize < ChunkSize)
-                {
-                    regions.Add(new NormalizedRegion(next.BaseAddress.ToUInt64(), next.RegionSize.ToInt32()));
-                }
-                else
-                {
-                    // This region requires chunking
-                    Int64 remaining = next.RegionSize;
-                    UInt64 currentBaseAddress = next.BaseAddress.ToUInt64();
-
-                    while (remaining >= ChunkSize)
-                    {
-                        regions.Add(new NormalizedRegion(currentBaseAddress, ChunkSize));
-
-                        remaining -= ChunkSize;
-                        currentBaseAddress = currentBaseAddress.Add(ChunkSize, wrapAround: false);
-                    }
-
-                    if (remaining > 0)
-                    {
-                        regions.Add(new NormalizedRegion(currentBaseAddress, remaining.ToInt32()));
-                    }
-                }
+                regions.Add(new NormalizedRegion(next.BaseAddress.ToUInt64(), next.RegionSize.ToInt32()));
             }
 
             return regions;

@@ -49,7 +49,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentBag<IList<SnapshotRegion>> regions = new ConcurrentBag<IList<SnapshotRegion>>();
+                            ConcurrentScanBag regions = new ConcurrentScanBag();
 
                             ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
                             options.CancellationToken = cancellationToken;
@@ -86,11 +86,10 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(ManualScanner.Name, regions.SelectMany(region => region));
+                            result = new Snapshot(ManualScanner.Name, regions);
                             stopwatch.Stop();
-                            result.LoadMetaData(constraints.ElementType.Size);
-
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
+                            result.LoadMetaData(constraints.ElementType.Size);
                             Logger.Log(LogLevel.Info, "Results: " + result.ElementCount + " (" + Conversions.ValueToMetricSize(result.ByteCount) + ")");
                         }
                         catch (OperationCanceledException ex)

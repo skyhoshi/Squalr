@@ -21,7 +21,6 @@
         /// <param name="regionSize">The size of this memory region.</param>
         public ReadGroup(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
         {
-            this.SnapshotRegions = new List<SnapshotRegion>() { new SnapshotRegion(this, 0, Math.Max(Vectors.VectorSize, regionSize)) };
         }
 
         /// <summary>
@@ -32,7 +31,6 @@
         public ReadGroup(UInt64 baseAddress, Byte[] initialBytes) : base(baseAddress, initialBytes.Length)
         {
             this.CurrentValues = initialBytes;
-            this.SnapshotRegions = new List<SnapshotRegion>() { new SnapshotRegion(this, 0, initialBytes.Length) };
         }
 
         /// <summary>
@@ -55,10 +53,24 @@
         /// </summary>
         public ScannableType LabelDataType { get; set; }
 
-        /// <summary>
-        /// Gets or sets the collection of snapshot regions within this read group.
-        /// </summary>
-        public IEnumerable<SnapshotRegion> SnapshotRegions { get; set; }
+        public IEnumerable<SnapshotRegion> Shard(Int32 shardSize)
+        {
+            IList<SnapshotRegion> regions = new List<SnapshotRegion>();
+
+            shardSize = Math.Min((shardSize / Vectors.VectorSize) * Vectors.VectorSize, this.RegionSize);
+
+            Int32 remaining = this.RegionSize;
+            Int32 offset = 0;
+
+            while (remaining > 0)
+            {
+                regions.Add(new SnapshotRegion(this, offset, Math.Min(shardSize, remaining)));
+                offset += shardSize;
+                remaining -= shardSize;
+            }
+
+            return regions;
+        }
 
         /// <summary>
         /// Reads all memory for this memory region.

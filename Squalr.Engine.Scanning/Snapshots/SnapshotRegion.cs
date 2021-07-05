@@ -17,6 +17,16 @@
         /// <param name="readGroup">The read group of this snapshot region.</param>
         /// <param name="readGroupOffset">The base address of this snapshot region.</param>
         /// <param name="regionSize">The size of this snapshot region.</param>
+        public SnapshotRegion(ReadGroup readGroup) : this(readGroup, 0, readGroup?.RegionSize ?? 0)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
+        /// </summary>
+        /// <param name="readGroup">The read group of this snapshot region.</param>
+        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
+        /// <param name="regionSize">The size of this snapshot region.</param>
         public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 regionSize)
         {
             this.ReadGroup = readGroup;
