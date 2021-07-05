@@ -63,7 +63,7 @@
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                 case ScannableType type when type == ScannableType.Double:
                     return Images.OrangeBlocks8;
-                case ScannableType type when type == ScannableType.ByteArray:
+                case ByteArrayType _:
                     return Images.BlueBlocksArray;
                 case ScannableType type when type == ScannableType.String:
                     return Images.LetterS;

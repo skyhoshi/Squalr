@@ -164,7 +164,7 @@
                 {
                     return true;
                 }
-                else if (SyntaxChecker.CanParseValue(this.DataType, this.Text))
+                else if (!this.IsHex && SyntaxChecker.CanParseValue(this.DataType, this.Text))
                 {
                     return true;
                 }

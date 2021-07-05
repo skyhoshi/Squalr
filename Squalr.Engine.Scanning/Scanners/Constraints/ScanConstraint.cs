@@ -140,28 +140,28 @@
             switch (elementType)
             {
                 case ScannableType type when type == ScannableType.Int16BE:
-                    targetType = typeof(Int16);
+                    targetType = ScannableType.Int16.Type;
                     break;
                 case ScannableType type when type == ScannableType.Int32BE:
-                    targetType = typeof(Int32);
+                    targetType = ScannableType.Int32.Type;
                     break;
                 case ScannableType type when type == ScannableType.Int64BE:
-                    targetType = typeof(Int64);
+                    targetType = ScannableType.Int64.Type;
                     break;
                 case ScannableType type when type == ScannableType.UInt16BE:
-                    targetType = typeof(UInt16);
+                    targetType = ScannableType.UInt16.Type;
                     break;
                 case ScannableType type when type == ScannableType.UInt32BE:
-                    targetType = typeof(UInt32);
+                    targetType = ScannableType.UInt32.Type;
                     break;
                 case ScannableType type when type == ScannableType.UInt64BE:
-                    targetType = typeof(UInt64);
+                    targetType = ScannableType.UInt64.Type;
                     break;
                 case ScannableType type when type == ScannableType.SingleBE:
-                    targetType = typeof(Single);
+                    targetType = ScannableType.Single.Type;
                     break;
                 case ScannableType type when type == ScannableType.DoubleBE:
-                    targetType = typeof(Double);
+                    targetType = ScannableType.Double.Type;
                     break;
             }
 

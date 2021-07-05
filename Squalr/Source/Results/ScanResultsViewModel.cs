@@ -39,7 +39,7 @@
         /// <summary>
         /// The active data type for the scan results.
         /// </summary>
-        private Type activeType;
+        private ScannableType activeType;
 
         /// <summary>
         /// The current page of scan results.
