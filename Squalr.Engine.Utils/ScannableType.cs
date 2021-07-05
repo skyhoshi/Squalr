@@ -22,6 +22,18 @@ namespace Squalr.Engine.Common
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
+    [DataContract]
+    public class ByteArrayType : ScannableType
+    {
+        public ByteArrayType(Int32 length = 1) : base(typeof(Byte[]))
+        {
+            this.Length = length;
+        }
+
+        [DataMember]
+        public Int32 Length { get; set; }
+    };
+
     /// <summary>
     /// A class representing a serializable data type. This is a wrapper over the Type class.
     /// </summary>
@@ -52,7 +64,7 @@ namespace Squalr.Engine.Common
         /// <summary>
         /// DataType for an array of bytes.
         /// </summary>
-        public static readonly ScannableType ByteArray = new ScannableType(typeof(Byte[]));
+        public static readonly ByteArrayType NullByteArray = new ByteArrayType();
 
         /// <summary>
         /// DataType for a boolean.
@@ -193,7 +205,7 @@ namespace Squalr.Engine.Common
             ScannableType.SingleBE,
             ScannableType.Double,
             ScannableType.DoubleBE,
-            ScannableType.ByteArray,
+            ScannableType.NullByteArray,
             ScannableType.Char,
             ScannableType.String,
         };
@@ -247,6 +259,11 @@ namespace Squalr.Engine.Common
         /// <param name="type">The Type to convert.</param>
         public static implicit operator ScannableType(Type type)
         {
+            if (type == typeof(Byte[]))
+            {
+                return ScannableType.NullByteArray;
+            }
+
             return new ScannableType(type);
         }
 

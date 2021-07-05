@@ -1,9 +1,10 @@
 ﻿namespace Squalr.View
 {
-    using Squalr.Engine.Common;
     using Squalr.Source.Controls;
+    using Squalr.Source.Results;
     using Squalr.Source.Scanning;
     using System;
+    using System.ComponentModel;
     using System.Windows;
 
     /// <summary>
@@ -20,20 +21,21 @@
 
             this.ValueHexDecBoxViewModel = this.ValueHexDecBox.DataContext as HexDecBoxViewModel;
             this.ValueHexDecBoxViewModel.PropertyChanged += HexDecBoxViewModelPropertyChanged;
+
+            ScanResultsViewModel.GetInstance().PropertyChanged += ScanResultsPropertyChanged;
         }
 
         private HexDecBoxViewModel ValueHexDecBoxViewModel { get; set; }
 
-        /// <summary>
-        /// Updates the active type.
-        /// </summary>
-        /// <param name="activeType">The new active type.</param>
-        public void Update(ScannableType activeType)
+        private void ScanResultsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-            this.ValueHexDecBoxViewModel.DataType = activeType;
+            if (e.PropertyName == nameof(ScanResultsViewModel.ActiveType))
+            {
+                ValueHexDecBoxViewModel.DataType = ScanResultsViewModel.GetInstance().ActiveType;
+            }
         }
 
-        private void HexDecBoxViewModelPropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void HexDecBoxViewModelPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ValueHexDecBoxViewModel.Text))
             {

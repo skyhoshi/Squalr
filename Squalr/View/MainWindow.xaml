@@ -786,7 +786,7 @@
                                         </shell:MenuItem>
                                         <shell:MenuItem
                                             Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
-                                            CommandParameter="{x:Static types:ScannableType.ByteArray}"
+                                            CommandParameter="{x:Static types:ScannableType.NullByteArray}"
                                             Style="{Binding .}"
                                             Grid.Row="10"
                                             Grid.Column="0"
@@ -796,7 +796,7 @@
                                                     <shell:Image
                                                         Width="16"
                                                         Height="16"
-                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.ByteArray}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.NullByteArray}, Converter={StaticResource DataTypeToIconConverter}}" />
                                                     <shell:TextBlock
                                                         Padding="4,0,0,0"
                                                         Background="Transparent"

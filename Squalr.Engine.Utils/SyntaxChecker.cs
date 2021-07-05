@@ -1,7 +1,10 @@
 ﻿namespace Squalr.Engine.Common
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
 
     /// <summary>
     /// A static class used to check syntax for various values and types.
@@ -86,6 +89,8 @@
                 case ScannableType type when type == ScannableType.Double:
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return SyntaxChecker.IsDouble(value);
+                case ByteArrayType _:
+                    return SyntaxChecker.IsArrayOfBytes(value);
                 default:
                     return false;
             }
@@ -133,33 +138,35 @@
             switch (dataType)
             {
                 case ScannableType type when type == ScannableType.Byte:
-                    return IsByte(value, true);
+                    return SyntaxChecker.IsByte(value, true);
                 case ScannableType type when type == ScannableType.SByte:
-                    return IsSByte(value, true);
+                    return SyntaxChecker.IsSByte(value, true);
                 case ScannableType type when type == ScannableType.Int16:
                 case ScannableType typeBE when typeBE == ScannableType.Int16BE:
-                    return IsInt16(value, true);
+                    return SyntaxChecker.IsInt16(value, true);
                 case ScannableType type when type == ScannableType.Int32:
                 case ScannableType typeBE when typeBE == ScannableType.Int32BE:
-                    return IsInt32(value, true);
+                    return SyntaxChecker.IsInt32(value, true);
                 case ScannableType type when type == ScannableType.Int64:
                 case ScannableType typeBE when typeBE == ScannableType.Int64BE:
-                    return IsInt64(value, true);
+                    return SyntaxChecker.IsInt64(value, true);
                 case ScannableType type when type == ScannableType.UInt16:
                 case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
-                    return IsUInt16(value, true);
+                    return SyntaxChecker.IsUInt16(value, true);
                 case ScannableType type when type == ScannableType.UInt32:
                 case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
-                    return IsUInt32(value, true);
+                    return SyntaxChecker.IsUInt32(value, true);
                 case ScannableType type when type == ScannableType.UInt64:
                 case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
-                    return IsUInt64(value, true);
+                    return SyntaxChecker.IsUInt64(value, true);
                 case ScannableType type when type == ScannableType.Single:
                 case ScannableType typeBE when typeBE == ScannableType.SingleBE:
-                    return IsSingle(value, true);
+                    return SyntaxChecker.IsSingle(value, true);
                 case ScannableType type when type == ScannableType.Double:
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
-                    return IsDouble(value, true);
+                    return SyntaxChecker.IsDouble(value, true);
+                case ByteArrayType _:
+                    return SyntaxChecker.IsArrayOfBytes(value, true);
                 default:
                     return false;
             }
@@ -343,6 +350,27 @@
             {
                 return Double.TryParse(value, out _);
             }
+        }
+
+        /// <summary>
+        /// Determines if the given string can be parsed as an array of bytes.
+        /// </summary>
+        /// <param name="value">The value as a string.</param>
+        /// <param name="isHex">Whether or not the value is encoded in hex.</param>
+        /// <returns>A boolean indicating if the value could be parsed.</returns>
+        private static Boolean IsArrayOfBytes(String value, Boolean isHex = false)
+        {
+            IEnumerable<String> byteStrings = Conversions.SplitByteArrayString(value, isHex);
+
+            foreach (String next in byteStrings)
+            {
+                if (!SyntaxChecker.IsByte(next, isHex))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
     //// End class

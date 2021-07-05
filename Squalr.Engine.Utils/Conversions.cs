@@ -1,10 +1,11 @@
 ﻿namespace Squalr.Engine.Common
 {
-    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Buffers.Binary;
+    using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -52,7 +53,8 @@
                 case ScannableType type when type == ScannableType.Double:
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return Double.Parse(value);
-                // TODO: AoB
+                case ByteArrayType type:
+                    return Conversions.ParseByteArrayString(value, false);
                 case ScannableType type when type == ScannableType.String:
                     return value;
                 case ScannableType type when type == ScannableType.IntPtr:
@@ -105,21 +107,31 @@
                 case ScannableType type when type == ScannableType.SByte:
                     return ((SByte)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
                     return (signHex && (Int16)realValue < 0) ? ("-" + (-(Int16)realValue).ToString("X")) : ((Int16)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
                     return (signHex && (Int32)realValue < 0) ? ("-" + (-(Int32)realValue).ToString("X")) : ((Int32)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
                     return (signHex && (Int64)realValue < 0) ? ("-" + (-(Int64)realValue).ToString("X")) : ((Int64)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
                     return ((UInt16)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
                     return ((UInt32)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
                     return ((UInt64)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
                     return BitConverter.ToUInt32(BitConverter.GetBytes((Single)realValue), 0).ToString("X");
                 case ScannableType type when type == ScannableType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return BitConverter.ToUInt64(BitConverter.GetBytes((Double)realValue), 0).ToString("X");
+                case ScannableType type when type == ScannableType.String:
+                    return String.Join(' ', Conversions.ParseByteArrayString(value).Select(str => Conversions.ParsePrimitiveStringAsHexString(ScannableType.Byte, str.ToString(), signHex)));
                 case ScannableType type when type == ScannableType.IntPtr:
                     return ((IntPtr)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.UIntPtr:
@@ -154,7 +166,6 @@
             }
 
             UInt64 realValue = Conversions.AddressToValue(value);
-            String result = String.Empty;
 
             // Negate the parsed value if the hex string is signed
             if (signedHex)
@@ -171,21 +182,31 @@
                 case ScannableType type when type == ScannableType.SByte:
                     return unchecked((SByte)realValue).ToString();
                 case ScannableType type when type == ScannableType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
                     return unchecked((Int16)realValue).ToString();
                 case ScannableType type when type == ScannableType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
                     return unchecked((Int32)realValue).ToString();
                 case ScannableType type when type == ScannableType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
                     return unchecked((Int64)realValue).ToString();
                 case ScannableType type when type == ScannableType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
                     return realValue.ToString();
                 case ScannableType type when type == ScannableType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
                     return realValue.ToString();
                 case ScannableType type when type == ScannableType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
                     return realValue.ToString();
                 case ScannableType type when type == ScannableType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
                     return BitConverter.ToSingle(BitConverter.GetBytes(unchecked((UInt32)realValue)), 0).ToString();
                 case ScannableType type when type == ScannableType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return BitConverter.ToDouble(BitConverter.GetBytes(realValue), 0).ToString();
+                case ByteArrayType _:
+                    return String.Join(' ', Conversions.ParseByteArrayString(value).Select(x => x.ToString()));
                 case ScannableType type when type == ScannableType.IntPtr:
                     return ((IntPtr)realValue).ToString();
                 case ScannableType type when type == ScannableType.UIntPtr:
@@ -308,6 +329,8 @@
                 case ScannableType type when type == ScannableType.Double:
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return sizeof(Double);
+                case ByteArrayType type:
+                    return type.Length;
                 default:
                     return Marshal.SizeOf(dataType);
             }
@@ -420,13 +443,33 @@
                     return "Single (BE)";
                 case ScannableType type when type == ScannableType.DoubleBE:
                     return "Double (BE)";
-                case ScannableType type when type == ScannableType.ByteArray:
+                case ByteArrayType _:
                     return "Byte[ ]";
                 case ScannableType type when type == ScannableType.String:
                     return "String";
                 default:
                     return "Unknown Type";
             }
+        }
+
+        public static Byte[] ParseByteArrayString(String value, bool isHex = true)
+        {
+            IEnumerable<String> byteStrings = SplitByteArrayString(value, isHex);
+
+            return byteStrings.Select(str => Byte.Parse(str, isHex ? NumberStyles.HexNumber : NumberStyles.Integer)).ToArray();
+        }
+
+        public static IEnumerable<String> SplitByteArrayString(String value, bool isHex = true)
+        {
+            // First split on whitespace, which has priority for separating bytes
+            String[] values = value?.Split(' ') ?? new String[0];
+
+            // Next group bytes into chunks of two (or three, for dec), from left to right
+            Int32 index = 0;
+            return values.Select(str => str
+                .ToLookup(character => index++ / (isHex ? 2 : 3))
+                .Select(lookup => new String(lookup.ToArray())))
+                    .SelectMany(str => str);
         }
 
         public static String ValueToMetricSize(UInt64 value)
