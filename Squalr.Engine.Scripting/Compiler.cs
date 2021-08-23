@@ -21,21 +21,21 @@
         /// <param name="scriptPath"></param>
         /// <param name="isRelease"></param>
         /// <returns></returns>
-        public static Assembly Compile(this ScriptItem script, Boolean isRelease)
+        public static Assembly Compile(String scriptPath, String scriptContents, Boolean isRelease)
         {
             try
             {
-                String buildPath = Path.Combine(Path.GetDirectoryName(script.FullPath), isRelease ? "Release" : "Debug");
+                String buildPath = Path.Combine(Path.GetDirectoryName(scriptPath), isRelease ? "Release" : "Debug");
 
                 if (!Directory.Exists(buildPath))
                 {
                     Directory.CreateDirectory(buildPath);
                 }
 
-                String fileName = script.Name; // Path.GetFileNameWithoutExtension(script.DirectoryPath);
+                String fileName = Path.GetFileNameWithoutExtension(scriptPath);
                 String dllPath = Path.Combine(buildPath, fileName + ".dll");
                 String pdbPath = Path.Combine(buildPath, fileName + ".pdb");
-                String sourceCode = script.Script;
+                String sourceCode = scriptContents;
 
                 CSharpParseOptions cSharpParseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, languageVersion: LanguageVersion.Latest);
                 SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, cSharpParseOptions);
@@ -43,7 +43,7 @@
                 IReadOnlyCollection<MetadataReference> references = new[] {
                         MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location),
                         MetadataReference.CreateFromFile(typeof(ValueTuple<>).GetTypeInfo().Assembly.Location),
-                        MetadataReference.CreateFromFile(typeof(ModScript).GetTypeInfo().Assembly.Location)
+                        MetadataReference.CreateFromFile(typeof(Script).GetTypeInfo().Assembly.Location)
                 };
 
                 CSharpCompilationOptions cSharpCompilationOptions = new CSharpCompilationOptions(

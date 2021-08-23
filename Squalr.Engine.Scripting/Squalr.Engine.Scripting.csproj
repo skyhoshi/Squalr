@@ -18,20 +18,55 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CS-Script.Core" Version="1.1.1" />
+    <PackageReference Include="CS-Script.Core" Version="2.0.0" />
+    <PackageReference Include="System.CodeDom" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Squalr.Engine.Architecture\Squalr.Engine.Architecture.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Debugger\Squalr.Engine.Debuggers.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Input\Squalr.Engine.Input.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Memory\Squalr.Engine.Memory.csproj" />
-    <ProjectReference Include="..\Squalr.Engine.Projects\Squalr.Engine.Projects.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Processes\Squalr.Engine.Processes.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Scanning\Squalr.Engine.Scanning.csproj" />
-    <ProjectReference Include="..\Squalr.Engine\Squalr.Engine.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Utils\Squalr.Engine.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Templates\CodeInjectionTemplate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CodeInjectionTemplate.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\GraphicsInjectionTemplate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>GraphicsInjectionTemplate.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Templates\ScriptTemplate.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ScriptTemplate.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Templates\CodeInjectionTemplate.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>CodeInjectionTemplate.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\ScriptTemplate.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ScriptTemplate.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\GraphicsInjectionTemplate.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>GraphicsInjectionTemplate.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

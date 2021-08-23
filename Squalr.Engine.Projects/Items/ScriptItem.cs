@@ -1,7 +1,16 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.Emit;
+    using Microsoft.CodeAnalysis.Scripting;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scripting;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.IO;
+    using System.Reflection;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -80,6 +89,17 @@
         public new void OnDeserialized(StreamingContext streamingContext)
         {
             base.OnDeserialized(streamingContext);
+        }
+
+        protected override void OnActivationChanged()
+        {
+            if (this.IsActivated)
+            {
+                Assembly assembly = Compiler.Compile(this.FullPath, this.Script, false);
+                Scripting.Script script = Scripting.Script.FromAssembly(assembly);
+
+                script.IsActivated = true;
+            }
         }
     }
     //// End class

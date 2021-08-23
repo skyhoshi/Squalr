@@ -34,8 +34,6 @@
 
             ApplicationUpdater.UpdateApp();
 
-            Squalr.Engine.Projects.Compiler.Compile(true);
-
             if (Vectors.HasVectorSupport)
             {
                 Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count + ")");

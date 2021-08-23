@@ -76,14 +76,7 @@
             {
                 this.ScriptItem.Script = value;
                 this.RaisePropertyChanged(nameof(this.Script));
-                this.CompileTest();
             }
-        }
-
-        private void CompileTest()
-        {
-            Assembly assembly = this.ScriptItem.Compile(false);
-            ModScript modScript = ModScript.FromAssembly(assembly);
         }
     }
     //// End class

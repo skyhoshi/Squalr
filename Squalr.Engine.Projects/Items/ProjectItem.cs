@@ -2,6 +2,7 @@
 {
     using SharpDX.DirectInput;
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Input.HotKeys;
     using System;
@@ -518,7 +519,7 @@
                     IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(1, neighboringNumberedFileCount).Except(neighboringNumberedFiles);
 
                     // Find the first gap in the numbers. If no gap, just take the next number in the sequence
-                    Int32 numberToAppend = missingNumbersInSequence.IsEmpty() ? neighboringNumberedFileCount + 1 : missingNumbersInSequence.First();
+                    Int32 numberToAppend = missingNumbersInSequence.IsNullOrEmpty() ? neighboringNumberedFileCount + 1 : missingNumbersInSequence.First();
                     String suffix = numberToAppend == 0 ? String.Empty : " " + numberToAppend.ToString();
 
                     newName = newName + suffix;
