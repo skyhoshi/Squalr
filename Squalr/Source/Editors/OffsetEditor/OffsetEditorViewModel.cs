@@ -1,7 +1,8 @@
-﻿namespace Squalr.Source.Editors.OffsetEditor
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Editors.OffsetEditor
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Source.Mvvm;
     using System;
@@ -13,7 +14,7 @@
     /// <summary>
     /// View model for the Offset Editor.
     /// </summary>
-    public class OffsetEditorViewModel : ViewModelBase
+    public class OffsetEditorViewModel : ObservableObject
     {
         /// <summary>
         /// The collection of offsets.
@@ -34,7 +35,7 @@
         {
             this.AddOffsetCommand = new RelayCommand(() => Task.Run(() => this.AddOffset()), () => true);
             this.RemoveOffsetCommand = new RelayCommand(() => Task.Run(() => this.RemoveSelectedOffset()), () => true);
-            this.UpdateActiveValueCommand = new RelayCommand<Int32>((offset) => Task.Run(() => this.UpdateActiveValue(offset)), (offset) => true);
+            this.UpdateActiveValueCommand = new RelayCommand<int>((offset) => Task.Run(() => this.UpdateActiveValue(offset)), (offset) => true);
             this.AccessLock = new Object();
             this.Offsets = new FullyObservableCollection<PrimitiveBinding<Int32>>();
         }
@@ -77,7 +78,7 @@
                 lock (this.AccessLock)
                 {
                     this.offsets = value == null ? new List<PrimitiveBinding<Int32>>() : new List<PrimitiveBinding<Int32>>(value);
-                    this.RaisePropertyChanged(nameof(this.Offsets));
+                    this.OnPropertyChanged(nameof(this.Offsets));
                 }
             }
         }
@@ -116,7 +117,7 @@
                 this.offsets.Add(new PrimitiveBinding<Int32>(this.ActiveOffsetValue));
             }
 
-            this.RaisePropertyChanged(nameof(this.Offsets));
+            this.OnPropertyChanged(nameof(this.Offsets));
         }
 
         /// <summary>
@@ -139,7 +140,7 @@
                 }
             }
 
-            this.RaisePropertyChanged(nameof(this.Offsets));
+            this.OnPropertyChanged(nameof(this.Offsets));
         }
 
         /// <summary>

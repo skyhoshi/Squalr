@@ -1,7 +1,8 @@
-﻿namespace Squalr.Source.ProjectExplorer.Dialogs
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.ProjectExplorer.Dialogs
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.Logging;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
@@ -14,7 +15,7 @@
     using System.Windows;
     using System.Windows.Input;
 
-    public class SelectProjectDialogViewModel : ViewModelBase
+    public class SelectProjectDialogViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="SelectProjectDialogViewModel" /> class.
@@ -31,12 +32,12 @@
 
         private SelectProjectDialogViewModel() : base()
         {
-            this.UpdateSelectedProjectCommand = new RelayCommand<Object>((selectedItems) => this.SelectedProject = (selectedItems as IList)?.Cast<String>()?.FirstOrDefault());
-            this.OpenProjectCommand = new RelayCommand<String>((project) => this.OpenProject(project));
-            this.RenameProjectCommand = new RelayCommand<String>((project) => this.RenameProject(project));
+            this.UpdateSelectedProjectCommand = new RelayCommand<List<string>>((selectedItems) => this.SelectedProject = (selectedItems as IList)?.Cast<String>()?.FirstOrDefault());
+            this.OpenProjectCommand = new RelayCommand<string>((project) => this.OpenProject(project));
+            this.RenameProjectCommand = new RelayCommand<string>((project) => this.RenameProject(project));
             this.RenameSelectedProjectCommand = new RelayCommand(() => this.RenameProject(this.SelectedProject));
             this.NewProjectCommand = new RelayCommand(() => this.CreateNewProject());
-            this.DeleteProjectCommand = new RelayCommand<String>((project) => this.DeleteProject(project));
+            this.DeleteProjectCommand = new RelayCommand<string>((project) => this.DeleteProject(project));
             this.DeleteSelectedProjectCommand = new RelayCommand(() => this.DeleteProject(this.SelectedProject));
         }
 
@@ -110,8 +111,8 @@
             set
             {
                 this.searchTerm = value;
-                this.RaisePropertyChanged(nameof(this.ProjectSearchTerm));
-                this.RaisePropertyChanged(nameof(this.FilteredProjects));
+                this.OnPropertyChanged(nameof(this.ProjectSearchTerm));
+                this.OnPropertyChanged(nameof(this.FilteredProjects));
             }
         }
 
@@ -128,7 +129,7 @@
             set
             {
                 this.selectedProject = value;
-                this.RaisePropertyChanged(nameof(this.SelectedProject));
+                this.OnPropertyChanged(nameof(this.SelectedProject));
             }
         }
 
@@ -142,9 +143,9 @@
             set
             {
                 this.newProjectName = value;
-                this.RaisePropertyChanged(nameof(this.NewProjectName));
-                this.RaisePropertyChanged(nameof(this.IsProjectNameValid));
-                this.RaisePropertyChanged(nameof(this.NewProjectNameStatus));
+                this.OnPropertyChanged(nameof(this.NewProjectName));
+                this.OnPropertyChanged(nameof(this.IsProjectNameValid));
+                this.OnPropertyChanged(nameof(this.NewProjectNameStatus));
             }
         }
 
@@ -221,8 +222,8 @@
 
             if (renameProjectDialog.ShowDialog(this.SelectProjectDialog, project) == true)
             {
-                this.RaisePropertyChanged(nameof(this.Projects));
-                this.RaisePropertyChanged(nameof(this.FilteredProjects));
+                this.OnPropertyChanged(nameof(this.Projects));
+                this.OnPropertyChanged(nameof(this.FilteredProjects));
             }
         }
 
@@ -254,8 +255,8 @@
 
             if (DeleteProjectDialogViewModel.GetInstance().ShowDialog(this.SelectProjectDialog, project))
             {
-                this.RaisePropertyChanged(nameof(this.Projects));
-                this.RaisePropertyChanged(nameof(this.FilteredProjects));
+                this.OnPropertyChanged(nameof(this.Projects));
+                this.OnPropertyChanged(nameof(this.FilteredProjects));
             }
         }
     }

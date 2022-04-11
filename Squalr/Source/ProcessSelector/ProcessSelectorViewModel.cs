@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.ProcessSelector
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.ProcessSelector
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Content;
     using Squalr.Engine.Processes;
     using Squalr.Engine.Common.Extensions;
@@ -75,8 +77,8 @@
             {
                 this.processList = value;
 
-                this.RaisePropertyChanged(nameof(this.ProcessList));
-                this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+                this.OnPropertyChanged(nameof(this.ProcessList));
+                this.OnPropertyChanged(nameof(this.WindowedProcessList));
             }
         }
 
@@ -113,14 +115,14 @@
                     if (SessionManager.Session != null)
                     {
                         SessionManager.Session.OpenedProcess = null;
-                        this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+                        this.OnPropertyChanged(nameof(this.WindowedProcessList));
                     }
                 }
                 else if (value != this.SelectedProcess)
                 {
                     SessionManager.Session.OpenedProcess = value;
-                    this.RaisePropertyChanged(nameof(this.SelectedProcess));
-                    this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+                    this.OnPropertyChanged(nameof(this.SelectedProcess));
+                    this.OnPropertyChanged(nameof(this.WindowedProcessList));
                 }
             }
         }
@@ -138,7 +140,7 @@
             set
             {
                 this.detachProcess = value;
-                this.RaisePropertyChanged(nameof(this.DetachProcess));
+                this.OnPropertyChanged(nameof(this.DetachProcess));
             }
         }
 
@@ -170,7 +172,7 @@
         public void Update(Process process)
         {
             // Raise event to update process name in the view
-            this.RaisePropertyChanged(nameof(this.ProcessName));
+            this.OnPropertyChanged(nameof(this.ProcessName));
 
             this.RefreshProcessList();
         }

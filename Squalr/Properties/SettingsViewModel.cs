@@ -66,7 +66,7 @@
                 }
 
                 ProjectSettings.ProjectRoot = value;
-                this.RaisePropertyChanged(nameof(this.ProjectRoot));
+                this.OnPropertyChanged(nameof(this.ProjectRoot));
             }
         }
 
@@ -83,7 +83,7 @@
             set
             {
                 ScanSettings.RequiredWrite = value;
-                this.RaisePropertyChanged(nameof(this.RequiredProtectionWrite));
+                this.OnPropertyChanged(nameof(this.RequiredProtectionWrite));
             }
         }
 
@@ -100,7 +100,7 @@
             set
             {
                 ScanSettings.RequiredExecute = value;
-                this.RaisePropertyChanged(nameof(this.RequiredProtectionExecute));
+                this.OnPropertyChanged(nameof(this.RequiredProtectionExecute));
             }
         }
 
@@ -117,7 +117,7 @@
             set
             {
                 ScanSettings.RequiredCopyOnWrite = value;
-                this.RaisePropertyChanged(nameof(this.RequiredProtectionCopyOnWrite));
+                this.OnPropertyChanged(nameof(this.RequiredProtectionCopyOnWrite));
             }
         }
 
@@ -134,7 +134,7 @@
             set
             {
                 ScanSettings.ExcludedWrite = value;
-                this.RaisePropertyChanged(nameof(this.ExcludedProtectionWrite));
+                this.OnPropertyChanged(nameof(this.ExcludedProtectionWrite));
             }
         }
 
@@ -151,7 +151,7 @@
             set
             {
                 ScanSettings.ExcludedExecute = value;
-                this.RaisePropertyChanged(nameof(this.ExcludedProtectionExecute));
+                this.OnPropertyChanged(nameof(this.ExcludedProtectionExecute));
             }
         }
 
@@ -168,7 +168,7 @@
             set
             {
                 ScanSettings.ExcludedCopyOnWrite = value;
-                this.RaisePropertyChanged(nameof(this.ExcludedProtectionCopyOnWrite));
+                this.OnPropertyChanged(nameof(this.ExcludedProtectionCopyOnWrite));
             }
         }
 
@@ -185,7 +185,7 @@
             set
             {
                 ScanSettings.MemoryTypeNone = value;
-                this.RaisePropertyChanged(nameof(this.MemoryTypeNone));
+                this.OnPropertyChanged(nameof(this.MemoryTypeNone));
             }
         }
 
@@ -202,7 +202,7 @@
             set
             {
                 ScanSettings.MemoryTypePrivate = value;
-                this.RaisePropertyChanged(nameof(this.MemoryTypePrivate));
+                this.OnPropertyChanged(nameof(this.MemoryTypePrivate));
             }
         }
 
@@ -219,7 +219,7 @@
             set
             {
                 ScanSettings.MemoryTypeMapped = value;
-                this.RaisePropertyChanged(nameof(this.MemoryTypeMapped));
+                this.OnPropertyChanged(nameof(this.MemoryTypeMapped));
             }
         }
 
@@ -236,7 +236,7 @@
             set
             {
                 ScanSettings.MemoryTypeImage = value;
-                this.RaisePropertyChanged(nameof(this.MemoryTypeImage));
+                this.OnPropertyChanged(nameof(this.MemoryTypeImage));
             }
         }
 
@@ -253,8 +253,8 @@
             set
             {
                 ScanSettings.IsUserMode = value;
-                this.RaisePropertyChanged(nameof(this.IsUserMode));
-                this.RaisePropertyChanged(nameof(this.IsNotUserMode));
+                this.OnPropertyChanged(nameof(this.IsUserMode));
+                this.OnPropertyChanged(nameof(this.IsNotUserMode));
             }
         }
 
@@ -271,8 +271,8 @@
             set
             {
                 ScanSettings.IsUserMode = !value;
-                this.RaisePropertyChanged(nameof(this.IsUserMode));
-                this.RaisePropertyChanged(nameof(this.IsNotUserMode));
+                this.OnPropertyChanged(nameof(this.IsUserMode));
+                this.OnPropertyChanged(nameof(this.IsNotUserMode));
             }
         }
 
@@ -289,7 +289,7 @@
             set
             {
                 ScanSettings.FreezeInterval = value;
-                this.RaisePropertyChanged(nameof(this.FreezeInterval));
+                this.OnPropertyChanged(nameof(this.FreezeInterval));
             }
         }
 
@@ -308,7 +308,7 @@
             {
                 // TODO
 
-                this.RaisePropertyChanged(nameof(this.RescanInterval));
+                this.OnPropertyChanged(nameof(this.RescanInterval));
             }
         }
 
@@ -325,7 +325,7 @@
             set
             {
                 ScanSettings.ResultReadInterval = value;
-                this.RaisePropertyChanged(nameof(this.ResultReadInterval));
+                this.OnPropertyChanged(nameof(this.ResultReadInterval));
             }
         }
 
@@ -342,7 +342,7 @@
             set
             {
                 ScanSettings.TableReadInterval = value;
-                this.RaisePropertyChanged(nameof(this.TableReadInterval));
+                this.OnPropertyChanged(nameof(this.TableReadInterval));
             }
         }
 
@@ -359,7 +359,7 @@
             set
             {
                 ScanSettings.InputCorrelatorTimeOutInterval = value;
-                this.RaisePropertyChanged(nameof(this.InputCorrelatorTimeOutInterval));
+                this.OnPropertyChanged(nameof(this.InputCorrelatorTimeOutInterval));
             }
         }
 
@@ -376,7 +376,7 @@
             set
             {
                 ScanSettings.Alignment = value;
-                this.RaisePropertyChanged(nameof(this.Alignment));
+                this.OnPropertyChanged(nameof(this.Alignment));
             }
         }
 
@@ -393,7 +393,7 @@
             set
             {
                 ScanSettings.StartAddress = value;
-                this.RaisePropertyChanged(nameof(this.StartAddress));
+                this.OnPropertyChanged(nameof(this.StartAddress));
             }
         }
 
@@ -410,7 +410,7 @@
             set
             {
                 ScanSettings.EndAddress = value;
-                this.RaisePropertyChanged(nameof(this.EndAddress));
+                this.OnPropertyChanged(nameof(this.EndAddress));
             }
         }
 

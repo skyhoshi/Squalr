@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Results
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Results
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
@@ -74,8 +76,8 @@
         /// </summary>
         private PointerScanResultsViewModel() : base("Pointer Scan Results")
         {
-            this.ExtractPointerCommand = new RelayCommand<Int32>((levelIndex) => this.ExtractPointer(levelIndex), (levelIndex) => true);
-            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>(), (selectedItems) => true);
+            this.ExtractPointerCommand = new RelayCommand<int>((levelIndex) => this.ExtractPointer(levelIndex), (levelIndex) => true);
+            this.SelectScanResultsCommand = new RelayCommand<IEnumerable<PointerItem>>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>(), (selectedItems) => true);
 
             this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => Task.Run(() => this.ChangeType(type)), (type) => true);
             this.NewPointerScanCommand = new RelayCommand(() => Task.Run(() => this.DiscoveredPointers = null), () => true);
@@ -154,7 +156,7 @@
             set
             {
                 this.selectedScanResults = value;
-                this.RaisePropertyChanged(nameof(this.SelectedScanResults));
+                this.OnPropertyChanged(nameof(this.SelectedScanResults));
             }
         }
 
@@ -172,8 +174,8 @@
             {
                 this.activeType = value;
 
-                this.RaisePropertyChanged(nameof(this.ActiveType));
-                this.RaisePropertyChanged(nameof(this.ActiveTypeName));
+                this.OnPropertyChanged(nameof(this.ActiveType));
+                this.OnPropertyChanged(nameof(this.ActiveTypeName));
             }
         }
 
@@ -205,8 +207,8 @@
                 this.discoveredPointers = value;
                 this.DiscoveredLevels = this.DiscoveredPointers?.Levels;
 
-                this.RaisePropertyChanged(nameof(this.DiscoveredPointers));
-                this.RaisePropertyChanged(nameof(this.DiscoveredLevels));
+                this.OnPropertyChanged(nameof(this.DiscoveredPointers));
+                this.OnPropertyChanged(nameof(this.DiscoveredLevels));
             }
         }
 

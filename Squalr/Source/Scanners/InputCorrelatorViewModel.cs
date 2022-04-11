@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Scanning
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Input.HotKeys;
     using Squalr.Source.Docking;
@@ -83,7 +85,7 @@
             {
                 throw new NotImplementedException();
                 ////this.InputCorrelator.HotKeys.Add(newHotkey);
-                this.RaisePropertyChanged(nameof(this.Hotkeys));
+                this.OnPropertyChanged(nameof(this.Hotkeys));
             }*/
         }
 
@@ -91,12 +93,12 @@
         {
             throw new NotImplementedException();
             //// this.InputCorrelator.HotKeys.Remove(hotkey);
-            this.RaisePropertyChanged(nameof(this.Hotkeys));
+            this.OnPropertyChanged(nameof(this.Hotkeys));
         }
 
         private void ScanCountUpdated()
         {
-            this.RaisePropertyChanged(nameof(this.ScanCount));
+            this.OnPropertyChanged(nameof(this.ScanCount));
         }
 
         private void StartScan()

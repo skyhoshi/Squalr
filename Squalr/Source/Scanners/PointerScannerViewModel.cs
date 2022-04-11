@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Scanning
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common;
     using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Scanners.Pointers;
@@ -60,14 +62,14 @@
         /// </summary>
         private PointerScannerViewModel() : base("Pointer Scanner")
         {
-            this.StartPointerRetargetScanCommand = new RelayCommand<UInt64>((newValue) => this.StartPointerRetargetScan(), (newValue) => true);
+            this.StartPointerRetargetScanCommand = new RelayCommand(() => this.StartPointerRetargetScan(), () => true);
             this.StartPointerRebaseCommand = new RelayCommand(() => Task.Run(() => this.StartPointerRebase()), () => true);
             this.StartScanCommand = new RelayCommand(() => Task.Run(() => this.StartScan()), () => true);
 
-            this.SetPointerScanAddressCommand = new RelayCommand<UInt64>((newValue) => this.TargetAddress = newValue, (newValue) => true);
-            this.SetPointerRetargetScanAddressCommand = new RelayCommand<UInt64>((newValue) => this.RetargetAddress = newValue, (newValue) => true);
-            this.SetDepthCommand = new RelayCommand<Int32>((newValue) => this.PointerDepth = newValue, (newValue) => true);
-            this.SetPointerRadiusCommand = new RelayCommand<Int32>((newValue) => this.PointerRadius = newValue, (newValue) => true);
+            this.SetPointerScanAddressCommand = new RelayCommand<ulong>((newValue) => this.TargetAddress = newValue, (newValue) => true);
+            this.SetPointerRetargetScanAddressCommand = new RelayCommand<ulong>((newValue) => this.RetargetAddress = newValue, (newValue) => true);
+            this.SetDepthCommand = new RelayCommand<int>((newValue) => this.PointerDepth = newValue, (newValue) => true);
+            this.SetPointerRadiusCommand = new RelayCommand<int>((newValue) => this.PointerRadius = newValue, (newValue) => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
@@ -125,7 +127,7 @@
             set
             {
                 this.targetAddress = value;
-                this.RaisePropertyChanged(nameof(this.TargetAddress));
+                this.OnPropertyChanged(nameof(this.TargetAddress));
             }
         }
 
@@ -142,7 +144,7 @@
             set
             {
                 this.retargetAddress = value;
-                this.RaisePropertyChanged(nameof(this.RetargetAddress));
+                this.OnPropertyChanged(nameof(this.RetargetAddress));
             }
         }
 
@@ -159,7 +161,7 @@
             set
             {
                 this.rescanValue = value;
-                this.RaisePropertyChanged(nameof(this.RescanValue));
+                this.OnPropertyChanged(nameof(this.RescanValue));
             }
         }
 
@@ -176,7 +178,7 @@
             set
             {
                 this.pointerDepth = value;
-                this.RaisePropertyChanged(nameof(this.PointerDepth));
+                this.OnPropertyChanged(nameof(this.PointerDepth));
             }
         }
 
@@ -193,7 +195,7 @@
             set
             {
                 this.pointerRadius = value;
-                this.RaisePropertyChanged(nameof(this.PointerRadius));
+                this.OnPropertyChanged(nameof(this.PointerRadius));
             }
         }
 

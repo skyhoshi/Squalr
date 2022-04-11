@@ -1,7 +1,11 @@
-﻿namespace Squalr.Source.ChangeLog
+﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Common.Deferred;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Squalr.Source.ChangeLog
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
     using System;
     using System.Reflection;
     using System.Threading;
@@ -11,7 +15,7 @@
     /// <summary>
     /// View model for the Change Log.
     /// </summary>
-    public class ChangeLogViewModel : ViewModelBase
+    public class ChangeLogViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="ChangeLogViewModel"/> class.
@@ -51,7 +55,7 @@
             private set
             {
                 this.changeLog = value;
-                this.RaisePropertyChanged(nameof(this.ChangeLog));
+                this.OnPropertyChanged(nameof(this.ChangeLog));
             }
         }
 

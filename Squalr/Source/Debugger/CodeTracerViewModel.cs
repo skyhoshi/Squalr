@@ -1,6 +1,7 @@
-﻿namespace Squalr.Source.Debugger
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Debugger
 {
-    using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Debuggers;
     using Squalr.Engine.Projects.Items;
@@ -123,7 +124,7 @@
             set
             {
                 this.selectedCodeTraceResults = value;
-                this.RaisePropertyChanged(nameof(this.SelectedCodeTraceResults));
+                this.OnPropertyChanged(nameof(this.SelectedCodeTraceResults));
             }
         }
 
@@ -137,7 +138,7 @@
             set
             {
                 this.debuggerCancellationTokenSource = value;
-                this.RaisePropertyChanged(nameof(this.IsTracing));
+                this.OnPropertyChanged(nameof(this.IsTracing));
             }
         }
 

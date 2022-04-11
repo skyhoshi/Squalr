@@ -3,7 +3,7 @@
     using AvalonDock;
     using AvalonDock.Layout.Serialization;
     using AvalonDock.Themes;
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.Logging;
     using System;
     using System.Collections.Generic;
@@ -15,7 +15,7 @@
     /// <summary>
     /// Docking view model.
     /// </summary>
-    public class DockingViewModel : ViewModelBase
+    public class DockingViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="DockingViewModel" /> class
@@ -44,7 +44,7 @@
             set
             {
                 selectedTheme = value;
-                RaisePropertyChanged(nameof(SelectedTheme));
+                OnPropertyChanged(nameof(SelectedTheme));
             }
         }
 
@@ -79,7 +79,7 @@
                 this.tools?.Add(observer);
             }
 
-            this.RaisePropertyChanged(nameof(this.Tools));
+            this.OnPropertyChanged(nameof(this.Tools));
         }
 
         /// <summary>

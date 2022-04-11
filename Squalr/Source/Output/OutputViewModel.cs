@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Output
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Output
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Source.Docking;
@@ -106,7 +108,7 @@
             set
             {
                 this.innerMessageVisible = value;
-                this.RaisePropertyChanged(nameof(this.InnerMessageVisible));
+                this.OnPropertyChanged(nameof(this.InnerMessageVisible));
             }
         }
 
@@ -123,7 +125,7 @@
             set
             {
                 this.innerMessageText = value;
-                this.RaisePropertyChanged(nameof(this.InnerMessageText));
+                this.OnPropertyChanged(nameof(this.InnerMessageText));
             }
         }
 
@@ -181,7 +183,7 @@
                 this.logText.AppendLine(message);
             }
 
-            this.RaisePropertyChanged(nameof(this.LogText));
+            this.OnPropertyChanged(nameof(this.LogText));
         }
 
         /// <summary>
@@ -260,7 +262,7 @@
                 this.logText.Clear();
             }
 
-            this.RaisePropertyChanged(nameof(this.LogText));
+            this.OnPropertyChanged(nameof(this.LogText));
         }
     }
     //// End class

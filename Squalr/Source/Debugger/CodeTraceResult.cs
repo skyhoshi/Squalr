@@ -33,7 +33,7 @@
             set
             {
                 this.address = value;
-                this.RaisePropertyChanged(nameof(this.Address));
+                this.OnPropertyChanged(nameof(this.Address));
             }
         }
 
@@ -47,7 +47,7 @@
             set
             {
                 this.instruction = value;
-                this.RaisePropertyChanged(nameof(this.Instruction));
+                this.OnPropertyChanged(nameof(this.Instruction));
             }
         }
 
@@ -61,7 +61,7 @@
             set
             {
                 this.count = value;
-                this.RaisePropertyChanged(nameof(this.Count));
+                this.OnPropertyChanged(nameof(this.Count));
             }
         }
 
@@ -71,7 +71,7 @@
         /// Indicates that a given property in this project item has changed.
         /// </summary>
         /// <param name="propertyName">The name of the changed property.</param>
-        protected void RaisePropertyChanged(String propertyName)
+        protected void OnPropertyChanged(String propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

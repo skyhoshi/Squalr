@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Editors.ScriptEditor
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Editors.ScriptEditor
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Source.Docking;
     using System;
     using System.Threading;
@@ -23,8 +25,8 @@
         /// </summary>
         private ScriptEditorViewModel() : base("Script Editor")
         {
-            this.UpdateScriptCommand = new RelayCommand<String>((script) => this.UpdateScript(script), (script) => true);
-            this.SaveScriptCommand = new RelayCommand<String>((script) => this.SaveScript(script), (script) => true);
+            this.UpdateScriptCommand = new RelayCommand<string>((script) => this.UpdateScript(script), (script) => true);
+            this.SaveScriptCommand = new RelayCommand<string>((script) => this.SaveScript(script), (script) => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }

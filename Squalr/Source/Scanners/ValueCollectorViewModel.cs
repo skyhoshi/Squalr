@@ -1,7 +1,8 @@
-﻿namespace Squalr.Source.Scanning
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataTypes;
@@ -17,7 +18,7 @@
     /// <summary>
     /// Collect values for the current snapshot, or a new one if none exists. The values are then assigned to a new snapshot.
     /// </summary>
-    public class ValueCollectorViewModel : ViewModelBase
+    public class ValueCollectorViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="ValueCollectorViewModel" /> class.

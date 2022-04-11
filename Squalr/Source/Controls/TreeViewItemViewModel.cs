@@ -1,6 +1,7 @@
-﻿namespace Squalr.Source.Controls
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Squalr.Source.Controls
 {
-    using GalaSoft.MvvmLight;
     using Squalr.Engine.Common.DataStructures;
     using System;
 
@@ -8,7 +9,7 @@
     /// Base class for all ViewModel classes displayed by TreeViewItems.  
     /// This acts as an adapter between a raw data object and a TreeViewItem.
     /// </summary>
-    public class TreeViewItemViewModel : ViewModelBase
+    public class TreeViewItemViewModel : ObservableObject
     {
         /// <summary>
         /// Dummy child for nodes with dynamically loaded children.
@@ -106,7 +107,7 @@
                 if (value != this.isExpanded)
                 {
                     this.isExpanded = value;
-                    this.RaisePropertyChanged(nameof(this.IsExpanded));
+                    this.OnPropertyChanged(nameof(this.IsExpanded));
                 }
 
                 // Expand all the way up to the root.
@@ -140,7 +141,7 @@
                 {
                     this.isSelected = value;
                     this.OnSelected();
-                    this.RaisePropertyChanged(nameof(this.IsSelected));
+                    this.OnPropertyChanged(nameof(this.IsSelected));
                 }
             }
         }

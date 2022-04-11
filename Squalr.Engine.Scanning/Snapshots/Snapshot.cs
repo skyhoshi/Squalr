@@ -24,7 +24,7 @@
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
         /// </summary>
         /// <param name="memoryRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(String snapshotName, IList<ReadGroup> memoryRegions = null) : this(snapshotName, memoryRegions?.SelectMany(readGroup => readGroup.SnapshotRegions))
+        public Snapshot(string snapshotName, IList<ReadGroup> memoryRegions = null) : this(snapshotName, memoryRegions?.SelectMany(readGroup => readGroup.SnapshotRegions))
         {
         }
 
@@ -32,7 +32,7 @@
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
         /// </summary>
         /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(IEnumerable<SnapshotRegion> snapshotRegions) : this(String.Empty, snapshotRegions)
+        public Snapshot(IEnumerable<SnapshotRegion> snapshotRegions) : this(string.Empty, snapshotRegions)
         {
         }
 
@@ -41,33 +41,33 @@
         /// </summary>
         /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
         /// <param name="snapshotName">The snapshot generation method name.</param>
-        public Snapshot(String snapshotName, IEnumerable<SnapshotRegion> snapshotRegions)
+        public Snapshot(string snapshotName, IEnumerable<SnapshotRegion> snapshotRegions)
         {
-            this.SnapshotName = snapshotName ?? String.Empty;
+            this.SnapshotName = snapshotName ?? string.Empty;
             this.SetSnapshotRegions(snapshotRegions);
         }
 
         /// <summary>
         /// Gets the name associated with the method by which this snapshot was generated.
         /// </summary>
-        public String SnapshotName { get; private set; }
+        public string SnapshotName { get; private set; }
 
         /// <summary>
         /// Gets the number of regions contained in this snapshot.
         /// </summary>
         /// <returns>The number of regions contained in this snapshot.</returns>
-        public Int32 RegionCount { get; set; }
+        public int RegionCount { get; set; }
 
         /// <summary>
         /// Gets the total number of bytes contained in this snapshot.
         /// </summary>
-        public UInt64 ByteCount { get; set; }
+        public ulong ByteCount { get; set; }
 
         /// <summary>
         /// Gets the number of individual elements contained in this snapshot.
         /// </summary>
         /// <returns>The number of individual elements contained in this snapshot.</returns>
-        public UInt64 ElementCount { get; set; }
+        public ulong ElementCount { get; set; }
 
         /// <summary>
         /// Sets the label data type for all read groups.
@@ -84,7 +84,7 @@
         /// Updates the base address of each region in this snapshot to match the provided alignment.
         /// </summary>
         /// <param name="alignment">The base address alignment.</param>
-        public void Align(Int32 alignment)
+        public void Align(int alignment)
         {
             this.ReadGroups.ForEach(readGroup => readGroup.Align(alignment));
         }
@@ -143,7 +143,7 @@
         /// </summary>
         /// <param name="elementIndex">The index of the snapshot element.</param>
         /// <returns>Returns the snapshot element at the specified index.</returns>
-        public SnapshotElementIndexer this[UInt64 elementIndex, Int32 elementSize]
+        public SnapshotElementIndexer this[ulong elementIndex, int elementSize = 1]
         {
             get
             {
@@ -163,7 +163,7 @@
         /// </summary>
         /// <param name="newSnapshotName">The snapshot generation method name.</param>
         /// <returns>The shallow cloned snapshot.</returns>
-        public Snapshot Clone(String newSnapshotName = null)
+        public Snapshot Clone(string newSnapshotName = null)
         {
             return new Snapshot(newSnapshotName, this.ReadGroups);
         }
@@ -175,7 +175,7 @@
         /// <param name="label">The new snapshot label value.</param>
         public void SetElementLabels<LabelType>(LabelType label) where LabelType : struct, IComparable<LabelType>
         {
-            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((Int32)(x.RegionSize))).Cast<Object>().ToArray()));
+            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((int)(x.RegionSize))).Cast<object>().ToArray()));
         }
 
         /// <summary>
@@ -198,7 +198,7 @@
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }
 
-        public void LoadMetaData(Int32 elementSize)
+        public void LoadMetaData(int elementSize)
         {
             this.ByteCount = 0;
             this.ElementCount = 0;
@@ -216,7 +216,7 @@
         /// </summary>
         /// <param name="address">The address for which we are searching.</param>
         /// <returns>True if the address is contained.</returns>
-        public Boolean ContainsAddress(UInt64 address)
+        public bool ContainsAddress(ulong address)
         {
             if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
             {
@@ -234,7 +234,7 @@
         /// <param name="min">The lower region index.</param>
         /// <param name="max">The upper region index.</param>
         /// <returns>True if the address was found.</returns>
-        private Boolean ContainsAddressHelper(UInt64 address, Int32 middle, Int32 min, Int32 max)
+        private bool ContainsAddressHelper(ulong address, int middle, int min, int max)
         {
             if (middle < 0 || middle == this.SnapshotRegions.Length || max < min)
             {
@@ -255,7 +255,7 @@
             }
         }
 
-        private SnapshotRegion BinaryRegionSearch(UInt64 elementIndex, Int32 elementSize)
+        private SnapshotRegion BinaryRegionSearch(ulong elementIndex, int elementSize)
         {
             if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
             {
@@ -273,7 +273,7 @@
         /// <param name="min">The lower region index.</param>
         /// <param name="max">The upper region index.</param>
         /// <returns>True if the address was found.</returns>
-        private SnapshotRegion BinaryRegionSearchHelper(UInt64 elementIndex, Int32 middle, Int32 min, Int32 max, Int32 elementSize)
+        private SnapshotRegion BinaryRegionSearchHelper(ulong elementIndex, int middle, int min, int max, int elementSize)
         {
             if (middle < 0 || middle == this.SnapshotRegions.Length || max < min)
             {

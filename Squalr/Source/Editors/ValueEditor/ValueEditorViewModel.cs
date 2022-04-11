@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Source.Editors.ValueEditor
 {
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Projects.Items;
     using System;
     using System.Threading;
@@ -9,7 +9,7 @@
     /// <summary>
     /// View model for the Value Editor.
     /// </summary>
-    public class ValueEditorViewModel : ViewModelBase
+    public class ValueEditorViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="ValueEditorViewModel" /> class.

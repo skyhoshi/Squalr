@@ -31,7 +31,7 @@
             {
                 this.javaItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.JavaItem));
+                this.OnPropertyChanged(nameof(this.JavaItem));
             }
         }
 
@@ -52,7 +52,7 @@
             set
             {
                 this.JavaItem.DataType = value;
-                this.RaisePropertyChanged(nameof(this.DataType));
+                this.OnPropertyChanged(nameof(this.DataType));
             }
         }
 
@@ -72,7 +72,7 @@
             set
             {
                 this.JavaItem.AddressValue = value;
-                this.RaisePropertyChanged(nameof(this.AddressValue));
+                this.OnPropertyChanged(nameof(this.AddressValue));
             }
         }
 
@@ -92,7 +92,7 @@
             set
             {
                 this.JavaItem.IsValueHex = value;
-                this.RaisePropertyChanged(nameof(this.IsValueHex));
+                this.OnPropertyChanged(nameof(this.IsValueHex));
             }
         }
 

@@ -50,7 +50,7 @@
             set
             {
                 this.isExpanded = value;
-                this.RaisePropertyChanged(nameof(this.IsExpanded));
+                this.OnPropertyChanged(nameof(this.IsExpanded));
             }
         }
 
@@ -75,7 +75,7 @@
             {
                 this.directoryItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.DirectoryItem));
+                this.OnPropertyChanged(nameof(this.DirectoryItem));
             }
         }
 
@@ -83,13 +83,13 @@
         {
             this.DirectoryItem.AddChild(projectItem);
             this.IsExpanded = true;
-            this.RaisePropertyChanged(nameof(this.ChildItems));
+            this.OnPropertyChanged(nameof(this.ChildItems));
         }
 
         public void RemoveChild(ProjectItem projectItem)
         {
             this.DirectoryItem.RemoveChild(projectItem);
-            this.RaisePropertyChanged(nameof(this.ChildItems));
+            this.OnPropertyChanged(nameof(this.ChildItems));
         }
     }
     //// End class

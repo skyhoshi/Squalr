@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Editors.HotkeyEditor
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Editors.HotkeyEditor
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Input.HotKeys;
     using Squalr.Source.Docking;
     using System;
@@ -82,7 +84,7 @@
                         this.keyboardHotKeyBuilder.SetHotkey(keyboardHotkey);
                     }
 
-                    this.RaisePropertyChanged(nameof(this.ActiveHotkey));
+                    this.OnPropertyChanged(nameof(this.ActiveHotkey));
                 }
             }
         }
@@ -103,7 +105,7 @@
         /// </summary>
         private void OnHotkeysUpdated()
         {
-            this.RaisePropertyChanged(nameof(this.ActiveHotkey));
+            this.OnPropertyChanged(nameof(this.ActiveHotkey));
         }
     }
     //// End class

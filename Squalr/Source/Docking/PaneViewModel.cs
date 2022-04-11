@@ -1,13 +1,13 @@
 ﻿namespace Squalr.Source.Docking
 {
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using System;
     using System.Windows.Media;
 
     /// <summary>
     /// View model for dockable panes.
     /// </summary>
-    public abstract class PaneViewModel : ViewModelBase
+    public abstract class PaneViewModel : ObservableObject
     {
         /// <summary>
         /// The pane title.
@@ -46,7 +46,7 @@
                 if (this.title != value)
                 {
                     this.title = value;
-                    this.RaisePropertyChanged(nameof(this.Title));
+                    this.OnPropertyChanged(nameof(this.Title));
                 }
             }
         }
@@ -82,7 +82,7 @@
                 if (this.isSelected != value)
                 {
                     this.isSelected = value;
-                    this.RaisePropertyChanged(nameof(this.IsSelected));
+                    this.OnPropertyChanged(nameof(this.IsSelected));
                 }
             }
         }
@@ -102,7 +102,7 @@
                 if (this.isActive != value)
                 {
                     this.isActive = value;
-                    this.RaisePropertyChanged(nameof(this.IsActive));
+                    this.OnPropertyChanged(nameof(this.IsActive));
                 }
             }
         }

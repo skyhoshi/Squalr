@@ -31,7 +31,7 @@
             {
                 this.instructionItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.InstructionItem));
+                this.OnPropertyChanged(nameof(this.InstructionItem));
             }
         }
 

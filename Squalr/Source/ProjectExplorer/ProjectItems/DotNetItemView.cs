@@ -35,7 +35,7 @@
             {
                 this.dotNetItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.DotNetItem));
+                this.OnPropertyChanged(nameof(this.DotNetItem));
             }
         }
 

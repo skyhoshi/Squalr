@@ -1,4 +1,6 @@
-﻿namespace Squalr.Engine.Projects
+﻿using CSScripting;
+
+namespace Squalr.Engine.Projects
 {
     using Squalr.Engine.Projects.Properties;
     using System;

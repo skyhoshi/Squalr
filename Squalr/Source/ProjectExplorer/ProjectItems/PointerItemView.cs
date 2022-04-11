@@ -34,16 +34,16 @@
             switch (args.PropertyName)
             {
                 case nameof(PointerItem.AddressValue):
-                    this.RaisePropertyChanged(nameof(this.DisplayValue));
+                    this.OnPropertyChanged(nameof(this.DisplayValue));
                     break;
                 case nameof(PointerItem.IsStatic):
-                    this.RaisePropertyChanged(nameof(this.IsStatic));
+                    this.OnPropertyChanged(nameof(this.IsStatic));
                     break;
                 case nameof(PointerItem.ModuleOffset):
-                    this.RaisePropertyChanged(nameof(this.ModuleOffset));
+                    this.OnPropertyChanged(nameof(this.ModuleOffset));
                     break;
                 case nameof(PointerItem.DataType):
-                    this.RaisePropertyChanged(nameof(this.DataType));
+                    this.OnPropertyChanged(nameof(this.DataType));
                     break;
             }
         }
@@ -60,7 +60,7 @@
             {
                 this.pointerItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.PointerItem));
+                this.OnPropertyChanged(nameof(this.PointerItem));
             }
         }
 
@@ -91,7 +91,7 @@
             set
             {
                 this.PointerItem.Name = value;
-                this.RaisePropertyChanged(nameof(this.Name));
+                this.OnPropertyChanged(nameof(this.Name));
             }
         }
 
@@ -111,7 +111,7 @@
             set
             {
                 this.PointerItem.ModuleName = value;
-                this.RaisePropertyChanged(nameof(this.ModuleName));
+                this.OnPropertyChanged(nameof(this.ModuleName));
             }
         }
 
@@ -131,7 +131,7 @@
             set
             {
                 this.PointerItem.DataType = value;
-                this.RaisePropertyChanged(nameof(this.DataType));
+                this.OnPropertyChanged(nameof(this.DataType));
             }
         }
 
@@ -152,7 +152,7 @@
             set
             {
                 this.PointerItem.ModuleOffset = value;
-                this.RaisePropertyChanged(nameof(this.ModuleOffset));
+                this.OnPropertyChanged(nameof(this.ModuleOffset));
             }
         }
 
@@ -174,7 +174,7 @@
             set
             {
                 this.PointerItem.PointerOffsets = value;
-                this.RaisePropertyChanged(nameof(this.PointerOffsets));
+                this.OnPropertyChanged(nameof(this.PointerOffsets));
             }
         }
 
@@ -192,7 +192,7 @@
             set
             {
                 this.PointerItem.AddressValue = value;
-                this.RaisePropertyChanged(nameof(this.DisplayValue));
+                this.OnPropertyChanged(nameof(this.DisplayValue));
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Source.ProjectExplorer.Dialogs
 {
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
     using Squalr.Properties;
@@ -13,7 +13,7 @@
     /// <summary>
     /// The view model for the project renaming dialog.
     /// </summary>
-    public class RenameProjectDialogViewModel : ViewModelBase
+    public class RenameProjectDialogViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="RenameProjectDialogViewModel" /> class.
@@ -49,9 +49,9 @@
             set
             {
                 this.newProjectName = value;
-                this.RaisePropertyChanged(nameof(this.NewProjectName));
-                this.RaisePropertyChanged(nameof(this.StatusText));
-                this.RaisePropertyChanged(nameof(this.IsProjectNameValid));
+                this.OnPropertyChanged(nameof(this.NewProjectName));
+                this.OnPropertyChanged(nameof(this.StatusText));
+                this.OnPropertyChanged(nameof(this.IsProjectNameValid));
             }
         }
 
@@ -85,7 +85,7 @@
             set
             {
                 this.projectName = value;
-                this.RaisePropertyChanged(nameof(this.ProjectName));
+                this.OnPropertyChanged(nameof(this.ProjectName));
             }
         }
 

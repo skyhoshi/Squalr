@@ -1,7 +1,8 @@
-﻿namespace Squalr.Source.Controls
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Controls
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataTypes;
     using System;
@@ -10,7 +11,7 @@
     /// <summary>
     /// The view model for a HexDec box.
     /// </summary>
-    public class HexDecBoxViewModel : ViewModelBase
+    public class HexDecBoxViewModel : ObservableObject
     {
         /// <summary>
         /// The active text.
@@ -89,9 +90,9 @@
                 }
 
                 this.text = value;
-                this.RaisePropertyChanged(nameof(this.Text));
-                this.RaisePropertyChanged(nameof(this.IsValid));
-                this.RaisePropertyChanged(nameof(this.Self));
+                this.OnPropertyChanged(nameof(this.Text));
+                this.OnPropertyChanged(nameof(this.IsValid));
+                this.OnPropertyChanged(nameof(this.Self));
             }
         }
 
@@ -108,10 +109,10 @@
             set
             {
                 this.isHex = value;
-                this.RaisePropertyChanged(nameof(this.IsHex));
-                this.RaisePropertyChanged(nameof(this.IsDec));
-                this.RaisePropertyChanged(nameof(this.IsValid));
-                this.RaisePropertyChanged(nameof(this.Self));
+                this.OnPropertyChanged(nameof(this.IsHex));
+                this.OnPropertyChanged(nameof(this.IsDec));
+                this.OnPropertyChanged(nameof(this.IsValid));
+                this.OnPropertyChanged(nameof(this.Self));
             }
         }
 
@@ -128,10 +129,10 @@
             set
             {
                 this.isHex = !value;
-                this.RaisePropertyChanged(nameof(this.IsHex));
-                this.RaisePropertyChanged(nameof(this.IsDec));
-                this.RaisePropertyChanged(nameof(this.IsValid));
-                this.RaisePropertyChanged(nameof(this.Self));
+                this.OnPropertyChanged(nameof(this.IsHex));
+                this.OnPropertyChanged(nameof(this.IsDec));
+                this.OnPropertyChanged(nameof(this.IsValid));
+                this.OnPropertyChanged(nameof(this.Self));
             }
         }
 
@@ -148,9 +149,9 @@
             set
             {
                 this.elementType = value;
-                this.RaisePropertyChanged(nameof(this.DataType));
-                this.RaisePropertyChanged(nameof(this.IsValid));
-                this.RaisePropertyChanged(nameof(this.Self));
+                this.OnPropertyChanged(nameof(this.DataType));
+                this.OnPropertyChanged(nameof(this.IsValid));
+                this.OnPropertyChanged(nameof(this.Self));
             }
         }
 

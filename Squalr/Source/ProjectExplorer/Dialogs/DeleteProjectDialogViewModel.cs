@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Source.ProjectExplorer.Dialogs
 {
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.Logging;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
@@ -12,7 +12,7 @@
     /// <summary>
     /// The view model for the project deletion dialog.
     /// </summary>
-    public class DeleteProjectDialogViewModel : ViewModelBase
+    public class DeleteProjectDialogViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="DeleteProjectDialogViewModel" /> class.
@@ -48,8 +48,8 @@
             set
             {
                 this.confimProjectName = value;
-                this.RaisePropertyChanged(nameof(this.ConfirmProjectName));
-                this.RaisePropertyChanged(nameof(this.IsConfirmationMatching));
+                this.OnPropertyChanged(nameof(this.ConfirmProjectName));
+                this.OnPropertyChanged(nameof(this.IsConfirmationMatching));
             }
         }
 
@@ -63,7 +63,7 @@
             set
             {
                 this.projectName = value;
-                this.RaisePropertyChanged(nameof(this.ProjectName));
+                this.OnPropertyChanged(nameof(this.ProjectName));
             }
         }
 

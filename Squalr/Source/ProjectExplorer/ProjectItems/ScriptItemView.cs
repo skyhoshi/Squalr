@@ -34,7 +34,7 @@
             {
                 this.scriptItem = value;
                 this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.ScriptItem));
+                this.OnPropertyChanged(nameof(this.ScriptItem));
             }
         }
 
@@ -53,7 +53,7 @@
             set
             {
                 this.ScriptItem.Name = value;
-                this.RaisePropertyChanged(nameof(this.Name));
+                this.OnPropertyChanged(nameof(this.Name));
             }
         }
 
@@ -75,7 +75,7 @@
             set
             {
                 this.ScriptItem.Script = value;
-                this.RaisePropertyChanged(nameof(this.Script));
+                this.OnPropertyChanged(nameof(this.Script));
                 this.CompileTest();
             }
         }

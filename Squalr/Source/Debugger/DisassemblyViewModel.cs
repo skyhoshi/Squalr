@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Debugger
+﻿
+
+namespace Squalr.Source.Debugger
 {
-    using GalaSoft.MvvmLight.Command;
+    using CommunityToolkit.Mvvm.Input;
     using Squalr.Engine.Architecture;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Memory;
@@ -49,10 +51,11 @@
         private DisassemblyViewModel() : base("Disassembly")
         {
             this.Instructions = new FullyObservableCollection<InstructionItem>();
-
-            this.SelectInstructionsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedInstructions = (selectedItems as IList)?.Cast<InstructionItem>(), (selectedItems) => true);
+            
+            //this.SelectInstructionsCommand = new RelayCommand((selectedItems) => this.SelectedInstructions = (selectedItems as IList)?.Cast<InstructionItem>(), (selectedItems) => true);
+            this.SelectInstructionsCommand = new RelayCommand<IEnumerable<InstructionItem>>( (selectedItems) => this.SelectedInstructions = (selectedItems as IList)?.Cast<InstructionItem>(), (selectedItems) => true);
             this.AddInstructionCommand = new RelayCommand<InstructionItem>((instruction) => Task.Run(() => this.AddInstruction(instruction)), (scanResult) => true);
-            this.AddInstructionsCommand = new RelayCommand<Object>((selectedItems) => Task.Run(() => this.AddInstructions(this.SelectedInstructions)), (selectedItems) => true);
+            this.AddInstructionsCommand = new RelayCommand<IEnumerable<InstructionItem>>((selectedItems) => Task.Run(() => this.AddInstructions(this.SelectedInstructions)), (selectedItems) => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
@@ -85,7 +88,7 @@
             set
             {
                 this.selectedInstructions = value;
-                this.RaisePropertyChanged(nameof(this.SelectedInstructions));
+                this.OnPropertyChanged(nameof(this.SelectedInstructions));
             }
         }
 
@@ -102,7 +105,7 @@
             set
             {
                 this.baseAddress = value;
-                this.RaisePropertyChanged(nameof(this.BaseAddress));
+                this.OnPropertyChanged(nameof(this.BaseAddress));
             }
         }
 
@@ -119,7 +122,7 @@
             set
             {
                 this.instructions = value;
-                this.RaisePropertyChanged(nameof(this.Instructions));
+                this.OnPropertyChanged(nameof(this.Instructions));
             }
         }
 

@@ -18,31 +18,26 @@
             Intensity = Intensity <= 0.0 ? 1.0 : Math.Clamp(Intensity, 0.0, 1.0);
 
             // Collect values
-            TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, DataTypeBase.Int32),
-                TrackableTask.UniversalIdentifier);
+            TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(SessionManager.Session.OpenedProcess, SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess), TrackableTask.UniversalIdentifier);
 
             // Recollect values
-            TrackableTask<Snapshot> valueRecollectorTask = ValueCollector.CollectValues(
-                valueCollectorTask.Result,
-                TrackableTask.UniversalIdentifier);
+            TrackableTask<Snapshot> valueRecollectorTask = ValueCollector.CollectValues(SessionManager.Session.OpenedProcess, valueCollectorTask.Result, TrackableTask.UniversalIdentifier);
 
+
+            ScanConstraints scanConstraints = new ScanConstraints(DataTypeBase.Int32, new ScanConstraint(ScanConstraint.ConstraintType.Changed));
             // Scan for any changed values
-            TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
-                valueRecollectorTask.Result,
-                new ScanConstraint(ScanConstraint.ConstraintType.Changed, DataTypeBase.Int32),
-                TrackableTask.UniversalIdentifier);
+            TrackableTask<Snapshot> scanTask = ManualScanner.Scan(valueRecollectorTask.Result, scanConstraints, TrackableTask.UniversalIdentifier);
 
             Random random = new Random();
 
             // Start overwriting any memory that changed with 0s
             foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
             {
-                for (Int32 index = 0; index < region.ElementCount; index++)
+                for (Int32 index = 0; index < region.GetElementCount(DataTypeBase.Int32.Size); index++)
                 {
                     if (random.NextDouble() <= Intensity)
                     {
-                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].BaseAddress, 0);
+                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].GetBaseAddress(Engine.Common.DataTypes.DataTypeBase.Int32.Size), 0);
                     }
                 }
             }

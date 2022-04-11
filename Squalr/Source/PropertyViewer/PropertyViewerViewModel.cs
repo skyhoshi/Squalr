@@ -1,4 +1,6 @@
-﻿namespace Squalr.Source.PropertyViewer
+﻿using Squalr.Engine.Common.Extensions;
+
+namespace Squalr.Source.PropertyViewer
 {
     using Squalr.Source.Controls;
     using Squalr.Source.Docking;
@@ -89,7 +91,7 @@
                     this.propertyGrid, () => { this.propertyGrid.SelectedObjects = targetObjects == null ? new Object[] { } : targetObjects; }
                 );
 
-                this.RaisePropertyChanged(nameof(this.TargetObjects));
+                this.OnPropertyChanged(nameof(this.TargetObjects));
                 this.NotifyObservers();
             }
         }

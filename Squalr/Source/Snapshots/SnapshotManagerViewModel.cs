@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Snapshots
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Snapshots
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Scanning.Snapshots;
     using Squalr.Source.Docking;
     using System;
@@ -37,8 +39,8 @@
 
         private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
         {
-            this.RaisePropertyChanged(nameof(this.Snapshots));
-            this.RaisePropertyChanged(nameof(this.DeletedSnapshots));
+            this.OnPropertyChanged(nameof(this.Snapshots));
+            this.OnPropertyChanged(nameof(this.DeletedSnapshots));
         }
 
         /// <summary>

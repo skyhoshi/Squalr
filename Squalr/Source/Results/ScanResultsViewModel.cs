@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Results
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Results
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
@@ -75,13 +77,13 @@
         {
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
             this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => this.ChangeType(type), (type) => true);
-            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
+            this.SelectScanResultsCommand = new RelayCommand<IEnumerable<ScanResult>>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
             this.FirstPageCommand = new RelayCommand(() => Task.Run(() => this.FirstPage()), () => true);
             this.LastPageCommand = new RelayCommand(() => Task.Run(() => this.LastPage()), () => true);
             this.PreviousPageCommand = new RelayCommand(() => Task.Run(() => this.PreviousPage()), () => true);
             this.NextPageCommand = new RelayCommand(() => Task.Run(() => this.NextPage()), () => true);
             this.AddScanResultCommand = new RelayCommand<ScanResult>((scanResult) => this.AddScanResult(scanResult), (scanResult) => true);
-            this.AddScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.AddScanResults(this.SelectedScanResults), (selectedItems) => true);
+            this.AddScanResultsCommand = new RelayCommand<ScanResult>((selectedItems) => this.AddScanResults(this.SelectedScanResults), (selectedItems) => true);
 
             this.ActiveType = DataTypeBase.Int32;
             this.addresses = new FullyObservableCollection<ScanResult>();
@@ -155,7 +157,7 @@
             set
             {
                 this.selectedScanResults = value;
-                this.RaisePropertyChanged(nameof(this.SelectedScanResults));
+                this.OnPropertyChanged(nameof(this.SelectedScanResults));
             }
         }
 
@@ -176,8 +178,8 @@
                 // Update data type of addresses
                 this.Addresses?.ToArray().ForEach(address => address.PointerItem.DataType = this.ActiveType);
 
-                this.RaisePropertyChanged(nameof(this.ActiveType));
-                this.RaisePropertyChanged(nameof(this.ActiveTypeName));
+                this.OnPropertyChanged(nameof(this.ActiveType));
+                this.OnPropertyChanged(nameof(this.ActiveTypeName));
             }
         }
 
@@ -206,11 +208,11 @@
             {
                 this.currentPage = value;
                 this.LoadScanResults();
-                this.RaisePropertyChanged(nameof(this.CurrentPage));
-                this.RaisePropertyChanged(nameof(this.CanNavigateFirst));
-                this.RaisePropertyChanged(nameof(this.CanNavigatePrevious));
-                this.RaisePropertyChanged(nameof(this.CanNavigateNext));
-                this.RaisePropertyChanged(nameof(this.CanNavigateLast));
+                this.OnPropertyChanged(nameof(this.CurrentPage));
+                this.OnPropertyChanged(nameof(this.CanNavigateFirst));
+                this.OnPropertyChanged(nameof(this.CanNavigatePrevious));
+                this.OnPropertyChanged(nameof(this.CanNavigateNext));
+                this.OnPropertyChanged(nameof(this.CanNavigateLast));
             }
         }
 
@@ -282,7 +284,7 @@
             set
             {
                 this.byteCount = value;
-                this.RaisePropertyChanged(nameof(this.ByteCount));
+                this.OnPropertyChanged(nameof(this.ByteCount));
             }
         }
 
@@ -299,8 +301,8 @@
             set
             {
                 this.addressCount = value;
-                this.RaisePropertyChanged(nameof(this.ResultCount));
-                this.RaisePropertyChanged(nameof(this.PageCount));
+                this.OnPropertyChanged(nameof(this.ResultCount));
+                this.OnPropertyChanged(nameof(this.PageCount));
             }
         }
 
@@ -317,7 +319,7 @@
             set
             {
                 this.addresses = value;
-                this.RaisePropertyChanged(nameof(this.Addresses));
+                this.OnPropertyChanged(nameof(this.Addresses));
             }
         }
 

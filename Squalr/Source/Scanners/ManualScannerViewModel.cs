@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Scanning
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
@@ -36,7 +38,7 @@
             this.StartScanCommand = new RelayCommand(() => this.StartScan(), () => true);
 
             // Not async for faster UI feedback
-            this.UpdateActiveValueCommand = new RelayCommand<Object>((newValue) => this.UpdateActiveValue(newValue), (newValue) => true);
+            this.UpdateActiveValueCommand = new RelayCommand<object>((newValue) => this.UpdateActiveValue(newValue), (newValue) => true);
             this.SelectChangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Changed), () => true);
             this.SelectDecreasedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Decreased), () => true);
             this.SelectDecreasedByXCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.DecreasedByX), () => true);
@@ -232,8 +234,8 @@
         /// </summary>
         private void UpdateAllProperties()
         {
-            this.RaisePropertyChanged(nameof(this.ActiveConstraint));
-            this.RaisePropertyChanged(nameof(this.IsActiveScanConstraintValued));
+            this.OnPropertyChanged(nameof(this.ActiveConstraint));
+            this.OnPropertyChanged(nameof(this.IsActiveScanConstraintValued));
         }
     }
     //// End class

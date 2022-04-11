@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.ProjectExplorer
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.ProjectExplorer
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Logging;
@@ -41,7 +43,7 @@
         {
             this.SetProjectRootCommand = new RelayCommand(() => this.SetProjectRoot());
             this.SelectProjectCommand = new RelayCommand(() => this.SelectProject());
-            this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
+            this.SelectProjectItemCommand = new RelayCommand<ProjectItemView>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
             this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
@@ -139,8 +141,8 @@
             set
             {
                 projectRoot = value;
-                RaisePropertyChanged(nameof(this.ProjectRoot));
-                RaisePropertyChanged(nameof(this.HasProjectRoot));
+                OnPropertyChanged(nameof(this.ProjectRoot));
+                OnPropertyChanged(nameof(this.HasProjectRoot));
             }
         }
 
@@ -168,7 +170,7 @@
             set
             {
                 this.selectedProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.SelectedProjectItem));
+                this.OnPropertyChanged(nameof(this.SelectedProjectItem));
                 PropertyViewerViewModel.GetInstance().SetTargetObjects(value);
             }
         }
@@ -358,7 +360,7 @@
                         if (!Directory.Exists(newProjectDirectory))
                         {
                             Directory.CreateDirectory(newProjectDirectory);
-                            this.RaisePropertyChanged(nameof(this.Projects));
+                            this.OnPropertyChanged(nameof(this.Projects));
                             this.DoOpenProject(newProjectDirectory);
                             break;
                         }

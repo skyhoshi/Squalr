@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.ProjectExplorer.Dialogs
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace Squalr.Source.ProjectExplorer.Dialogs
 {
-    using GalaSoft.MvvmLight;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using Squalr.Engine.Common.Logging;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
@@ -12,7 +14,7 @@
     /// <summary>
     /// The view model for the project create dialog.
     /// </summary>
-    public class CreateProjectDialogViewModel : ViewModelBase
+    public class CreateProjectDialogViewModel : ObservableObject
     {
         /// <summary>
         /// Singleton instance of the <see cref="CreateProjectDialogViewModel" /> class.
@@ -48,9 +50,9 @@
             set
             {
                 this.newProjectName = value;
-                this.RaisePropertyChanged(nameof(this.NewProjectName));
-                this.RaisePropertyChanged(nameof(this.StatusText));
-                this.RaisePropertyChanged(nameof(this.IsProjectNameValid));
+                this.OnPropertyChanged(nameof(this.NewProjectName));
+                this.OnPropertyChanged(nameof(this.StatusText));
+                this.OnPropertyChanged(nameof(this.IsProjectNameValid));
             }
         }
 
@@ -84,7 +86,7 @@
             set
             {
                 this.projectName = value;
-                this.RaisePropertyChanged(nameof(this.ProjectName));
+                this.OnPropertyChanged(nameof(this.ProjectName));
             }
         }
 

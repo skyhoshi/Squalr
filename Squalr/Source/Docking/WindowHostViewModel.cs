@@ -1,7 +1,8 @@
-﻿namespace Squalr.Source.Docking
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Docking
 {
-    using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.Command;
+    using CommunityToolkit.Mvvm.ComponentModel;
     using System;
     using System.Windows;
     using System.Windows.Input;
@@ -10,7 +11,7 @@
     /// <summary>
     /// The view model for a window that hosts docked windows.
     /// </summary>
-    public abstract class WindowHostViewModel : ViewModelBase
+    public abstract class WindowHostViewModel : ObservableObject
     {
         /// <summary>
         /// Creates an instance of the <see cref="WindowHostViewModel" /> class.

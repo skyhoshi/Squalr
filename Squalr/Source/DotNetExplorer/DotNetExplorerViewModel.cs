@@ -1,7 +1,9 @@
-﻿namespace Squalr.Source.DotNetExplorer
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.DotNetExplorer
 {
     using Engine.AddressResolver.DotNet;
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Memory.Clr;
     using Squalr.Engine.Projects.Items;
@@ -66,7 +68,7 @@
             set
             {
                 this.dotNetObjects = value;
-                this.RaisePropertyChanged(nameof(this.DotNetObjects));
+                this.OnPropertyChanged(nameof(this.DotNetObjects));
             }
         }
 

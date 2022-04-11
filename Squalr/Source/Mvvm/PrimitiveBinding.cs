@@ -33,7 +33,7 @@
             set
             {
                 this.value = value;
-                this.RaisePropertyChanged(nameof(this.Value));
+                this.OnPropertyChanged(nameof(this.Value));
             }
         }
 
@@ -43,7 +43,7 @@
         /// Indicates that a given property in this project item has changed.
         /// </summary>
         /// <param name="propertyName">The name of the changed property.</param>
-        protected void RaisePropertyChanged(String propertyName)
+        protected void OnPropertyChanged(String propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

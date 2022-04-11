@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Docking
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Docking
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using System;
     using System.Windows.Input;
 
@@ -60,7 +62,7 @@
                 {
                     this.isVisible = value;
                     this.OnVisibilityChanged();
-                    this.RaisePropertyChanged(nameof(this.IsVisible));
+                    this.OnPropertyChanged(nameof(this.IsVisible));
                 }
             }
         }

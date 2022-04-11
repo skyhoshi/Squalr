@@ -1,6 +1,8 @@
-﻿namespace Squalr.Source.Scanning
+﻿using CommunityToolkit.Mvvm.Input;
+
+namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight.Command;
+    
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
     using Squalr.View;
@@ -59,7 +61,7 @@
 
         private void ScanCountUpdated()
         {
-            this.RaisePropertyChanged(nameof(this.ScanCount));
+            this.OnPropertyChanged(nameof(this.ScanCount));
         }
 
         private void StartScan()

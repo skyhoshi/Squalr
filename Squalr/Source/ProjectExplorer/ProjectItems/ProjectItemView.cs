@@ -17,7 +17,7 @@
         /// Indicates that a given property in this project item has changed.
         /// </summary>
         /// <param name="propertyName">The name of the changed property.</param>
-        protected void RaisePropertyChanged(String propertyName)
+        protected void OnPropertyChanged(String propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -45,7 +45,7 @@
             set
             {
                 this.ProjectItem.IsActivated = value;
-                this.RaisePropertyChanged(nameof(this.IsActivated));
+                this.OnPropertyChanged(nameof(this.IsActivated));
             }
         }
 
@@ -60,7 +60,7 @@
             set
             {
                 this.isSelected = value;
-                this.RaisePropertyChanged(nameof(this.IsSelected));
+                this.OnPropertyChanged(nameof(this.IsSelected));
             }
         }
 
@@ -88,7 +88,7 @@
             set
             {
                 this.projectItem = value;
-                this.RaisePropertyChanged(nameof(this.ProjectItem));
+                this.OnPropertyChanged(nameof(this.ProjectItem));
             }
         }
 

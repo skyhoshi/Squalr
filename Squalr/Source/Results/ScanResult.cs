@@ -85,7 +85,7 @@
             set
             {
                 this.previousValue = value;
-                this.RaisePropertyChanged(nameof(this.PreviousValue));
+                this.OnPropertyChanged(nameof(this.PreviousValue));
             }
         }
 
@@ -103,7 +103,7 @@
             set
             {
                 this.label = value;
-                this.RaisePropertyChanged(nameof(this.Label));
+                this.OnPropertyChanged(nameof(this.Label));
             }
         }
 
@@ -119,15 +119,15 @@
         /// <param name="e">The event args.</param>
         public void PointerItemChanged(Object sender, PropertyChangedEventArgs e)
         {
-            this.RaisePropertyChanged(nameof(this.DisplayValue));
-            this.RaisePropertyChanged(nameof(this.AddressSpecifier));
+            this.OnPropertyChanged(nameof(this.DisplayValue));
+            this.OnPropertyChanged(nameof(this.AddressSpecifier));
         }
 
         /// <summary>
         /// Indicates that a given property in this project item has changed.
         /// </summary>
         /// <param name="propertyName">The name of the changed property.</param>
-        protected void RaisePropertyChanged(String propertyName)
+        protected void OnPropertyChanged(String propertyName)
         {
             this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

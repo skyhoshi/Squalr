@@ -32,7 +32,7 @@
 
             for (UInt64 index = pageStart; index < pageEnd; index++)
             {
-                Object currentValue = results[index].LoadCurrentValue();
+                Object currentValue = results[index].LoadCurrentValue(Engine.Common.DataTypes.DataTypeBase.Int32);
                 String str;
 
                 switch (currentValue)
@@ -44,8 +44,9 @@
                         str = currentValue.ToString();
                         break;
                 }
-
-                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index].BaseAddress) + "\t|\t" + str);
+                //TODO: Fix this issue
+                //Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index].BaseAddress) + "\t|\t" + str);
+                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index].GetBaseAddress(Engine.Common.DataTypes.DataTypeBase.UInt64.Size)) + "\t|\t" + str);
             }
 
             Console.WriteLine();

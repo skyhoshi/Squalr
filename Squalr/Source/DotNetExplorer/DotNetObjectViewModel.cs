@@ -31,7 +31,7 @@
         {
             this.dotNetObject = dotNetObject;
             this.children = new FullyObservableCollection<TreeViewItemViewModel>(this.DotNetObject.Children.Select(x => new DotNetObjectViewModel(x)));
-            this.RaisePropertyChanged(nameof(this.Children));
+            this.OnPropertyChanged(nameof(this.Children));
         }
 
         /// <summary>

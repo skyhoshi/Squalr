@@ -93,7 +93,8 @@
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, ScanSettings.DataType),
+                SessionManager.Session.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
                 TrackableTask.UniversalIdentifier);
 
             valueCollectorTask.OnCompletedEvent += ((completedValueCollectionTask) =>
