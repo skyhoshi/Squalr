@@ -20,7 +20,7 @@ namespace Squalr.Engine.Scripting.Templates
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\zcanann\source\repos\Squalr\Squalr.Engine.Scripting\Templates\GraphicsInjectionTemplate.tt"
+    #line 1 "C:\Projects\Squalr\Squalr.Engine.Scripting\Templates\GraphicsInjectionTemplate.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "16.0.0.0")]
     public partial class GraphicsInjectionTemplate : GraphicsInjectionTemplateBase
     {

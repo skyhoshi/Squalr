@@ -90,9 +90,8 @@
             }
         }
 
-        public void Rename(String newProjectPathOrName)
+        public bool Rename(String newProjectPathOrName)
         {
-            throw new NotImplementedException();
             try
             {
                 if (!Path.IsPathRooted(newProjectPathOrName))
@@ -103,14 +102,18 @@
                 this.StopWatchingForUpdates();
                 Directory.Move(this.FullPath, newProjectPathOrName);
 
-                // this.FullPath = newProjectPathOrName;
+                return true;
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Unable to rename project", ex);
-            }
 
-            this.WatchForUpdates();
+                return false;
+            }
+            finally
+            {
+                this.WatchForUpdates();
+            }
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿namespace Squalr.View
 {
+    using Squalr.Source.ProjectExplorer;
     using Squalr.Source.ProjectExplorer.ProjectItems;
     using Squalr.Source.PropertyViewer;
     using System.Collections.Generic;
@@ -78,6 +79,7 @@
                 }
 
                 PropertyViewerViewModel.GetInstance().SetTargetObjects(selectedItems.ToArray());
+                ProjectExplorerViewModel.GetInstance().SelectedProjectItems = selectedItems;
             };
         }
     }

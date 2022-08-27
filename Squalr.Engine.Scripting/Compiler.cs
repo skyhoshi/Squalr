@@ -4,7 +4,6 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Emit;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Projects.Items;
     using System;
     using System.Collections.Generic;
     using System.IO;

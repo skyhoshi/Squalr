@@ -95,10 +95,10 @@
         {
             if (this.IsActivated)
             {
-                Assembly assembly = Compiler.Compile(this.FullPath, this.Script, false);
-                Scripting.Script script = Scripting.Script.FromAssembly(assembly);
+                // Assembly assembly = Compiler.Compile(this.FullPath, this.Script, false);
+                // Scripting.Script script = Scripting.Script.FromAssembly(assembly);
 
-                script.IsActivated = true;
+                // script.IsActivated = true;
             }
         }
     }

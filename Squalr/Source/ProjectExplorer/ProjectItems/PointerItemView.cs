@@ -120,6 +120,7 @@
         /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
+        [TypeConverter(typeof(DataTypeConverter))]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
         public ScannableType DataType
         {

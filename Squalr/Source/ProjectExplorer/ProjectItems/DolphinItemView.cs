@@ -93,6 +93,7 @@
         /// Gets or sets the identifier for the base address of this object.
         /// </summary>
         [Browsable(true)]
+        [TypeConverter(typeof(DataTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
         public ScannableType DataType

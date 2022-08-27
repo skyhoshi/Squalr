@@ -7,6 +7,7 @@
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
     using Squalr.Properties;
+    using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
@@ -35,9 +36,14 @@
         private FullyObservableCollection<DirectoryItemView> projectRoot;
 
         /// <summary>
-        /// The selected project item.
+        /// The primary selected project item.
         /// </summary>
         private ProjectItemView selectedProjectItem;
+
+        /// <summary>
+        /// The selected project items.
+        /// </summary>
+        private List<ProjectItemView> selectedProjectItems;
 
         private ProjectExplorerViewModel() : base("Project Explorer")
         {
@@ -45,10 +51,15 @@
             this.SelectProjectCommand = new RelayCommand(() => this.SelectProject());
             this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
             this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
+            this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
             this.AddNewInstructionItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(InstructionItem)), () => true);
             this.OpenFileExplorerCommand = new RelayCommand<ProjectItemView>((projectItem) => this.OpenFileExplorer(projectItem), (projectItem) => true);
+            this.CopySelectionCommand = new RelayCommand(() => this.CopySelection(), () => true);
+            this.CutSelectionCommand = new RelayCommand(() => this.CutSelection(), () => true);
+            this.PasteSelectionCommand = new RelayCommand(() => this.PasteSelection(), () => true);
+            this.DeleteSelectionCommand = new RelayCommand(() => this.DeleteSelection(), () => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
             this.RunUpdateLoop();
@@ -158,7 +169,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the selected project items.
+        /// Gets or sets the selected project item.
         /// </summary>
         public ProjectItemView SelectedProjectItem
         {
@@ -174,6 +185,23 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets the selected project item.
+        /// </summary>
+        public List<ProjectItemView> SelectedProjectItems
+        {
+            get
+            {
+                return this.selectedProjectItems;
+            }
+
+            set
+            {
+                this.selectedProjectItems = value;
+                this.RaisePropertyChanged(nameof(this.SelectedProjectItems));
+            }
+        }
+
         public Boolean HasProjectRoot
         {
             get
@@ -181,6 +209,8 @@
                 return (this.ProjectRoot != null && (this.ProjectRoot?.Count ?? 0) > 0) ? true : false;
             }
         }
+
+        private List<ProjectItemView> ClipBoard { get; set; }
 
         /// <summary>
         /// Runs the update loop, updating all scan results.
@@ -379,20 +409,18 @@
         /// </summary>
         private void ToggleSelectionActivation()
         {
-            /*
             if (this.SelectedProjectItems == null)
             {
                 return;
             }
 
-            foreach (ProjectItem projectItem in this.SelectedProjectItems)
+            foreach (ProjectItemView projectItem in this.SelectedProjectItems)
             {
                 if (projectItem != null)
                 {
                     projectItem.IsActivated = !projectItem.IsActivated;
                 }
             }
-            */
         }
 
         /// <summary>
@@ -400,8 +428,7 @@
         /// </summary>
         private void DeleteSelection(Boolean promptUser = true)
         {
-            /*
-            if (this.SelectedProjectItems.IsNullOrEmpty())
+            if (this.SelectedProjectItems == null)
             {
                 return;
             }
@@ -421,13 +448,13 @@
                 }
             }
 
-            foreach (ProjectItem projectItem in this.SelectedProjectItems.ToArray())
+            foreach (ProjectItemView projectItem in this.SelectedProjectItems.ToArray())
             {
-                this.ProjectItems.Remove(projectItem);
+                // TODO
+                // this.ProjectItems.Remove(projectItem);
             }
 
             this.SelectedProjectItems = null;
-            */
         }
 
         /// <summary>
@@ -435,7 +462,7 @@
         /// </summary>
         private void CopySelection()
         {
-            // this.ClipBoard = this.SelectedProjectItems?.SoftClone();
+            this.ClipBoard = this.SelectedProjectItems?.ToList();
         }
 
         /// <summary>
@@ -443,12 +470,20 @@
         /// </summary>
         private void PasteSelection()
         {
-            // if (this.ClipBoard == null || this.ClipBoard.Count() <= 0)
-            // {
-            //     return;
-            // }
+            if (this.ClipBoard == null || this.ClipBoard.Count() <= 0)
+            {
+                 return;
+            }
 
-            // ProjectExplorerViewModel.GetInstance().AddNewProjectItems(true, this.ClipBoard);
+            DirectoryItemView directoryItemView = this.SelectedProjectItem as DirectoryItemView ?? this.ProjectRoot.FirstOrDefault();
+
+            if (directoryItemView != null)
+            {
+                foreach (ProjectItemView next in this.ClipBoard)
+                {
+                    directoryItemView.AddChild(next?.ProjectItem?.Clone());
+                }
+            }
         }
 
         /// <summary>
@@ -456,8 +491,8 @@
         /// </summary>
         private void CutSelection()
         {
-            // this.ClipBoard = this.SelectedProjectItems?.SoftClone();
-            // this.DeleteSelection(promptUser: false);
+            this.ClipBoard = this.SelectedProjectItems?.ToList();
+            this.DeleteSelection(promptUser: false);
         }
 
         private void OpenFileExplorer(ProjectItemView projectItemView)
