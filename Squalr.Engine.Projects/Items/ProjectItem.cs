@@ -111,8 +111,10 @@
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(type);
 
                     ProjectItem projectItem = serializer.ReadObject(fileStream) as ProjectItem;
+
+                    // Bypass setters to avoid triggering write-back to disk
                     projectItem.name = Path.GetFileNameWithoutExtension(filePath);
-                    projectItem.Parent = parent;
+                    projectItem.parent = parent;
 
                     return projectItem;
                 }
