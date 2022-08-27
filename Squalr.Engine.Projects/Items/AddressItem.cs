@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Processes;
@@ -25,7 +24,7 @@
         /// </summary>
         [Browsable(false)]
         [DataMember]
-        protected DataTypeBase dataType;
+        protected ScannableType dataType;
 
         /// <summary>
         /// The value at this address.
@@ -52,7 +51,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public AddressItem(ProcessSession processSession) : this(processSession, DataTypeBase.Int32, "New Address")
+        public AddressItem(ProcessSession processSession) : this(processSession, ScannableType.Int32, "New Address")
         {
         }
 
@@ -66,7 +65,7 @@
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public AddressItem(
             ProcessSession processSession,
-            DataTypeBase dataType,
+            ScannableType dataType,
             String description = "New Address",
             Boolean isValueHex = false,
             Object value = null)
@@ -90,7 +89,7 @@
         /// <summary>
         /// Gets or sets the data type of the value at this address.
         /// </summary>
-        public virtual DataTypeBase DataType
+        public virtual ScannableType DataType
         {
             get
             {
@@ -204,6 +203,15 @@
             {
                 this.AddressValue = value;
             }
+        }
+
+        public override ProjectItem Clone()
+        {
+            ProjectItem clone = base.Clone();
+
+            (clone as AddressItem).processSession = this.processSession;
+
+            return clone;
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 {
     using CommandLine;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Scanning;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -14,7 +13,7 @@
     {
         public Int32 Handle()
         {
-            DataTypeBase dataType = ScanSettings.DataType;
+            ScannableType dataType = ScanSettings.DataType;
             ScanConstraint.ConstraintType constraintType = ScanConstraint.ConstraintType.Equal;
 
             if (String.IsNullOrWhiteSpace(this.Constraint))
@@ -54,11 +53,12 @@
                 return -1;
             }
 
-            ScanConstraint scanConstraints = new ScanConstraint(constraintType, dataType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value));
+            ScanConstraints scanConstraints = new ScanConstraints(dataType, new ScanConstraint(constraintType, Conversions.ParsePrimitiveStringAsPrimitive(dataType, this.Value)));
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, dataType),
+                SessionManager.Session.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
                 TrackableTask.UniversalIdentifier);
 
             // Perform manual scan

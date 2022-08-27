@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Source.ProjectExplorer.ProjectItems
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Controls;
     using Squalr.Source.Editors.OffsetEditor;
@@ -120,8 +120,8 @@
         /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Data Type"), Description("The data type of this address")]
-        public DataTypeBase DataType
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
+        public ScannableType DataType
         {
             get
             {
@@ -181,7 +181,7 @@
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ValueEditorModel), typeof(UITypeEditor))]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Address Value"), Description("The value at the resolved address")]
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Value"), Description("The value at the resolved address")]
         public override Object DisplayValue
         {
             get

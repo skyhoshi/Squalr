@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
@@ -15,18 +15,10 @@
         /// <summary>
         /// The read groups of this snapshot.
         /// </summary>
-        private IList<ReadGroup> readGroups;
+        private IEnumerable<ReadGroup> readGroups;
 
         // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
         public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Snapshot" /> class.
-        /// </summary>
-        /// <param name="memoryRegions">The regions with which to initialize this snapshot.</param>
-        public Snapshot(String snapshotName, IList<ReadGroup> memoryRegions = null) : this(snapshotName, memoryRegions?.SelectMany(readGroup => readGroup.SnapshotRegions))
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
@@ -72,7 +64,7 @@
         /// <summary>
         /// Sets the label data type for all read groups.
         /// </summary>
-        public DataTypeBase LabelDataType
+        public ScannableType LabelDataType
         {
             set
             {
@@ -97,7 +89,7 @@
         /// <summary>
         /// Gets or sets the read groups of this snapshot.
         /// </summary>
-        public IList<ReadGroup> ReadGroups
+        public IEnumerable<ReadGroup> ReadGroups
         {
             get
             {
@@ -159,16 +151,6 @@
         }
 
         /// <summary>
-        /// Creates a shallow clone of this snapshot.
-        /// </summary>
-        /// <param name="newSnapshotName">The snapshot generation method name.</param>
-        /// <returns>The shallow cloned snapshot.</returns>
-        public Snapshot Clone(String newSnapshotName = null)
-        {
-            return new Snapshot(newSnapshotName, this.ReadGroups);
-        }
-
-        /// <summary>
         /// Sets the label of every element in this snapshot to the same value.
         /// </summary>
         /// <typeparam name="LabelType">The data type of the label.</typeparam>
@@ -184,17 +166,9 @@
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
         public void SetSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
         {
-            IEnumerable<IGrouping<ReadGroup, SnapshotRegion>> snapshotsByReadGroup = snapshotRegions.GroupBy(region => region.ReadGroup);
-
-            foreach (IGrouping<ReadGroup, SnapshotRegion> group in snapshotsByReadGroup)
-            {
-                group.Key.SnapshotRegions = group.OrderBy(region => region.ReadGroupOffset);
-            }
-
-            this.ReadGroups = snapshotsByReadGroup.Select(x => x.Key).OrderBy(group => group.BaseAddress).ToList();
+            this.ReadGroups = snapshotRegions.Select(x => x.ReadGroup).Distinct();
             this.SnapshotRegions = snapshotRegions.ToArray();
             this.TimeSinceLastUpdate = DateTime.Now;
-            this.SnapshotRegions = snapshotRegions.ToArray();
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }
 

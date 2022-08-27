@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Projects
 {
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Projects.Properties;
     using System;
     using System.IO;
@@ -10,7 +11,7 @@
         {
             get
             {
-                if (Settings.Default.ProjectRoot.IsEmpty())
+                if (Settings.Default.ProjectRoot.IsNullOrEmpty())
                 {
                     ProjectSettings.ProjectRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Squalr");
                 }

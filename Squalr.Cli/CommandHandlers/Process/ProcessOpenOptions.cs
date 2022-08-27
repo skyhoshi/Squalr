@@ -2,7 +2,10 @@
 {
     using CommandLine;
     using Squalr.Engine;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Processes;
+    using Squalr.Engine.Scanning;
+    using Squalr.Engine.Scanning.Scanners;
     using System;
     using System.Diagnostics;
     using System.Linq;
@@ -64,6 +67,20 @@
             }
 
             SessionManager.Session = new Session(process);
+
+            if (ScanSettings.EmulatorType == EmulatorType.Auto)
+            {
+                TrackableTask<EmulatorType> emulatorDector = EmulatorDetector.DetectEmulator(process);
+
+                emulatorDector.OnCompletedEvent += (completedTask) =>
+                {
+                    SessionManager.Session.DetectedEmulator = emulatorDector.Result;
+                };
+            }
+            else
+            {
+                SessionManager.Session.DetectedEmulator = ScanSettings.EmulatorType;
+            }
 
             return 0;
         }

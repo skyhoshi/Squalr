@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Diagnostics;
 
@@ -15,7 +15,7 @@
         /// <param name="elementType">The data type to write.</param>
         /// <param name="address">The address to write to.</param>
         /// <param name="value">The value to write.</param>
-        void Write(Process process, DataTypeBase elementType, UInt64 address, Object value);
+        void Write(Process process, ScannableType elementType, UInt64 address, Object value);
 
         /// <summary>
         /// Writes a value to memory in the opened process.

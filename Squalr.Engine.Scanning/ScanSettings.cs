@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
 
     public static class ScanSettings
@@ -239,7 +239,7 @@
             }
         }
 
-        public static DataTypeBase DataType
+        public static ScannableType DataType
         {
             get
             {
@@ -249,6 +249,19 @@
             set
             {
                 Properties.Settings.Default.DataType = value;
+            }
+        }
+
+        public static EmulatorType EmulatorType
+        {
+            get
+            {
+                return (EmulatorType)Properties.Settings.Default.EmulatorType;
+            }
+
+            set
+            {
+                Properties.Settings.Default.EmulatorType = (int)value;
             }
         }
     }

@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
@@ -49,7 +48,7 @@
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
-                            DataTypeBase pointerDataType = previousPointerBag.PointerSize.ToDataType();
+                            ScannableType pointerDataType = previousPointerBag.PointerSize.ToDataType();
                             ScanConstraint scanConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Unchanged);
                             ScanConstraints scanConstraints = new ScanConstraints(pointerDataType, scanConstraint);
 

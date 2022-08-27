@@ -23,7 +23,7 @@
             Console.WriteLine("Enabled " + "\t|\t" + "Name" + "\t|\t" + "Address" + "\t|\t" + "Value" + "\t|\t" + "Description");
             Console.WriteLine("------------------------------------------------------------------");
 
-            foreach (ProjectItem next in SessionManager.Project.ProjectItems)
+            foreach (ProjectItem next in SessionManager.Project.ChildItems)
             {
                 Console.WriteLine((next.IsEnabled ? "X" : "") + "\t|\t" + next.Name + "\t|\t" + "TODO" + "\t|\t" + "TODO" + "\t|\t" + next.Description);
             }

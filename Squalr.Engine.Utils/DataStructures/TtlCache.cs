@@ -34,8 +34,13 @@
             this.cache.Clear();
         }
 
-        public void Add(V value)
+        public virtual void Add(V value)
         {
+            if (value == null)
+            {
+                return;
+            }
+
             if (this.RandomTimeToLiveOffset != null)
             {
                 Int32 maximumOffset = (Int32)this.RandomTimeToLiveOffset.TotalMilliseconds;
@@ -50,8 +55,13 @@
             }
         }
 
-        public void Add(V value, TimeSpan timeToLive)
+        public virtual void Add(V value, TimeSpan timeToLive)
         {
+            if (value == null)
+            {
+                return;
+            }
+
             DateTime expireTime = timeToLive == TimeSpan.MaxValue ? DateTime.MaxValue : DateTime.Now + timeToLive;
 
             this.cache.AddOrUpdate(value, expireTime, (key, ttl) => { return ttl; });
@@ -59,6 +69,11 @@
 
         public Boolean Contains(V value)
         {
+            if (value == null)
+            {
+                return false;
+            }
+
             if (this.cache.ContainsKey(value))
             {
                 DateTime result;
@@ -166,5 +181,47 @@
         }
     }
     //// End class
+    
+    public class SingleItemTtlCache<V> : TtlCache<V>
+    {
+        private V cachedValue;
+
+        public SingleItemTtlCache()
+        {
+        }
+
+        public SingleItemTtlCache(TimeSpan defaultTimeToLive) : base(defaultTimeToLive)
+        {
+        }
+
+        public SingleItemTtlCache(TimeSpan defaultTimeToLive, TimeSpan randomTimeToLiveOffset) : base(defaultTimeToLive, randomTimeToLiveOffset)
+        {
+        }
+
+        public override void Add(V value)
+        {
+            this.Invalidate();
+            cachedValue = value;
+            base.Add(value);
+        }
+
+        public override void Add(V value, TimeSpan timeToLive)
+        {
+            this.Invalidate();
+            cachedValue = value;
+            base.Add(value, timeToLive);
+        }
+
+        public bool HasValue()
+        {
+            return base.Contains(cachedValue);
+        }
+
+        public V GetValue()
+        {
+            return cachedValue;
+        }
+
+    } //// End class
 }
 //// End namespace

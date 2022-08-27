@@ -2,7 +2,6 @@
 {
     using CommandLine;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -19,18 +18,20 @@
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, DataTypeBase.Int32),
+                SessionManager.Session.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
                 TrackableTask.UniversalIdentifier);
 
             // Recollect values
             TrackableTask<Snapshot> valueRecollectorTask = ValueCollector.CollectValues(
+                SessionManager.Session.OpenedProcess,
                 valueCollectorTask.Result,
                 TrackableTask.UniversalIdentifier);
 
             // Scan for any changed values
             TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
                 valueRecollectorTask.Result,
-                new ScanConstraint(ScanConstraint.ConstraintType.Changed, DataTypeBase.Int32),
+                new ScanConstraints(ScannableType.Byte, new ScanConstraint(ScanConstraint.ConstraintType.Changed)),
                 TrackableTask.UniversalIdentifier);
 
             Random random = new Random();
@@ -38,11 +39,11 @@
             // Start overwriting any memory that changed with 0s
             foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
             {
-                for (Int32 index = 0; index < region.ElementCount; index++)
+                for (Int32 index = 0; index < region.GetElementCount(ScannableType.Byte.Size); index++)
                 {
                     if (random.NextDouble() <= Intensity)
                     {
-                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].BaseAddress, 0);
+                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].GetBaseAddress(ScannableType.Byte.Size), 0);
                     }
                 }
             }

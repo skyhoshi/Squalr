@@ -226,6 +226,10 @@
         [DllImport("ntdll.dll", SetLastError = true)]
         public static extern Int32 NtQueryInformationProcess(IntPtr processHandle, ProcessInformationClass processInformationClass, ref ProcessBasicInformation processInformation, Int32 processInformationLength, out Int32 returnLength);
 
+        [DllImport("psapi.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool QueryWorkingSetEx(IntPtr hProcess, [In, Out] MemoryWorkingSetExInformation[] pv, int cb);
+
         /// <summary>
         /// Writes data to an area of memory in a specified process. The entire area to be written to must be accessible or the operation fails.
         /// </summary>

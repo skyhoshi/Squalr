@@ -145,6 +145,44 @@
             return this.accessCancellationToken;
         }
 
+        public void PauseExecution()
+        {
+            this.BeginInterrupt();
+        }
+
+        public void ResumeExecution()
+        {
+            this.EndInterrupt();
+        }
+
+        public void WriteRegister(UInt32 registerId, UInt64 value)
+        {
+            DEBUG_VALUE inValue = new DEBUG_VALUE
+            {
+                I64 = value
+            };
+            
+            Registers.SetValue(registerId, inValue);
+        }
+
+        public UInt64 ReadRegister(UInt32 registerId)
+        {
+            DEBUG_VALUE outValue;
+
+            Registers.GetValue(registerId, out outValue);
+            return outValue.I64;
+        }
+
+        public void WriteInstructionPointer(UInt64 value)
+        {
+
+        }
+
+        public UInt64 ReadInstructionPointer()
+        {
+            return 0;
+        }
+
         public void Attach()
         {
             // Exit if already attached, or debug request fails

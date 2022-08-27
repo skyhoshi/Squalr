@@ -1,11 +1,11 @@
 ﻿namespace Squalr.Engine.Memory.Windows
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory.Windows.Native;
     using Squalr.Engine.Processes;
     using System;
+    using System.Buffers.Binary;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -31,41 +31,68 @@
         /// <param name="address">The address where the value is read.</param>
         /// <param name="success">Whether or not the read succeeded.</param>
         /// <returns>A value.</returns>
-        public Object Read(Process process, DataTypeBase dataType, UInt64 address, out Boolean success)
+        public Object Read(Process process, ScannableType dataType, UInt64 address, out Boolean success)
         {
             Object value;
 
             switch (dataType)
             {
-                case DataTypeBase type when type == DataTypeBase.Byte:
+                case ScannableType type when type == ScannableType.Byte:
                     value = this.Read<Byte>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     value = this.Read<SByte>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int16:
+                case ScannableType type when type == ScannableType.Int16:
                     value = this.Read<Int16>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int32:
+                case ScannableType type when type == ScannableType.Int32:
                     value = this.Read<Int32>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Int64:
+                case ScannableType type when type == ScannableType.Int64:
                     value = this.Read<Int64>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt16:
+                case ScannableType type when type == ScannableType.UInt16:
                     value = this.Read<UInt16>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt32:
+                case ScannableType type when type == ScannableType.UInt32:
                     value = this.Read<UInt32>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.UInt64:
+                case ScannableType type when type == ScannableType.UInt64:
                     value = this.Read<UInt64>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Single:
+                case ScannableType type when type == ScannableType.Single:
                     value = this.Read<Single>(process, address, out success);
                     break;
-                case DataTypeBase type when type == DataTypeBase.Double:
+                case ScannableType type when type == ScannableType.Double:
                     value = this.Read<Double>(process, address, out success);
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<Int16>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<Int32>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<Int64>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<UInt16>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<UInt32>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
+                    value = BinaryPrimitives.ReverseEndianness(this.Read<UInt64>(process, address, out success));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
+                    value = BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(this.Read<Int32>(process, address, out success)));
+                    break;
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
+                    value = BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(this.Read<Int64>(process, address, out success)));
+                    break;
+                case ByteArrayType type:
+                    value = this.ReadBytes(process, address, type.Length, out success);
                     break;
                 default:
                     value = "?";

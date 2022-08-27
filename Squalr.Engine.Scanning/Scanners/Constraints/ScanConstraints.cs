@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
 
@@ -23,7 +23,7 @@
         /// <summary>
         /// Gets the element type of this constraint manager.
         /// </summary>
-        public DataTypeBase ElementType { get; private set; }
+        public ScannableType ElementType { get; private set; }
 
         /// <summary>
         /// Gets the root constraint for this scan constraint set. Usually, this is just a single scan constraint like "> 5".
@@ -34,7 +34,7 @@
         /// Sets the element type to which all constraints apply.
         /// </summary>
         /// <param name="elementType">The new element type.</param>
-        public override void SetElementType(DataTypeBase elementType)
+        public override void SetElementType(ScannableType elementType)
         {
             this.ElementType = elementType;
             this.RootConstraint?.SetElementType(elementType);

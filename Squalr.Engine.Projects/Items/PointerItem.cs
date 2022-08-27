@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Processes;
@@ -43,7 +42,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public PointerItem(ProcessSession processSession) : this(processSession, 0, DataTypeBase.Int32, "New Address")
+        public PointerItem(ProcessSession processSession) : this(processSession, 0, ScannableType.Int32, "New Address")
         {
         }
 
@@ -160,7 +159,7 @@
                     }
                     else
                     {
-                        return this.ModuleName + "-" + Conversions.ParsePrimitiveAsHexString(DataTypeBase.UInt64, this.ModuleOffset, signHex: true).TrimStart('-');
+                        return this.ModuleName + "-" + Conversions.ParsePrimitiveAsHexString(ScannableType.UInt64, this.ModuleOffset, signHex: true).TrimStart('-');
                     }
                 }
                 else if (this.IsPointer)

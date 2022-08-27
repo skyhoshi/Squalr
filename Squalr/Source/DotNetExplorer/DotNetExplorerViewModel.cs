@@ -2,7 +2,7 @@
 {
     using Engine.AddressResolver.DotNet;
     using GalaSoft.MvvmLight.Command;
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Memory.Clr;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Docking;
@@ -104,7 +104,7 @@
             DotNetItem dotnetItem = new DotNetItem(
                 SessionManager.Session,
                 dotNetObject.Name,
-                dotNetObject.ElementType == DataTypeBase.Boolean ? DataTypeBase.Byte : dotNetObject.ElementType,
+                dotNetObject.ElementType == ScannableType.Boolean ? ScannableType.Byte : dotNetObject.ElementType,
                 dotNetObject.GetFullName());
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(dotnetItem);

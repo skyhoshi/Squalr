@@ -2,6 +2,7 @@
 {
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
     using Squalr.Source.Updater;
@@ -33,15 +34,13 @@
 
             ApplicationUpdater.UpdateApp();
 
-            Squalr.Engine.Projects.Compiler.Compile(true);
-
             if (Vectors.HasVectorSupport)
             {
                 Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count + ")");
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
-
+            
             // this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
         }
 

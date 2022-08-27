@@ -13,6 +13,10 @@
     using System.Threading.Tasks;
     using System.Windows.Input;
     using Squalr.Engine;
+    using Squalr.Source.Tasks;
+    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Scanning;
 
     /// <summary>
     /// View model for the Process Selector.
@@ -27,11 +31,6 @@
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
         /// <summary>
-        /// A dummy process that detaches from the target process when selected.
-        /// </summary>
-        private Process detachProcess;
-
-        /// <summary>
         /// The list of running processes.
         /// </summary>
         private IEnumerable<Process> processList;
@@ -44,7 +43,6 @@
             this.IconSource = Images.SelectProcess;
             this.RefreshProcessListCommand = new RelayCommand(() => Task.Run(() => this.RefreshProcessList()), () => true);
             this.SelectProcessCommand = new RelayCommand<Process>((process) => Task.Run(() => this.SelectProcess(process)), (process) => true);
-            this.detachProcess = null;
 
             this.StartAutomaticProcessListRefresh();
 
@@ -90,7 +88,7 @@
                 ProcessList.First().GetIcon();
                 // Create a process list with the selected process at the top, and a detach option as the 2nd element
                 return this.ProcessList?.Where(process => process.HasWindow() && (process?.Id ?? 0) != (this.SelectedProcess?.Id ?? 0)).Select(process => process)
-                    .PrependIfNotNull(this.SelectedProcess != null ? this.DetachProcess : null)
+                    .PrependIfNotNull(this.SelectedProcess == null ? null : DetachProcess.Instance)
                     .PrependIfNotNull(this.SelectedProcess)
                     .Distinct();
             }
@@ -108,37 +106,31 @@
 
             set
             {
-                if (value == this.DetachProcess)
-                {
-                    if (SessionManager.Session != null)
-                    {
-                        SessionManager.Session.OpenedProcess = null;
-                        this.RaisePropertyChanged(nameof(this.WindowedProcessList));
-                    }
-                }
-                else if (value != this.SelectedProcess)
+                if (value != this.SelectedProcess)
                 {
                     SessionManager.Session.OpenedProcess = value;
                     this.RaisePropertyChanged(nameof(this.SelectedProcess));
                     this.RaisePropertyChanged(nameof(this.WindowedProcessList));
+
+                    if (SessionManager.Session.OpenedProcess != null)
+                    {
+                        if (ScanSettings.EmulatorType == EmulatorType.Auto)
+                        {
+                            TrackableTask<EmulatorType> emulatorDector = EmulatorDetector.DetectEmulator(value);
+
+                            emulatorDector.OnCompletedEvent += (completedTask) =>
+                            {
+                                SessionManager.Session.DetectedEmulator = emulatorDector.Result;
+                            };
+
+                            TaskTrackerViewModel.GetInstance().TrackTask(emulatorDector);
+                        }
+                        else
+                        {
+                            SessionManager.Session.DetectedEmulator = ScanSettings.EmulatorType;
+                        }
+                    }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a dummy process that detaches from the target process when selected.
-        /// </summary>
-        public Process DetachProcess
-        {
-            get
-            {
-                return this.detachProcess;
-            }
-
-            set
-            {
-                this.detachProcess = value;
-                this.RaisePropertyChanged(nameof(this.DetachProcess));
             }
         }
 

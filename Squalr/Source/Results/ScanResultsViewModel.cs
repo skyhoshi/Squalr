@@ -1,10 +1,8 @@
 ﻿namespace Squalr.Source.Results
 {
     using GalaSoft.MvvmLight.Command;
-    using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Projects.Items;
@@ -41,7 +39,7 @@
         /// <summary>
         /// The active data type for the scan results.
         /// </summary>
-        private Type activeType;
+        private ScannableType activeType;
 
         /// <summary>
         /// The current page of scan results.
@@ -74,7 +72,7 @@
         private ScanResultsViewModel() : base("Scan Results")
         {
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
-            this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => this.ChangeType(type), (type) => true);
+            this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => this.ChangeType(type), (type) => true);
             this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
             this.FirstPageCommand = new RelayCommand(() => Task.Run(() => this.FirstPage()), () => true);
             this.LastPageCommand = new RelayCommand(() => Task.Run(() => this.LastPage()), () => true);
@@ -83,7 +81,7 @@
             this.AddScanResultCommand = new RelayCommand<ScanResult>((scanResult) => this.AddScanResult(scanResult), (scanResult) => true);
             this.AddScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.AddScanResults(this.SelectedScanResults), (selectedItems) => true);
 
-            this.ActiveType = DataTypeBase.Int32;
+            this.ActiveType = ScannableType.Int32;
             this.addresses = new FullyObservableCollection<ScanResult>();
 
             SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
@@ -162,7 +160,7 @@
         /// <summary>
         /// Gets or sets the active scan results data type.
         /// </summary>
-        public DataTypeBase ActiveType
+        public ScannableType ActiveType
         {
             get
             {
@@ -174,7 +172,21 @@
                 this.activeType = value;
 
                 // Update data type of addresses
-                this.Addresses?.ToArray().ForEach(address => address.PointerItem.DataType = this.ActiveType);
+                this.Addresses?.ForEach(scanResult =>
+                {
+                    switch (scanResult?.ProjectItemView)
+                    {
+                        case PointerItemView view:
+                            view.DataType = this.ActiveType;
+                            break;
+                        case DolphinItemView view:
+                            view.DataType = this.ActiveType;
+                            break;
+                        default:
+                            break;
+                    }
+                });
+
 
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
@@ -357,7 +369,7 @@
                     {
                         foreach (ScanResult result in scanResults)
                         {
-                            result?.PointerItem?.ProjectItem.Update();
+                            result?.ProjectItemView?.ProjectItem.Update();
                         }
                     }
 
@@ -371,7 +383,7 @@
         /// </summary>
         private void EditValue(ScanResult scanResult)
         {
-            ValueEditorViewModel.GetInstance().ShowDialog(scanResult?.PointerItem?.ProjectItem as PointerItem);
+            ValueEditorViewModel.GetInstance().ShowDialog(scanResult?.ProjectItemView?.ProjectItem as PointerItem);
         }
 
         /// <summary>
@@ -386,6 +398,7 @@
             {
                 UInt64 startIndex = Math.Min(ScanResultsViewModel.PageSize * this.CurrentPage, snapshot.ElementCount);
                 UInt64 endIndex = Math.Min((ScanResultsViewModel.PageSize * this.CurrentPage) + ScanResultsViewModel.PageSize, snapshot.ElementCount);
+                EmulatorType emulatorType = SessionManager.Session.DetectedEmulator;
 
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
@@ -394,12 +407,25 @@
                     String label = element.GetElementLabel() != null ? element.GetElementLabel().ToString() : String.Empty;
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
+                    UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
 
-                    String moduleName = String.Empty;
-                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, element.GetBaseAddress(this.ActiveType.Size), out moduleName);
+                    switch (emulatorType)
+                    {
+                        case EmulatorType.None:
+                        default:
+                            string moduleName;
+                            address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, address, out moduleName);
 
-                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
-                    newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
+                            PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
+                            newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
+                            break;
+                        case EmulatorType.Dolphin:
+                            address = MemoryQueryer.Instance.RealAddressToEmulatorAddress(SessionManager.Session.OpenedProcess, address, emulatorType);
+
+                            DolphinAddressItem dolphinItem = new DolphinAddressItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, value: currentValue);
+                            newAddresses.Add(new ScanResult(new DolphinItemView(dolphinItem), previousValue, label));
+                            break;
+                    }
                 }
             }
 
@@ -415,7 +441,7 @@
         /// Changes the active scan results type.
         /// </summary>
         /// <param name="newType">The new scan results type.</param>
-        private void ChangeType(DataTypeBase newType)
+        private void ChangeType(ScannableType newType)
         {
             this.ActiveType = newType;
         }
@@ -458,7 +484,7 @@
         /// <param name="scanResult">The scan result to add to the project explorer.</param>
         private void AddScanResult(ScanResult scanResult)
         {
-            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.PointerItem?.ProjectItem);
+            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.ProjectItemView?.ProjectItem?.Clone());
         }
 
         /// <summary>
@@ -472,7 +498,7 @@
                 return;
             }
 
-            IEnumerable<PointerItem> projectItems = scanResults.Select(scanResult => scanResult.PointerItem?.ProjectItem as PointerItem);
+            IEnumerable<ProjectItem> projectItems = scanResults.Select(scanResult => scanResult.ProjectItemView?.ProjectItem?.Clone());
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }

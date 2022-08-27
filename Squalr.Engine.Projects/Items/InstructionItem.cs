@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Processes;
     using System;
@@ -53,7 +52,7 @@
         {
         }
 
-        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(processSession, DataTypeBase.ByteArray, "New Instruction")
+        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(processSession, ScannableType.NullByteArray, "New Instruction")
         {
             this.ModuleOffset = BaseAddress;
             this.ModuleName = moduleName;
@@ -162,7 +161,7 @@
         /// <summary>
         /// Gets or sets a value indicating whether the value at this address should be displayed as hex.
         /// </summary>
-        public override DataTypeBase DataType
+        public override ScannableType DataType
         {
             get
             {

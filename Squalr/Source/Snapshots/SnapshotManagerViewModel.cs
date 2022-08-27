@@ -5,6 +5,7 @@
     using Squalr.Source.Docking;
     using System;
     using System.Collections.Generic;
+    using System.Media;
     using System.Threading;
     using System.Windows.Input;
 
@@ -31,6 +32,7 @@
             this.RedoSnapshotCommand = new RelayCommand(() => SessionManager.Session?.SnapshotManager?.RedoSnapshot(), () => true);
 
             SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
+            SessionManager.Session.SnapshotManager.OnNewSnapshotEvent += NewSnapshotEvent;
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
@@ -39,6 +41,11 @@
         {
             this.RaisePropertyChanged(nameof(this.Snapshots));
             this.RaisePropertyChanged(nameof(this.DeletedSnapshots));
+        }
+
+        private void NewSnapshotEvent(SnapshotManager snapshotManager)
+        {
+            SystemSounds.Exclamation.Play();
         }
 
         /// <summary>

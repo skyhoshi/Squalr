@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+
     /// <summary>
     /// Interface to provide access to memory manipulations in an external process.
     /// </summary>

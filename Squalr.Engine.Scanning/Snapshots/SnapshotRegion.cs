@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
@@ -11,6 +11,16 @@
     /// </summary>
     public class SnapshotRegion
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
+        /// </summary>
+        /// <param name="readGroup">The read group of this snapshot region.</param>
+        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
+        /// <param name="regionSize">The size of this snapshot region.</param>
+        public SnapshotRegion(ReadGroup readGroup) : this(readGroup, 0, readGroup?.RegionSize ?? 0)
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
         /// </summary>
@@ -109,7 +119,7 @@
         /// <param name="pointerIncrementMode">The method for incrementing pointers.</param>
         /// <param name="constraints">The constraint to use for element comparisons.</param>
         /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementComparer> IterateComparer(SnapshotElementComparer.PointerIncrementMode pointerIncrementMode, Constraint constraints, DataTypeBase dataType)
+        public IEnumerator<SnapshotElementComparer> IterateComparer(SnapshotElementComparer.PointerIncrementMode pointerIncrementMode, Constraint constraints, ScannableType dataType)
         {
             Int32 elementCount = this.GetElementCount(dataType.Size);
             SnapshotElementComparer snapshotElement = new SnapshotElementComparer(region: this, pointerIncrementMode: pointerIncrementMode, constraints: constraints, dataType: dataType);

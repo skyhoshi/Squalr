@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -31,6 +32,14 @@
         /// </summary>
         /// <returns>A collection of regions in the process.</returns>
         IEnumerable<NormalizedRegion> GetAllVirtualPages(Process process);
+
+        /// <summary>
+        /// Gets a value indicating whether an address is writable.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        bool IsAddressWritable(Process process, UInt64 address);
 
         /// <summary>
         /// Gets the maximum address possible in the target process.
@@ -82,6 +91,30 @@
         /// <param name="identifier">The module identifier, or name.</param>
         /// <returns>The base address of the module.</returns>
         UInt64 ResolveModule(Process process, String identifier);
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType);
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="realAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType);
+
+        /// <summary>
+        /// Gets all virtual pages for the target emulator in the opened process.
+        /// </summary>
+        /// <returns>A collection of regions in the process.</returns>
+        IEnumerable<NormalizedRegion> GetEmulatorVirtualPages(Process process, EmulatorType emulatorType);
     }
     //// End interface
 }

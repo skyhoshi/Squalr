@@ -4,6 +4,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
     using Squalr.Properties;
     using Squalr.Source.Docking;
@@ -19,6 +20,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows.Forms;
     using System.Windows.Input;
 
     public class ProjectExplorerViewModel : ToolViewModel
@@ -49,7 +51,7 @@
             this.OpenFileExplorerCommand = new RelayCommand<ProjectItemView>((projectItem) => this.OpenFileExplorer(projectItem), (projectItem) => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
-            this.Update();
+            this.RunUpdateLoop();
         }
 
         /// <summary>
@@ -169,7 +171,6 @@
             {
                 this.selectedProjectItem = value;
                 this.RaisePropertyChanged(nameof(this.SelectedProjectItem));
-                PropertyViewerViewModel.GetInstance().SetTargetObjects(value);
             }
         }
 
@@ -184,7 +185,7 @@
         /// <summary>
         /// Runs the update loop, updating all scan results.
         /// </summary>
-        public void Update()
+        public void RunUpdateLoop()
         {
             Task.Run(() =>
             {
@@ -194,6 +195,7 @@
 
                     projectRoot?.Update();
 
+                    // TODO: Probably get this from user settings and clamp it
                     Thread.Sleep(50);
                 }
             });
@@ -206,7 +208,6 @@
         {
             try
             {
-                /*
                 using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
                 {
                     folderBrowserDialog.SelectedPath = SettingsViewModel.GetInstance().ProjectRoot;
@@ -216,6 +217,8 @@
                         if (Directory.Exists(folderBrowserDialog.SelectedPath))
                         {
                             SettingsViewModel.GetInstance().ProjectRoot = folderBrowserDialog.SelectedPath;
+                            SessionManager.Project = null;
+                            this.ProjectRoot = null;
                         }
                     }
                     else
@@ -223,12 +226,10 @@
                         throw new Exception("Folder not found");
                     }
                 }
-                */
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Unable to open project", ex);
-                return;
             }
         }
 
@@ -262,8 +263,10 @@
                 throw new Exception("Folder not found");
             }
 
+            SessionManager.Project = new Project(projectPath);
+
             // Create project root folder (initialize expanded for better UX)
-            DirectoryItemView projectRootFolder = new DirectoryItemView(new DirectoryItem(projectPath))
+            DirectoryItemView projectRootFolder = new DirectoryItemView(SessionManager.Project)
             {
                 IsExpanded = true
             };

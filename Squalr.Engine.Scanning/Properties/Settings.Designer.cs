@@ -12,7 +12,7 @@ namespace Squalr.Engine.Scanning.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -241,13 +241,25 @@ namespace Squalr.Engine.Scanning.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Squalr.Engine.Common.DataTypes.DataTypeBase.Int32")]
-        public global::Squalr.Engine.Common.DataTypes.DataTypeBase DataType {
+        [global::System.Configuration.DefaultSettingValueAttribute("Squalr.Engine.Common.ScannableType.Int32")]
+        public global::Squalr.Engine.Common.ScannableType DataType {
             get {
-                return ((global::Squalr.Engine.Common.DataTypes.DataTypeBase)(this["DataType"]));
+                return ((global::Squalr.Engine.Common.ScannableType)(this["DataType"]));
             }
             set {
                 this["DataType"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int EmulatorType {
+            get {
+                return ((int)(this["EmulatorType"]));
+            }
+            set {
+                this["EmulatorType"] = value;
             }
         }
     }

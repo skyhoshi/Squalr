@@ -1,10 +1,9 @@
 ﻿namespace Squalr.Properties
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
-    using Squalr.Engine.Projects.Properties;
     using Squalr.Engine.Scanning;
-    using Squalr.Engine.Scanning.Properties;
     using Squalr.Source.Docking;
     using System;
     using System.ComponentModel;
@@ -411,6 +410,63 @@
             {
                 ScanSettings.EndAddress = value;
                 this.RaisePropertyChanged(nameof(this.EndAddress));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not emulators are automatically detected.
+        /// </summary>
+        public Boolean IsEmulatorTypeAuto
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.Auto;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.Auto;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not emulators are disabled.
+        /// </summary>
+        public Boolean IsEmulatorTypeNone
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.None;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.None;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the target process is a Dolphin emulator.
+        /// </summary>
+        public Boolean IsEmulatorTypeDolphin
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.Dolphin;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.Dolphin;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
             }
         }
 

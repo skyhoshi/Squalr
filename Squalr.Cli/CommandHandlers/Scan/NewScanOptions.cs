@@ -2,7 +2,6 @@
 {
     using CommandLine;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Scanning;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Snapshots;
@@ -21,69 +20,69 @@
             switch(this.DataTypeString.ToLower())
             {
                 case "aob":
-                    ScanSettings.DataType = DataTypeBase.ByteArray;
+                    ScanSettings.DataType = ScannableType.NullByteArray;
                     break;
                 case "bool":
-                    ScanSettings.DataType = DataTypeBase.Boolean;
+                    ScanSettings.DataType = ScannableType.Boolean;
                     break;
                 case "sbyte":
-                    ScanSettings.DataType = DataTypeBase.SByte;
+                    ScanSettings.DataType = ScannableType.SByte;
                     break;
                 case "i16":
                 case "short":
                 case "int16":
-                    ScanSettings.DataType = DataTypeBase.Int16;
+                    ScanSettings.DataType = ScannableType.Int16;
                     break;
                 case "i":
                 case "int":
                 case "int32":
-                    ScanSettings.DataType = DataTypeBase.Int32;
+                    ScanSettings.DataType = ScannableType.Int32;
                     break;
                 case "l":
                 case "i64":
                 case "long":
                 case "int64":
-                    ScanSettings.DataType = DataTypeBase.Int64;
+                    ScanSettings.DataType = ScannableType.Int64;
                     break;
                 case "b":
                 case "byte":
-                    ScanSettings.DataType = DataTypeBase.Byte;
+                    ScanSettings.DataType = ScannableType.Byte;
                     break;
                 case "ui16":
                 case "ushort":
                 case "uint16":
-                    ScanSettings.DataType = DataTypeBase.Byte;
+                    ScanSettings.DataType = ScannableType.Byte;
                     break;
                 case "ui32":
                 case "uint":
                 case "uint32":
-                    ScanSettings.DataType = DataTypeBase.UInt32;
+                    ScanSettings.DataType = ScannableType.UInt32;
                     break;
                 case "ui64":
                 case "ul":
                 case "ulong":
                 case "uint64":
-                    ScanSettings.DataType = DataTypeBase.UInt64;
+                    ScanSettings.DataType = ScannableType.UInt64;
                     break;
                 case "f":
                 case "float":
                 case "single":
-                    ScanSettings.DataType = DataTypeBase.Single;
+                    ScanSettings.DataType = ScannableType.Single;
                     break;
                 case "d":
                 case "double":
-                    ScanSettings.DataType = DataTypeBase.Double;
+                    ScanSettings.DataType = ScannableType.Double;
                     break;
                 case "str":
                 case "string":
-                    ScanSettings.DataType = DataTypeBase.String;
+                    ScanSettings.DataType = ScannableType.String;
                     break;
                 case "char":
-                    ScanSettings.DataType = DataTypeBase.Char;
+                    ScanSettings.DataType = ScannableType.Char;
                     break;
                 default:
                     Console.WriteLine("Unknown data type '" + this.DataTypeString + "', defaulting to int");
-                    ScanSettings.DataType = DataTypeBase.Int32;
+                    ScanSettings.DataType = ScannableType.Int32;
                     break;
             }
 
@@ -93,7 +92,8 @@
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
-                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, ScanSettings.DataType),
+                SessionManager.Session.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
                 TrackableTask.UniversalIdentifier);
 
             valueCollectorTask.OnCompletedEvent += ((completedValueCollectionTask) =>

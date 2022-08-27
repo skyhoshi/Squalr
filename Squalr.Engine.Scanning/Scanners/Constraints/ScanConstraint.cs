@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
 
@@ -127,17 +127,48 @@
             }
         }
 
-        public override void SetElementType(DataTypeBase elementType)
+        public override void SetElementType(ScannableType elementType)
         {
             if (this.ConstraintValue == null)
             {
                 return;
             }
 
+            Type targetType = elementType.Type;
+
+            // If we're scanning for big endian types, we can just store the normal value. The engine will take care of this later.
+            switch (elementType)
+            {
+                case ScannableType type when type == ScannableType.Int16BE:
+                    targetType = ScannableType.Int16.Type;
+                    break;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    targetType = ScannableType.Int32.Type;
+                    break;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    targetType = ScannableType.Int64.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    targetType = ScannableType.UInt16.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    targetType = ScannableType.UInt32.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    targetType = ScannableType.UInt64.Type;
+                    break;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    targetType = ScannableType.Single.Type;
+                    break;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    targetType = ScannableType.Double.Type;
+                    break;
+            }
+
             try
             {
                 // Attempt to cast the value to the new type.
-                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, elementType.Type);
+                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, targetType);
             }
             catch
             {
