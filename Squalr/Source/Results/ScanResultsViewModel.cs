@@ -484,7 +484,7 @@
         /// <param name="scanResult">The scan result to add to the project explorer.</param>
         private void AddScanResult(ScanResult scanResult)
         {
-            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.ProjectItemView?.ProjectItem?.Clone());
+            ProjectExplorerViewModel.GetInstance().AddProjectItems(scanResult?.ProjectItemView?.ProjectItem?.Clone(true));
         }
 
         /// <summary>
@@ -498,7 +498,7 @@
                 return;
             }
 
-            IEnumerable<ProjectItem> projectItems = scanResults.Select(scanResult => scanResult.ProjectItemView?.ProjectItem?.Clone());
+            IEnumerable<ProjectItem> projectItems = scanResults.Select(scanResult => scanResult.ProjectItemView?.ProjectItem?.Clone(true));
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }

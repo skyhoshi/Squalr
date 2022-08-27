@@ -452,7 +452,7 @@
             {
                 if (projectItemView != null)
                 {
-                    projectItemView.ProjectItem.Parent.RemoveChild(projectItemView.ProjectItem);
+                    projectItemView?.ProjectItem?.Parent?.DeleteChild(projectItemView?.ProjectItem);
                 }
             }
 
@@ -483,7 +483,7 @@
             {
                 foreach (ProjectItemView next in this.ClipBoard)
                 {
-                    directoryItemView.AddChild(next?.ProjectItem?.Clone());
+                    directoryItemView.AddChild(next?.ProjectItem?.Clone(true));
                 }
             }
         }

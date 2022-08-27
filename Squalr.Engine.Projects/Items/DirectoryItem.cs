@@ -23,6 +23,11 @@
         private Dictionary<String, ProjectItem> childItems;
 
         /// <summary>
+        /// A lock for accessing the <see cref="childItems"/> map.
+        /// </summary>
+        private Object itemsLock = new Object();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="DirectoryItem" /> class.
         /// </summary>
         public DirectoryItem(String directoryPath, DirectoryItem parent) : base(directoryPath)
@@ -94,9 +99,12 @@
         /// </summary>
         public override void Update()
         {
-            foreach (KeyValuePair<String, ProjectItem> child in this.ChildItems)
+            lock(this.itemsLock)
             {
-                child.Value?.Update();
+                foreach (KeyValuePair<String, ProjectItem> child in this.ChildItems)
+                {
+                    child.Value?.Update();
+                }
             }
         }
 
@@ -135,8 +143,8 @@
         {
             try
             {
+                // File watcher should automatically pick up the change and add it as intended
                 projectItem.Parent = this;
-                this.ChildItems.Add(projectItem.FullPath, projectItem);
                 projectItem.Save();
             }
             catch (Exception ex)
@@ -149,14 +157,17 @@
         /// Removes the specified project item from this directory.
         /// </summary>
         /// <param name="projectItem">The project item to remove.</param>
-        public void RemoveChild(ProjectItem projectItem)
+        public void DeleteChild(ProjectItem projectItem)
         {
+            if (projectItem == null)
+            {
+                return;
+            }
+
             try
             {
                 if (this.ChildItems.ContainsKey(projectItem.FullPath))
                 {
-                    projectItem.Parent = null;
-                    
                     if (projectItem is DirectoryItem)
                     {
                         Directory.Delete(projectItem.FullPath, recursive: true);
@@ -178,7 +189,10 @@
         /// </summary>
         private void LoadAllChildProjectItems()
         {
-            this.childItems?.Clear();
+            lock (this.itemsLock)
+            {
+                this.childItems?.Clear();
+            }
 
             try
             {
@@ -238,7 +252,11 @@
 
                     if (childDirectory != null)
                     {
-                        this.childItems?.Add(childDirectory.FullPath, childDirectory);
+                        lock (this.itemsLock)
+                        {
+                            this.childItems?.Add(childDirectory.FullPath, childDirectory);
+                        }
+
                         this.ProjectItemAddedEvent?.Invoke(childDirectory);
                     }
 
@@ -257,7 +275,11 @@
 
                     if (projectItem != null)
                     {
-                        this.childItems?.Add(projectItem.FullPath, projectItem);
+                        lock (this.itemsLock)
+                        {
+                            this.childItems?.Add(projectItem.FullPath, projectItem);
+                        }
+
                         this.ProjectItemAddedEvent?.Invoke(projectItem);
 
                         return projectItem;
@@ -275,14 +297,17 @@
 
         private void RemoveProjectItem(String projectItemPath)
         {
-            if (this.ChildItems.ContainsKey(projectItemPath))
+            lock (this.itemsLock)
             {
-                ProjectItem deletedProjectItem = this.ChildItems[projectItemPath];
-                if (deletedProjectItem != null)
+                if (this.ChildItems.ContainsKey(projectItemPath))
                 {
-                    deletedProjectItem.Parent = null;
-                    this.ChildItems?.Remove(projectItemPath);
-                    this.ProjectItemDeletedEvent?.Invoke(deletedProjectItem);
+                    ProjectItem deletedProjectItem = this.ChildItems[projectItemPath];
+                    if (deletedProjectItem != null)
+                    {
+                        deletedProjectItem.Parent = null;
+                        this.ChildItems?.Remove(projectItemPath);
+                        this.ProjectItemDeletedEvent?.Invoke(deletedProjectItem);
+                    }
                 }
             }
         }
@@ -333,7 +358,14 @@
             switch (args.ChangeType)
             {
                 case WatcherChangeTypes.Created:
-                    this.LoadProjectItem(args.FullPath);
+                    if (!this.childItems.ContainsKey(args.FullPath))
+                    {
+                        this.LoadProjectItem(args.FullPath);
+                    }
+                    else
+                    {
+                        // TODO: Reread data from disc?
+                    }
                     break;
                 case WatcherChangeTypes.Deleted:
                     this.RemoveProjectItem(args.FullPath);

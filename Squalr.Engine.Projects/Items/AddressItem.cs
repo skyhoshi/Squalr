@@ -205,9 +205,9 @@
             }
         }
 
-        public override ProjectItem Clone()
+        public override ProjectItem Clone(bool rename)
         {
-            ProjectItem clone = base.Clone();
+            ProjectItem clone = base.Clone(rename);
 
             (clone as AddressItem).processSession = this.processSession;
 

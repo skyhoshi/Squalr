@@ -83,7 +83,7 @@
                     throw new Exception("File does not exist: " + filePath);
                 }
 
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     Type type = null;
 
@@ -133,7 +133,7 @@
         {
             try
             {
-                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write))
+                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write, FileShare.Read))
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(this.GetType());
                     serializer.WriteObject(fileStream, this);
@@ -150,6 +150,7 @@
         {
             if (!this.HasAssociatedFileOrFilder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
             {
+                this.name = newName;
                 return;
             }
 
@@ -390,7 +391,7 @@
         /// Clones the project item.
         /// </summary>
         /// <returns>The clone of the project item.</returns>
-        public virtual ProjectItem Clone()
+        public virtual ProjectItem Clone(bool rename)
         {
             // Serialize this project item to a byte array
             using (MemoryStream serializeMemoryStream = new MemoryStream())
@@ -402,6 +403,11 @@
                 using (MemoryStream deserializeMemoryStream = new MemoryStream(serializeMemoryStream.ToArray()))
                 {
                     ProjectItem result = serializer.ReadObject(deserializeMemoryStream) as ProjectItem;
+
+                    if (rename)
+                    {
+                        result.Name = this.MakeNameUnique(this.Name);
+                    }
 
                     return result;
                 }

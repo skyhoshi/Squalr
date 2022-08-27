@@ -101,7 +101,7 @@
 
         public void RemoveChild(ProjectItem projectItem)
         {
-            this.DirectoryItem?.RemoveChild(projectItem);
+            this.DirectoryItem?.DeleteChild(projectItem);
             this.RaisePropertyChanged(nameof(this.ChildItems));
         }
 
