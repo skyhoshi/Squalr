@@ -52,56 +52,237 @@
             Foreground="{StaticResource SqualrColorWhite}">
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewScriptItemCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Add New Script"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.Script}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Script" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewAddressItemCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Add New Address"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.CollectValues}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewAddressItemCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Add New Pointer"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.CollectValues}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Emulator Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewInstructionItemCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Add New Instruction"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.CollectValues}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Instruction" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.ToggleSelectionActivationCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Toggle Selection"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Toggle Selection" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
             <MenuItem
                 Command="{Binding PointerScannerViewModel.PointerScanCommand, Source={StaticResource ViewModelLocator}}"
-                Header="Pointer Scan for this Address"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.LetterP}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Pointer Scan for this Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator Visibility="{Binding ProjectExplorerViewModel.IsSelectionAddress, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatWritesCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Header="Find Code that Writes to this Address"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.Cpu}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Find Code that Writes to this Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatReadsCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Header="Find Code that Reads from this Address"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.Cpu}"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Find Code that Reads from this Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatAccessesCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Header="Find Code that Reads or Writes to this Address"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.Cpu}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Find Code that Reads or Writes to this Address" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator />
-            <MenuItem Command="{Binding ProjectExplorerViewModel.DeleteSelectionCommand, Source={StaticResource ViewModelLocator}}" Header="Delete Selection" />
+            <MenuItem Command="{Binding ProjectExplorerViewModel.DeleteSelectionCommand, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Delete Selection"/>
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator />
-            <MenuItem Command="{Binding ProjectExplorerViewModel.CopySelectionCommand, Source={StaticResource ViewModelLocator}}" Header="Copy" />
-            <MenuItem Command="{Binding ProjectExplorerViewModel.PasteSelectionCommand, Source={StaticResource ViewModelLocator}}" Header="Paste" />
-            <MenuItem Command="{Binding ProjectExplorerViewModel.CutSelectionCommand, Source={StaticResource ViewModelLocator}}" Header="Cut" />
+            <MenuItem Command="{Binding ProjectExplorerViewModel.CopySelectionCommand, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Copy Selection"/>
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem Command="{Binding ProjectExplorerViewModel.PasteSelectionCommand, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Paste Selection"/>
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem Command="{Binding ProjectExplorerViewModel.CutSelectionCommand, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Border
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Cut Selection"/>
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator />
             <MenuItem
                 Command="{Binding ProjectExplorerViewModel.OpenFileExplorerCommand, Source={StaticResource ViewModelLocator}}"
-                CommandParameter="{Binding .}"
-                Header="Open in File Explorer" />
+                CommandParameter="{Binding .}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.Open}"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Open in File Explorer"/>
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
         </ContextMenu>
     </UserControl.Resources>
     <Grid>
