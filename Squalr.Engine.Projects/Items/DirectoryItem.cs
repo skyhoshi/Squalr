@@ -25,14 +25,22 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="DirectoryItem" /> class.
         /// </summary>
-        public DirectoryItem(String directoryPath) : base(directoryPath)
+        public DirectoryItem(String directoryPath, DirectoryItem parent) : base(directoryPath)
         {
             // Bypass setters to avoid re-saving
+            this.Parent = parent;
             this.childItems = new Dictionary<String, ProjectItem>();
             this.name = new DirectoryInfo(directoryPath).Name;
 
-            this.LoadAllChildProjectItems();
-            this.WatchForUpdates();
+            try
+            {
+                this.LoadAllChildProjectItems();
+                this.WatchForUpdates();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error initializing project directory", ex);
+            }
         }
 
         /// <summary>
@@ -40,7 +48,7 @@
         /// </summary>
         /// <param name="directoryPath">The path to the project directory or subdirectory.</param>
         /// <returns>The instantiated directory item.</returns>
-        public static DirectoryItem FromDirectory(String directoryPath)
+        public static DirectoryItem FromDirectory(String directoryPath, DirectoryItem parent)
         {
             try
             {
@@ -49,7 +57,7 @@
                     throw new Exception("Directory does not exist: " + directoryPath);
                 }
 
-                return new DirectoryItem(directoryPath);
+                return new DirectoryItem(directoryPath, parent);
             }
             catch (Exception ex)
             {
@@ -226,10 +234,13 @@
             {
                 try
                 {
-                    DirectoryItem childDirectory = DirectoryItem.FromDirectory(projectItemPath);
+                    DirectoryItem childDirectory = DirectoryItem.FromDirectory(projectItemPath, this);
 
-                    this.childItems?.Add(childDirectory.FullPath, childDirectory);
-                    this.ProjectItemAddedEvent.Invoke(childDirectory);
+                    if (childDirectory != null)
+                    {
+                        this.childItems?.Add(childDirectory.FullPath, childDirectory);
+                        this.ProjectItemAddedEvent?.Invoke(childDirectory);
+                    }
 
                     return childDirectory;
                 }
