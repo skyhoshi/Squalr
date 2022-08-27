@@ -11,11 +11,6 @@
 
     public class ProjectItemDirectoryConverter : IValueConverter
     {
-        /// <summary>
-        /// Structure to hold mappings of project items to views to prevent reallocation of view items. Prevents IsExpanded property from being reset.
-        /// </summary>
-        private static readonly Dictionary<ProjectItem, ProjectItemView> ViewMap = new Dictionary<ProjectItem, ProjectItemView>();
-
         public Object Convert(Object value, Type targetType, Object parameter, CultureInfo culture)
         {
             if (value as IEnumerable<ProjectItem> != null)
@@ -24,14 +19,15 @@
 
                 foreach (ProjectItem projectItem in value as IEnumerable<ProjectItem>)
                 {
-                    if (!ProjectItemDirectoryConverter.ViewMap.ContainsKey(projectItem))
+                    ProjectItemView projectItemView = projectItem.MappedView as ProjectItemView;
+
+                    if (projectItemView == null)
                     {
-                        ProjectItemView projectItemView = this.ConvertToProjectItemView(projectItem);
-                        ProjectItemDirectoryConverter.ViewMap[projectItem] = projectItemView;
+                        projectItemView = this.ConvertToProjectItemView(projectItem);
+                        projectItem.MappedView = projectItemView;
                     }
 
-                    // Crashing here? Check to make sure the Project Item type exists in ConvertToProjectItemView
-                    projectItems.Add(ProjectItemDirectoryConverter.ViewMap[projectItem]);
+                    projectItems.Add(projectItemView);
                 }
 
                 return projectItems;

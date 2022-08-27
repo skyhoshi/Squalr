@@ -1,6 +1,5 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
-    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Logging;
     using System;
     using System.Collections.Generic;
@@ -12,10 +11,16 @@
     /// </summary>
     public class DirectoryItem : ProjectItem
     {
+        public delegate void ProjectItemDeleted(ProjectItem projectItem);
+        public delegate void ProjectItemAdded(ProjectItem projectItem);
+
+        public ProjectItemDeleted ProjectItemDeletedEvent { get; set; }
+        public ProjectItemDeleted ProjectItemAddedEvent { get; set; }
+
         /// <summary>
         /// The child project items under this directory.
         /// </summary>
-        private FullyObservableCollection<ProjectItem> childItems;
+        private Dictionary<String, ProjectItem> childItems;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DirectoryItem" /> class.
@@ -23,9 +28,10 @@
         public DirectoryItem(String directoryPath) : base(directoryPath)
         {
             // Bypass setters to avoid re-saving
-            this.name = (new DirectoryInfo(directoryPath)).Name;
+            this.childItems = new Dictionary<String, ProjectItem>();
+            this.name = new DirectoryInfo(directoryPath).Name;
 
-            this.childItems = this.BuildChildren();
+            this.LoadAllChildProjectItems();
             this.WatchForUpdates();
         }
 
@@ -52,10 +58,11 @@
             }
         }
 
+
         /// <summary>
         /// Gets the child project items under this directory.
         /// </summary>
-        public FullyObservableCollection<ProjectItem> ChildItems
+        public Dictionary<String, ProjectItem> ChildItems
         {
             get
             {
@@ -79,14 +86,9 @@
         /// </summary>
         public override void Update()
         {
-            IEnumerable<ProjectItem> children = this.ChildItems?.ToArray();
-
-            if (children != null)
+            foreach (KeyValuePair<String, ProjectItem> child in this.ChildItems)
             {
-                foreach (ProjectItem child in children)
-                {
-                    child.Update();
-                }
+                child.Value?.Update();
             }
         }
 
@@ -94,12 +96,13 @@
         {
             try
             {
+                this.StopWatchingForUpdates();
+
                 if (!Path.IsPathRooted(newProjectPathOrName))
                 {
                     newProjectPathOrName = Path.Combine(ProjectSettings.ProjectRoot, newProjectPathOrName);
                 }
 
-                this.StopWatchingForUpdates();
                 Directory.Move(this.FullPath, newProjectPathOrName);
 
                 return true;
@@ -125,7 +128,7 @@
             try
             {
                 projectItem.Parent = this;
-                this.ChildItems.Add(projectItem);
+                this.ChildItems.Add(projectItem.FullPath, projectItem);
                 projectItem.Save();
             }
             catch (Exception ex)
@@ -142,10 +145,9 @@
         {
             try
             {
-                if (this.ChildItems.Contains(projectItem))
+                if (this.ChildItems.ContainsKey(projectItem.FullPath))
                 {
                     projectItem.Parent = null;
-                    this.ChildItems.Remove(projectItem);
                     
                     if (projectItem is DirectoryItem)
                     {
@@ -160,18 +162,15 @@
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Unable to delete project item", ex);
-                // TODO: Probably do a full refresh at this point due to possible de-synchronization
             }
         }
 
         /// <summary>
         /// Gets the list of files in the directory Name passed.
         /// </summary>
-        /// <returns>Returns the List of File info for this directory.
-        /// Return null if an exception is raised.</returns>
-        public FullyObservableCollection<ProjectItem> BuildChildren()
+        private void LoadAllChildProjectItems()
         {
-            FullyObservableCollection<ProjectItem> projectItems = new FullyObservableCollection<ProjectItem>();
+            this.childItems?.Clear();
 
             try
             {
@@ -179,14 +178,7 @@
 
                 foreach (DirectoryInfo subdirectory in subdirectories)
                 {
-                    try
-                    {
-                        projectItems.Add(DirectoryItem.FromDirectory(subdirectory.FullName));
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(LogLevel.Error, "Error loading directory", ex);
-                    }
+                    this.LoadProjectItem(subdirectory.FullName);
                 }
             }
             catch (Exception ex)
@@ -198,19 +190,7 @@
             {
                 foreach (FileInfo file in Directory.GetFiles(this.FullPath).Select(directoryFile => new FileInfo(directoryFile)))
                 {
-                    try
-                    {
-                        ProjectItem projectItem = ProjectItem.FromFile(file.FullName, this);
-
-                        if (projectItem != null)
-                        {
-                            projectItems.Add(projectItem);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(LogLevel.Error, "Error reading project item", ex);
-                    }
+                    this.LoadProjectItem(file.FullName);
                 }
             }
             catch (Exception ex)
@@ -218,7 +198,8 @@
                 Logger.Log(LogLevel.Error, "Error fetching files", ex);
             }
 
-            return projectItems;
+            // Notify changes after everything finished loading
+            this.RaisePropertyChanged(nameof(this.ChildItems));
         }
 
         /// <summary>
@@ -239,6 +220,62 @@
             }
         }
 
+        private ProjectItem LoadProjectItem(String projectItemPath)
+        {
+            if (Directory.Exists(projectItemPath))
+            {
+                try
+                {
+                    DirectoryItem childDirectory = DirectoryItem.FromDirectory(projectItemPath);
+
+                    this.childItems?.Add(childDirectory.FullPath, childDirectory);
+                    this.ProjectItemAddedEvent.Invoke(childDirectory);
+
+                    return childDirectory;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Error, "Error loading directory", ex);
+                }
+            }
+            else if (File.Exists(projectItemPath))
+            {
+                try
+                {
+                    ProjectItem projectItem = ProjectItem.FromFile(projectItemPath, this);
+
+                    if (projectItem != null)
+                    {
+                        this.childItems?.Add(projectItem.FullPath, projectItem);
+                        this.ProjectItemAddedEvent?.Invoke(projectItem);
+
+                        return projectItem;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Error, "Error reading project item", ex);
+                }
+            }
+
+            Logger.Log(LogLevel.Error, "Unable to read project item from path: " + (projectItemPath ?? String.Empty));
+            return null;
+        }
+
+        private void RemoveProjectItem(String projectItemPath)
+        {
+            if (this.ChildItems.ContainsKey(projectItemPath))
+            {
+                ProjectItem deletedProjectItem = this.ChildItems[projectItemPath];
+                if (deletedProjectItem != null)
+                {
+                    deletedProjectItem.Parent = null;
+                    this.ChildItems?.Remove(projectItemPath);
+                    this.ProjectItemDeletedEvent?.Invoke(deletedProjectItem);
+                }
+            }
+        }
+
         /// <summary>
         /// Initializes the filesystem watcher to listen for filesystem changes.
         /// </summary>
@@ -248,11 +285,14 @@
 
             this.FileSystemWatcher = new FileSystemWatcher(this.FullPath, "*.*")
             {
-                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                 EnableRaisingEvents = true,
             };
 
+            this.FileSystemWatcher.Deleted += OnFilesOrDirectoriesChanged;
             this.FileSystemWatcher.Changed += OnFilesOrDirectoriesChanged;
+            this.FileSystemWatcher.Renamed += OnFilesOrDirectoriesChanged;
+            this.FileSystemWatcher.Created += OnFilesOrDirectoriesChanged;
         }
 
         /// <summary>
@@ -262,7 +302,10 @@
         {
             if (this.FileSystemWatcher != null)
             {
+                this.FileSystemWatcher.Deleted -= OnFilesOrDirectoriesChanged;
                 this.FileSystemWatcher.Changed -= OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Renamed -= OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Created -= OnFilesOrDirectoriesChanged;
                 this.FileSystemWatcher = null;
             }
         }
@@ -274,18 +317,31 @@
         /// <param name="args">The filesystem change event args.</param>
         private void OnFilesOrDirectoriesChanged(Object source, FileSystemEventArgs args)
         {
+            bool isDirectory = Directory.Exists(args.FullPath);
+
             switch (args.ChangeType)
             {
                 case WatcherChangeTypes.Created:
+                    this.LoadProjectItem(args.FullPath);
                     break;
                 case WatcherChangeTypes.Deleted:
+                    this.RemoveProjectItem(args.FullPath);
                     break;
                 case WatcherChangeTypes.Changed:
+                    // TODO: Reread data from disc?
                     break;
                 case WatcherChangeTypes.Renamed:
-                    this.RaisePropertyChanged(nameof(this.ChildItems));
+                    RenamedEventArgs renameArgs = args as RenamedEventArgs;
+
+                    if (renameArgs != null)
+                    {
+                        this.RemoveProjectItem(renameArgs.OldFullPath);
+                        this.LoadProjectItem(args.FullPath);
+                    }
                     break;
             }
+
+            this.RaisePropertyChanged(nameof(this.ChildItems));
         }
     }
     //// End class

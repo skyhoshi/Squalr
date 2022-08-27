@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Squalr.Engine.Processes\Squalr.Engine.Processes.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Projects\Squalr.Engine.Projects.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Utils\Squalr.Engine.Common.csproj" />
     <ProjectReference Include="..\Squalr.Engine\Squalr.Engine.csproj" />
   </ItemGroup>

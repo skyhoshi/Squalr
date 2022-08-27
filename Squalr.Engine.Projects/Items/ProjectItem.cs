@@ -197,6 +197,11 @@
         }
 
         /// <summary>
+        /// A view that has been mapped onto this item. This is an abstraction violation, but a useful optimization.
+        /// </summary>
+        public Object MappedView { get; set; }
+
+        /// <summary>
         /// Gets a value indicating whether this project item is represented on disk.
         /// </summary>
         public Boolean HasAssociatedFileOrFilder
@@ -507,12 +512,12 @@
 
             try
             {
-                if (this.Parent.ChildItems.Any(childItem => childItem?.Name?.Equals(newName, StringComparison.OrdinalIgnoreCase) ?? false))
+                if (this.Parent.ChildItems.Any(childItem => childItem.Value?.Name?.Equals(newName, StringComparison.OrdinalIgnoreCase) ?? false))
                 {
                     // Find all files that match the pattern of {newfilename #}, and extract the numbers
                     IEnumerable<String> numberedSuffixStrings = this.Parent.ChildItems
-                        .Where(childItem => childItem?.Name?.StartsWith(newName, StringComparison.OrdinalIgnoreCase) ?? false)
-                        .Select(childItem => childItem.Name.Substring(newName.Length).Trim());
+                        .Where(childItem => childItem.Value?.Name?.StartsWith(newName, StringComparison.OrdinalIgnoreCase) ?? false)
+                        .Select(childItem => childItem.Value.Name.Substring(newName.Length).Trim());
                     IEnumerable<Int32> neighboringNumberedFiles = numberedSuffixStrings
                         .Where(childSuffix => SyntaxChecker.CanParseValue(ScannableType.Int32, childSuffix))
                         .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, childSuffix));

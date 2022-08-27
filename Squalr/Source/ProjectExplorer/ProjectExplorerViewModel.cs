@@ -448,10 +448,12 @@
                 }
             }
 
-            foreach (ProjectItemView projectItem in this.SelectedProjectItems.ToArray())
+            foreach (ProjectItemView projectItemView in this.SelectedProjectItems.ToArray())
             {
-                // TODO
-                // this.ProjectItems.Remove(projectItem);
+                if (projectItemView != null)
+                {
+                    projectItemView.ProjectItem.Parent.RemoveChild(projectItemView.ProjectItem);
+                }
             }
 
             this.SelectedProjectItems = null;
