@@ -52,7 +52,8 @@
         {
         }
 
-        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(processSession, ScannableType.NullByteArray, "New Instruction")
+        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes)
+            : base(processSession, ScannableType.NullByteArray, "New Instruction")
         {
             this.ModuleOffset = BaseAddress;
             this.ModuleName = moduleName;

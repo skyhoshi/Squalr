@@ -69,8 +69,6 @@
                 {
                     case PointerItem type:
                         return type.AddressSpecifier;
-                    case DolphinAddressItem type:
-                        return type.AddressSpecifier;
                     default:
                         return String.Empty;
                 }

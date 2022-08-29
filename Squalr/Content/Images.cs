@@ -91,6 +91,11 @@
         public static readonly BitmapImage Disconnected = Images.LoadImage("Disconnected.png");
 
         /// <summary>
+        /// Image of the Dolphin emulator.
+        /// </summary>
+        public static readonly BitmapImage DolphinEmulator = Images.LoadImage("DolphinEmulator.png");
+
+        /// <summary>
         /// Image of two down arrows.
         /// </summary>
         public static readonly BitmapImage DownArrows = Images.LoadImage("DownArrows.png");

@@ -36,11 +36,6 @@
             }
         }
 
-        public static IEnumerable<Project> GetProjects()
-        {
-            return ProjectQueryer.GetProjectPaths().Select(path => new Project(path));
-        }
-
         public static String ProjectNameToPath(String projectName)
         {
             try

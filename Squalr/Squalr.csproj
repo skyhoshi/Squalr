@@ -36,6 +36,7 @@
     <None Remove="Content\Images\Curse.png" />
     <None Remove="Content\Images\Decreased.png" />
     <None Remove="Content\Images\Disconnected.png" />
+    <None Remove="Content\Images\DolphinEmulator.png" />
     <None Remove="Content\Images\DownArrows.png" />
     <None Remove="Content\Images\Edit.png" />
     <None Remove="Content\Images\ENotation.png" />
@@ -179,6 +180,7 @@
     <Resource Include="Content\Images\Curse.png" />
     <Resource Include="Content\Images\Decreased.png" />
     <Resource Include="Content\Images\Disconnected.png" />
+    <Resource Include="Content\Images\DolphinEmulator.png" />
     <Resource Include="Content\Images\DownArrows.png" />
     <Resource Include="Content\Images\Edit.png" />
     <Resource Include="Content\Images\ENotation.png" />

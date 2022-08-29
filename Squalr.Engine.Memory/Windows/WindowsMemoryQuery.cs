@@ -58,6 +58,42 @@
         }
 
         /// <summary>
+        /// Gets all modules in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator modules in the process.</returns>
+        public IEnumerable<NormalizedModule> GetDolphinModules(Process process)
+        {
+            List<NormalizedModule> modules = new List<NormalizedModule>();
+
+            // GameCube and Wii memory. See https://wiibrew.org/wiki/Memory_map
+            NormalizedModule mem1 = new NormalizedModule("mem1", this.EmulatorAddressToRealAddress(process, 0x80000000, EmulatorType.Dolphin), 0x01330000);
+
+            // TODO: If possible, it would be nice to figure out how to parse all .rel files (which are basically .dlls) and add them to the list of static modules.
+
+            modules.Add(mem1);
+
+            return modules;
+        }
+
+        /// <summary>
+        /// Gets all heap memory in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator heap memory in the process.</returns>
+        public IEnumerable<NormalizedRegion> GetDolphinHeaps(Process process)
+        {
+            List<NormalizedRegion> regions = new List<NormalizedRegion>();
+
+            // GameCube and Wii memory. See https://wiibrew.org/wiki/Memory_map
+            NormalizedRegion mem1Dynamic = new NormalizedRegion(this.EmulatorAddressToRealAddress(process, 0x81330000, EmulatorType.Dolphin), (int)(0x817FFFFF - 0x81330000));
+            NormalizedRegion mem2 = new NormalizedRegion(this.EmulatorAddressToRealAddress(process, 0x90000000, EmulatorType.Dolphin), 0x04000000);
+
+            regions.Add(mem1Dynamic);
+            regions.Add(mem2);
+
+            return regions;
+        }
+
+        /// <summary>
         /// Gets regions of memory allocated in the remote process based on provided parameters.
         /// </summary>
         /// <param name="requiredProtection">Protection flags required to be present.</param>
@@ -626,6 +662,7 @@
                             {
                                 String gameIdStr = Encoding.ASCII.GetString(gameId);
 
+                                // This is a faulty heuristic due to the fact that several games have a header corruption glitch
                                 if (gameIdStr.StartsWith('G') && gameIdStr.All(character => Char.IsLetterOrDigit(character)))
                                 {
                                     // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
@@ -655,7 +692,7 @@
 
             if (regions.Count > 0)
             {
-            this.DolphinRegionCache.Add(regions);
+                this.DolphinRegionCache.Add(regions);
             }
 
             return regions;

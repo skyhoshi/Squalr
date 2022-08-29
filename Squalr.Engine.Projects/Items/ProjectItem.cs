@@ -5,6 +5,7 @@
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Input.HotKeys;
+    using Squalr.Engine.Processes;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -23,7 +24,6 @@
     [KnownType(typeof(PointerItem))]
     [KnownType(typeof(DotNetItem))]
     [KnownType(typeof(JavaItem))]
-    [KnownType(typeof(DolphinAddressItem))]
     [DataContract]
     public class ProjectItem : INotifyPropertyChanged, IDisposable
     {
@@ -53,12 +53,15 @@
         [Browsable(false)]
         protected Boolean isActivated;
 
+        [Browsable(false)]
+        protected ProcessSession processSession;
+
         private DirectoryItem parent;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
         /// </summary>
-        internal ProjectItem() : this(String.Empty)
+        internal ProjectItem(ProcessSession processSession) : this(processSession, String.Empty)
         {
         }
 
@@ -66,15 +69,16 @@
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
         /// </summary>
         /// <param name="name">The name of the project item.</param>
-        internal ProjectItem(String name)
+        internal ProjectItem(ProcessSession processSession, String name)
         {
             // Bypass setters/getters to avoid triggering any view updates in constructor
+            this.processSession = processSession;
             this.name = name ?? String.Empty;
             this.isActivated = false;
             this.ActivationLock = new Object();
         }
 
-        public static ProjectItem FromFile(String filePath, DirectoryItem parent)
+        public static ProjectItem FromFile(ProcessSession processSession, String filePath, DirectoryItem parent)
         {
             try
             {
@@ -85,6 +89,11 @@
 
                 using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
+                    if (fileStream.Length == 0)
+                    {
+                        return null;
+                    }
+
                     Type type = null;
 
                     switch (new FileInfo(filePath).Extension.ToLower())
@@ -115,6 +124,7 @@
                     // Bypass setters to avoid triggering write-back to disk
                     projectItem.name = Path.GetFileNameWithoutExtension(filePath);
                     projectItem.parent = parent;
+                    projectItem.processSession = processSession;
 
                     return projectItem;
                 }
@@ -133,7 +143,7 @@
         {
             try
             {
-                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(this.GetType());
                     serializer.WriteObject(fileStream, this);
@@ -142,13 +152,12 @@
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Error saving file", ex);
-                throw ex;
             }
         }
 
         private void Rename(String newName)
         {
-            if (!this.HasAssociatedFileOrFilder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
+            if (!this.HasAssociatedFileOrFolder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
             {
                 this.name = newName;
                 return;
@@ -192,7 +201,6 @@
 
                 // Bypass normal setter to avoid calling rename logic
                 this.name = this.MakeNameUnique(this.Name);
-                this.Save();
                 this.RaisePropertyChanged(nameof(this.Name));
             }
         }
@@ -205,7 +213,7 @@
         /// <summary>
         /// Gets a value indicating whether this project item is represented on disk.
         /// </summary>
-        public Boolean HasAssociatedFileOrFilder
+        public Boolean HasAssociatedFileOrFolder
         {
             get
             {
@@ -353,7 +361,7 @@
         {
             get
             {
-                return this.HasAssociatedFileOrFilder ? this.GetFilePathForName(this.Name) : this.Name;
+                return this.HasAssociatedFileOrFolder ? this.GetFilePathForName(this.Name) : this.Name;
             }
         }
 
@@ -509,7 +517,7 @@
         /// <returns>The resolved name, which appends a number at the end of the name to ensure uniqueness.</returns>
         private String MakeNameUnique(String newName)
         {
-            if (this.Parent == null || this.Parent.ChildItems == null || !this.HasAssociatedFileOrFilder)
+            if (this.Parent == null || this.Parent.ChildItems == null || !this.HasAssociatedFileOrFolder)
             {
                 return newName;
             }

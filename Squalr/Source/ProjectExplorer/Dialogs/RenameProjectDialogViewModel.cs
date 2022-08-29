@@ -121,7 +121,7 @@
                     String projectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, projectName);
                     String newProjectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, this.NewProjectName);
 
-                    Project project = new Project(projectPath);
+                    Project project = new Project(SessionManager.Session, projectPath);
 
                     return project.Rename(newProjectPath);
                 }

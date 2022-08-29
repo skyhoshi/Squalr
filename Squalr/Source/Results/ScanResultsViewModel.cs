@@ -179,9 +179,6 @@
                         case PointerItemView view:
                             view.DataType = this.ActiveType;
                             break;
-                        case DolphinItemView view:
-                            view.DataType = this.ActiveType;
-                            break;
                         default:
                             break;
                     }
@@ -408,24 +405,21 @@
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
                     UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
+                    String moduleName = String.Empty;
 
                     switch (emulatorType)
                     {
                         case EmulatorType.None:
                         default:
-                            string moduleName;
                             address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, address, out moduleName);
-
-                            PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
-                            newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
                             break;
                         case EmulatorType.Dolphin:
                             address = MemoryQueryer.Instance.RealAddressToEmulatorAddress(SessionManager.Session.OpenedProcess, address, emulatorType);
-
-                            DolphinAddressItem dolphinItem = new DolphinAddressItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, value: currentValue);
-                            newAddresses.Add(new ScanResult(new DolphinItemView(dolphinItem), previousValue, label));
                             break;
                     }
+
+                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, emulatorType: emulatorType, value: currentValue);
+                    newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
                 }
             }
 

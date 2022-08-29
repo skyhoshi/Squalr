@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -30,7 +31,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="DirectoryItem" /> class.
         /// </summary>
-        public DirectoryItem(String directoryPath, DirectoryItem parent) : base(directoryPath)
+        public DirectoryItem(ProcessSession processSession, String directoryPath, DirectoryItem parent) : base(processSession, directoryPath)
         {
             // Bypass setters to avoid re-saving
             this.Parent = parent;
@@ -53,7 +54,7 @@
         /// </summary>
         /// <param name="directoryPath">The path to the project directory or subdirectory.</param>
         /// <returns>The instantiated directory item.</returns>
-        public static DirectoryItem FromDirectory(String directoryPath, DirectoryItem parent)
+        public static DirectoryItem FromDirectory(ProcessSession processSession, String directoryPath, DirectoryItem parent)
         {
             try
             {
@@ -62,7 +63,7 @@
                     throw new Exception("Directory does not exist: " + directoryPath);
                 }
 
-                return new DirectoryItem(directoryPath, parent);
+                return new DirectoryItem(processSession, directoryPath, parent);
             }
             catch (Exception ex)
             {
@@ -141,16 +142,8 @@
         /// <param name="projectItem">The project item to add.</param>
         public void AddChild(ProjectItem projectItem)
         {
-            try
-            {
-                // File watcher should automatically pick up the change and add it as intended
-                projectItem.Parent = this;
-                projectItem.Save();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Error, "Unable to add project item", ex);
-            }
+            projectItem.Parent = this;
+            projectItem.Save();
         }
 
         /// <summary>
@@ -242,13 +235,13 @@
             }
         }
 
-        private ProjectItem LoadProjectItem(String projectItemPath)
+        private ProjectItem LoadProjectItem(String projectItemPath, bool supressWarnings = false)
         {
             if (Directory.Exists(projectItemPath))
             {
                 try
                 {
-                    DirectoryItem childDirectory = DirectoryItem.FromDirectory(projectItemPath, this);
+                    DirectoryItem childDirectory = DirectoryItem.FromDirectory(this.processSession, projectItemPath, this);
 
                     if (childDirectory != null)
                     {
@@ -271,7 +264,7 @@
             {
                 try
                 {
-                    ProjectItem projectItem = ProjectItem.FromFile(projectItemPath, this);
+                    ProjectItem projectItem = ProjectItem.FromFile(this.processSession, projectItemPath, this);
 
                     if (projectItem != null)
                     {
@@ -291,7 +284,10 @@
                 }
             }
 
-            Logger.Log(LogLevel.Error, "Unable to read project item from path: " + (projectItemPath ?? String.Empty));
+            if (!supressWarnings)
+            {
+                Logger.Log(LogLevel.Error, "Unable to read project item from path: " + (projectItemPath ?? String.Empty));
+            }
             return null;
         }
 
@@ -360,7 +356,8 @@
                 case WatcherChangeTypes.Created:
                     if (!this.childItems.ContainsKey(args.FullPath))
                     {
-                        this.LoadProjectItem(args.FullPath);
+                        // Supress warnings since sometimes the file is created as a 0b file, and then written to later
+                        this.LoadProjectItem(args.FullPath, supressWarnings: true);
                     }
                     else
                     {
@@ -371,7 +368,14 @@
                     this.RemoveProjectItem(args.FullPath);
                     break;
                 case WatcherChangeTypes.Changed:
-                    // TODO: Reread data from disc?
+                    if (!this.childItems.ContainsKey(args.FullPath))
+                    {
+                        this.LoadProjectItem(args.FullPath);
+                    }
+                    else
+                    {
+                        // TODO: Reread data from disc?
+                    }
                     break;
                 case WatcherChangeTypes.Renamed:
                     RenamedEventArgs renameArgs = args as RenamedEventArgs;
@@ -379,7 +383,9 @@
                     if (renameArgs != null)
                     {
                         this.RemoveProjectItem(renameArgs.OldFullPath);
-                        this.LoadProjectItem(args.FullPath);
+
+                        // Supress warnings since sometimes the file is created as a 0b file, and then written to later
+                        this.LoadProjectItem(args.FullPath, true);
                     }
                     break;
             }

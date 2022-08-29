@@ -57,8 +57,6 @@
                     return new DotNetItemView(projectItem as DotNetItem);
                 case ProjectItem _ when projectItem is JavaItem:
                     return new JavaItemView(projectItem as JavaItem);
-                case ProjectItem _ when projectItem is DolphinAddressItem:
-                    return new DolphinItemView(projectItem as DolphinAddressItem);
                 default:
                     Logger.Log(LogLevel.Error, "Unknown project item type");
                     return null;

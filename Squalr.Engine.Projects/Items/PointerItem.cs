@@ -39,6 +39,9 @@
         [DataMember]
         protected IEnumerable<Int32> pointerOffsets;
 
+        [DataMember]
+        EmulatorType emulatorType;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
@@ -54,23 +57,26 @@
         /// <param name="description">The description of this address.</param>
         /// <param name="moduleName">The identifier for the base address of this object.</param>
         /// <param name="pointerOffsets">The pointer offsets of this address item.</param>
+        /// <param name="emulatorType">The emulator type of this address item.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public PointerItem(
             ProcessSession processSession,
-            UInt64 baseAddress,
-            Type dataType,
+            UInt64 baseAddress = 0,
+            Type dataType = null,
             String description = "New Address",
             String moduleName = null,
             IEnumerable<Int32> pointerOffsets = null,
+            EmulatorType emulatorType = EmulatorType.None,
             Boolean isValueHex = false,
             Object value = null)
-            : base(processSession, dataType, description, isValueHex, value)
+            : base(processSession, dataType ?? ScannableType.Int32, description, isValueHex, value)
         {
             // Bypass setters to avoid running setter code
             this.moduleOffset = baseAddress;
             this.moduleName = moduleName;
             this.pointerOffsets = pointerOffsets;
+            this.emulatorType = emulatorType;
         }
 
         /// <summary>
@@ -144,6 +150,23 @@
         }
 
         /// <summary>
+        /// Gets or sets the emulator type of this address.
+        /// </summary>
+        public virtual EmulatorType EmulatorType
+        {
+            get
+            {
+                return this.emulatorType;
+            }
+
+            set
+            {
+                this.emulatorType = value;
+                this.Save();
+            }
+        }
+
+        /// <summary>
         /// Gets the address specifier for this address. If a static address, this is 'ModuleName + offset', otherwise this is an address string.
         /// </summary>
         [Browsable(false)]
@@ -210,6 +233,59 @@
         /// </summary>
         /// <returns>The base address of this object.</returns>
         protected override UInt64 ResolveAddress()
+        {
+            switch(this.emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    return ResolveDolphinEmulatorAddress();
+                case EmulatorType.None:
+                default:
+                    return this.ResolveStandardAddress();
+            }
+        }
+
+        /// <summary>
+        /// Resolves the address of an address, pointer, or managed object.
+        /// </summary>
+        /// <returns>The base address of this object.</returns>
+        protected UInt64 ResolveDolphinEmulatorAddress()
+        {
+            UInt64 pointer = MemoryQueryer.Instance.EmulatorAddressToRealAddress(processSession?.OpenedProcess, this.moduleOffset, EmulatorType.Dolphin);
+
+            if (this.PointerOffsets == null || this.PointerOffsets.Count() == 0)
+            {
+                return pointer;
+            }
+
+            foreach (Int32 offset in this.PointerOffsets)
+            {
+                bool successReading = false;
+
+                if (processSession?.OpenedProcess?.Is32Bit() ?? false)
+                {
+                    pointer = MemoryReader.Instance.Read<Int32>(processSession?.OpenedProcess, pointer, out successReading).ToUInt64();
+                }
+                else
+                {
+                    pointer = MemoryReader.Instance.Read<UInt64>(processSession?.OpenedProcess, pointer, out successReading);
+                }
+
+                if (pointer == 0 || !successReading)
+                {
+                    return 0;
+                }
+
+                pointer = pointer.Add(offset);
+            }
+
+            return pointer;
+        }
+
+        /// <summary>
+        /// Resolves the address of an address, pointer, or managed object.
+        /// </summary>
+        /// <returns>The base address of this object.</returns>
+        protected UInt64 ResolveStandardAddress()
         {
             UInt64 pointer = MemoryQueryer.Instance.ResolveModule(processSession?.OpenedProcess, this.ModuleName);
 

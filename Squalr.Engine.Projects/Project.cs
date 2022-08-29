@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Projects
 {
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Projects.Items;
     using System;
     using System.IO;
@@ -13,7 +14,7 @@
         /// Creates a new project from the given path or project name. If given as a project name, Squalr will use the user settings to decide where to place the folder.
         /// </summary>
         /// <param name="projectFilePathOrName">The project path, or the project name.</param>
-        public Project(String projectFilePathOrName) : base(Project.ToDirectory(projectFilePathOrName), null)
+        public Project(ProcessSession processSession, String projectFilePathOrName) : base(processSession, Project.ToDirectory(projectFilePathOrName), null)
         {
         }
 

@@ -85,23 +85,6 @@
                 </MenuItem.Header>
             </MenuItem>
             <MenuItem
-                Command="{Binding ProjectExplorerViewModel.AddNewAddressItemCommand, Source={StaticResource ViewModelLocator}}"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
-                <MenuItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Margin="0 0 4 0"
-                            Width="16"
-                            Height="16"
-                            Source="{x:Static content:Images.CollectValues}" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Foreground="{StaticResource SqualrColorWhite}"
-                            Text="Add New Emulator Address" />
-                    </StackPanel>
-                </MenuItem.Header>
-            </MenuItem>
-            <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewInstructionItemCommand, Source={StaticResource ViewModelLocator}}"
                 Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
@@ -131,6 +114,24 @@
                             VerticalAlignment="Center"
                             Foreground="{StaticResource SqualrColorWhite}"
                             Text="Toggle Selection" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <Separator />
+            <MenuItem
+                Command="{Binding ProjectExplorerViewModel.AddNewDolphinAddressItemCommand, Source={StaticResource ViewModelLocator}}"
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.CollectValues}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Dolphin Emulator Address" />
                     </StackPanel>
                 </MenuItem.Header>
             </MenuItem>

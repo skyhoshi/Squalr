@@ -53,6 +53,7 @@
             this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
             this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
+            this.AddNewDolphinAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem), emulatorType: EmulatorType.Dolphin), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
             this.AddNewInstructionItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(InstructionItem)), () => true);
             this.OpenFileExplorerCommand = new RelayCommand<ProjectItemView>((projectItem) => this.OpenFileExplorer(projectItem), (projectItem) => true);
@@ -93,6 +94,11 @@
         /// Gets the command to add a new address.
         /// </summary>
         public ICommand AddNewAddressItemCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to add a new Dolphin emulator address.
+        /// </summary>
+        public ICommand AddNewDolphinAddressItemCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to add a new instruction.
@@ -293,7 +299,7 @@
                 throw new Exception("Folder not found");
             }
 
-            SessionManager.Project = new Project(projectPath);
+            SessionManager.Project = new Project(SessionManager.Session, projectPath);
 
             // Create project root folder (initialize expanded for better UX)
             DirectoryItemView projectRootFolder = new DirectoryItemView(SessionManager.Project)
@@ -324,7 +330,7 @@
         /// <summary>
         /// Adds a new address to the project items.
         /// </summary>
-        private void AddNewProjectItem(Type projectItemType)
+        private void AddNewProjectItem(Type projectItemType, EmulatorType emulatorType = EmulatorType.None)
         {
             this.CreateProjectIfNone();
 
@@ -333,10 +339,10 @@
             switch (projectItemType)
             {
                 case Type _ when projectItemType == typeof(PointerItem):
-                    directoryItemView?.AddChild(new PointerItem(SessionManager.Session));
+                    directoryItemView?.AddChild(new PointerItem(SessionManager.Session, emulatorType: emulatorType));
                     break;
                 case Type _ when projectItemType == typeof(ScriptItem):
-                    directoryItemView?.AddChild(new ScriptItem());
+                    directoryItemView?.AddChild(new ScriptItem(SessionManager.Session));
                     break;
                 case Type _ when projectItemType == typeof(InstructionItem):
                     directoryItemView?.AddChild(new InstructionItem(SessionManager.Session));

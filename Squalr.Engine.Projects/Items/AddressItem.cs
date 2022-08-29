@@ -45,9 +45,6 @@
         [Browsable(false)]
         protected UInt64 calculatedAddress;
 
-        [Browsable(false)]
-        protected ProcessSession processSession;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
@@ -69,7 +66,7 @@
             String description = "New Address",
             Boolean isValueHex = false,
             Object value = null)
-            : base(description)
+            : base(processSession, description)
         {
             // Bypass setters to avoid running setter code
             this.processSession = processSession;

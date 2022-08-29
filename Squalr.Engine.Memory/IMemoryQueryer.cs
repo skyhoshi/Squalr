@@ -78,6 +78,18 @@
         IEnumerable<NormalizedRegion> GetHeapAddresses(Process process);
 
         /// <summary>
+        /// Gets all modules in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator modules in the process.</returns>
+        IEnumerable<NormalizedModule> GetDolphinModules(Process process);
+
+        /// <summary>
+        /// Gets all heap memory in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator heap memory in the process.</returns>
+        IEnumerable<NormalizedRegion> GetDolphinHeaps(Process process);
+
+        /// <summary>
         /// Converts an address to a module and an address offset.
         /// </summary>
         /// <param name="address">The original address.</param>
