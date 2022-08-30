@@ -3,6 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Controls;
+    using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ValueEditor;
     using Squalr.Source.Utils.TypeConverters;
@@ -121,6 +122,7 @@
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [TypeConverter(typeof(DataTypeConverter))]
+        [Editor(typeof(DataTypeEditorModel), typeof(UITypeEditor))]
         [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
         public ScannableType DataType
         {

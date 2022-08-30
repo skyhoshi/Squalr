@@ -270,6 +270,9 @@
     <Compile Update="View\Editors\HotkeyEditor.xaml.cs">
       <DependentUpon>HotkeyEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Update="View\Editors\OffsetEditor - Copy.xaml.cs">
+      <DependentUpon>OffsetEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Update="View\Editors\OffsetEditor.xaml.cs">
       <DependentUpon>OffsetEditor.xaml</DependentUpon>
     </Compile>
@@ -330,6 +333,9 @@
     </Page>
     <Page Update="View\DotNetExplorer.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="View\Editors\DataTypeEditor.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="View\Editors\HotkeyEditor.xaml">
       <Generator>MSBuild:Compile</Generator>

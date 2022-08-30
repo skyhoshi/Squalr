@@ -5,6 +5,7 @@
     using Source.Snapshots;
     using Squalr.Properties;
     using Squalr.Source.Debugger;
+    using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.HotkeyEditor;
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ScriptEditor;
@@ -38,6 +39,11 @@
         /// The template for the Output.
         /// </summary>
         private DataTemplate outputViewTemplate;
+
+        /// <summary>
+        /// The template for the Data Type Editor.
+        /// </summary>
+        private DataTemplate dataTypeEditorViewTemplate;
 
         /// <summary>
         /// The template for the Offset Editor.
@@ -206,6 +212,23 @@
             {
                 this.outputViewTemplate = value;
                 this.DataTemplates[typeof(OutputViewModel)] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the template for the Offset Editor.
+        /// </summary>
+        public DataTemplate DataTypeEditorViewTemplate
+        {
+            get
+            {
+                return this.dataTypeEditorViewTemplate;
+            }
+
+            set
+            {
+                this.dataTypeEditorViewTemplate = value;
+                this.DataTemplates[typeof(DataTypeEditorViewModel)] = value;
             }
         }
 
