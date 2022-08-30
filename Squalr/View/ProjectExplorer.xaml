@@ -68,6 +68,23 @@
                 </MenuItem.Header>
             </MenuItem>
             <MenuItem
+                Command="{Binding ProjectExplorerViewModel.AddNewFolderItemCommand, Source={StaticResource ViewModelLocator}}"
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.CollectValues}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add New Folder" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem
                 Command="{Binding ProjectExplorerViewModel.AddNewAddressItemCommand, Source={StaticResource ViewModelLocator}}"
                 Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>

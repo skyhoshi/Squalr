@@ -52,6 +52,7 @@
             this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
             this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
             this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
+            this.AddNewFolderItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(DirectoryItem)), () => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
             this.AddNewDolphinAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem), emulatorType: EmulatorType.Dolphin), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
@@ -89,6 +90,11 @@
         /// Gets the command to select a project item.
         /// </summary>
         public ICommand SelectProjectItemCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to add a new folder.
+        /// </summary>
+        public ICommand AddNewFolderItemCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to add a new address.
@@ -338,6 +344,10 @@
 
             switch (projectItemType)
             {
+                case Type _ when projectItemType == typeof(DirectoryItem):
+                    // Create directories slightly differently. Just create the directory on disk via this call, then it should get picked up.
+                    DirectoryItem.CreateNewDirectory(directoryItemView?.ProjectItem as DirectoryItem);
+                    break;
                 case Type _ when projectItemType == typeof(PointerItem):
                     directoryItemView?.AddChild(new PointerItem(SessionManager.Session, emulatorType: emulatorType));
                     break;
@@ -489,7 +499,16 @@
             {
                 foreach (ProjectItemView next in this.ClipBoard)
                 {
-                    directoryItemView.AddChild(next?.ProjectItem?.Clone(true));
+                    if (next?.ProjectItem is DirectoryItem)
+                    {
+                        // Directories require special treatment here. Rather than attempting to clone all contents, we simply copy the folder and changes will be picked up.
+                        DirectoryItem directoryItem = next.ProjectItem as DirectoryItem;
+                        directoryItem.Clone(directoryItemView?.ProjectItem as DirectoryItem);
+                    }
+                    else
+                    {
+                        directoryItemView.AddChild(next?.ProjectItem?.Clone(true));
+                    }
                 }
             }
         }

@@ -43,6 +43,11 @@
             {
                 return this.DirectoryItem.Name;
             }
+
+            set
+            {
+                this.DirectoryItem.Name = value;
+            }
         }
 
         public String FilePath

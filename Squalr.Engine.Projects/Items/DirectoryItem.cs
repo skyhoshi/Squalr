@@ -1,5 +1,7 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Processes;
     using System;
@@ -50,6 +52,31 @@
         }
 
         /// <summary>
+        /// Clones this directory to a new folder under the given parent.
+        /// </summary>
+        /// <param name="destinationDirectory">The parent directory to which this directory is cloned.</param>
+        public void Clone(DirectoryItem destinationDirectory)
+        {
+            try
+            {
+                String tempPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                DirectoryInfo sourceDirectory = new DirectoryInfo(this.FullPath);
+                String uniqueName = DirectoryItem.MakeNameUnique(sourceDirectory.Name, destinationDirectory);
+                String uniquePath = Path.Combine(destinationDirectory?.FullPath, uniqueName);
+                DirectoryInfo tempDirectory = new DirectoryInfo(tempPath);
+                DirectoryInfo targetDirectory = new DirectoryInfo(uniquePath);
+                DirectoryItem.CopyAll(sourceDirectory, tempDirectory);
+
+                // This is done in one step to prevent picking up intermediate changes
+                Directory.Move(tempPath, uniquePath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error cloning directory.", ex);
+            }
+        }
+
+        /// <summary>
         /// Creates a directory item from the specified project directory path, instantiating all children.
         /// </summary>
         /// <param name="directoryPath">The path to the project directory or subdirectory.</param>
@@ -72,6 +99,95 @@
             }
         }
 
+        /// <summary>
+        /// Creates a new folder under the given parent directory.
+        /// </summary>
+        /// <param name="parent">The parent which will contain the new folder.</param>
+        public static void CreateNewDirectory(DirectoryItem parent)
+        {
+            try
+            {
+                String newName = DirectoryItem.MakeNameUnique("New Folder", parent);
+                String result = Path.Combine(parent.FullPath, newName);
+                Directory.CreateDirectory(result);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error creating new directory.", ex);
+            }
+        }
+
+        /// <summary>
+        /// Given a desired folder name, find a unique variant of this name by appending increasing numerals to guarantee the folder exists.
+        /// </summary>
+        /// <param name="newName">The desired name.</param>
+        /// <param name="parent">The parent which will contain the new folder.</param>
+        /// <returns>The new name from the given desired new name, potentially with numerals appended to ensure a unique directory path.</returns>
+        private static String MakeNameUnique(String newName, DirectoryItem parent)
+        {
+            if (parent == null)
+            {
+                Logger.Log(LogLevel.Error, "Unable to create new directory, no parent folder provided.");
+                return String.Empty;
+            }
+
+            String root = parent.FullPath;
+
+            try
+            {
+                DirectoryInfo rootInfo = new DirectoryInfo(root);
+                IEnumerable<DirectoryInfo> subDirectories = Directory.GetDirectories(rootInfo.FullName).Select(directory => new DirectoryInfo(directory));
+
+                if (subDirectories.Any(directory => newName.Equals(directory?.Name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Find all files that match the pattern of {newfilename #}, and extract the numbers
+                    IEnumerable<String> numberedSuffixStrings = subDirectories
+                        .Where(directory => directory.Name?.StartsWith(newName, StringComparison.OrdinalIgnoreCase) ?? false)
+                        .Select(directory => directory.Name?.Substring(newName.Length).Trim());
+                    IEnumerable<Int32> neighboringNumberedFiles = numberedSuffixStrings
+                        .Where(childSuffix => SyntaxChecker.CanParseValue(ScannableType.Int32, childSuffix))
+                        .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, childSuffix));
+
+                    Int32 neighboringNumberedFileCount = neighboringNumberedFiles.Count();
+                    IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(1, neighboringNumberedFileCount).Except(neighboringNumberedFiles);
+
+                    // Find the first gap in the numbers. If no gap, just take the next number in the sequence
+                    Int32 numberToAppend = missingNumbersInSequence.IsNullOrEmpty() ? neighboringNumberedFileCount + 1 : missingNumbersInSequence.First();
+                    String suffix = numberToAppend == 0 ? String.Empty : " " + numberToAppend.ToString();
+
+                    newName = newName + suffix;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error resolving conflicting project name.", ex);
+                return String.Empty;
+            }
+
+            return newName;
+        }
+
+        /// <summary>
+        /// Gets or sets the file name for this project item.
+        /// </summary>
+        public override String Name
+        {
+            get
+            {
+                return this.name;
+            }
+
+            set
+            {
+                if (this.Name == value)
+                {
+                    return;
+                }
+
+                this.Rename(value);
+                this.RaisePropertyChanged(nameof(this.Name));
+            }
+        }
 
         /// <summary>
         /// Gets the child project items under this directory.
@@ -109,30 +225,34 @@
             }
         }
 
-        public bool Rename(String newProjectPathOrName)
+        public bool Rename(String newName)
         {
             try
             {
                 this.StopWatchingForUpdates();
 
-                if (!Path.IsPathRooted(newProjectPathOrName))
+                if (!Path.IsPathRooted(newName))
                 {
-                    newProjectPathOrName = Path.Combine(ProjectSettings.ProjectRoot, newProjectPathOrName);
+                    String root = this.Parent?.FullPath ?? ProjectSettings.ProjectRoot ?? String.Empty;
+                    newName = Path.Combine(root, newName);
                 }
 
-                Directory.Move(this.FullPath, newProjectPathOrName);
+                Directory.Move(this.FullPath, newName);
 
                 return true;
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Unable to rename project", ex);
+                Logger.Log(LogLevel.Error, "Unable to rename directory", ex);
 
                 return false;
             }
             finally
             {
-                this.WatchForUpdates();
+                if (Directory.Exists(this.FullPath))
+                {
+                    this.WatchForUpdates();
+                }
             }
         }
 
@@ -250,6 +370,7 @@
                             this.childItems?.Add(childDirectory.FullPath, childDirectory);
                         }
 
+                        this.RaisePropertyChanged(nameof(this.ChildItems));
                         this.ProjectItemAddedEvent?.Invoke(childDirectory);
                     }
 
@@ -273,6 +394,7 @@
                             this.childItems?.Add(projectItem.FullPath, projectItem);
                         }
 
+                        this.RaisePropertyChanged(nameof(this.ChildItems));
                         this.ProjectItemAddedEvent?.Invoke(projectItem);
 
                         return projectItem;
@@ -302,6 +424,7 @@
                     {
                         deletedProjectItem.Parent = null;
                         this.ChildItems?.Remove(projectItemPath);
+                        this.RaisePropertyChanged(nameof(this.ChildItems));
                         this.ProjectItemDeletedEvent?.Invoke(deletedProjectItem);
                     }
                 }
@@ -315,16 +438,23 @@
         {
             this.StopWatchingForUpdates();
 
-            this.FileSystemWatcher = new FileSystemWatcher(this.FullPath, "*.*")
+            try
             {
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                EnableRaisingEvents = true,
-            };
+                this.FileSystemWatcher = new FileSystemWatcher(this.FullPath, "*.*")
+                {
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                    EnableRaisingEvents = true,
+                };
 
-            this.FileSystemWatcher.Deleted += OnFilesOrDirectoriesChanged;
-            this.FileSystemWatcher.Changed += OnFilesOrDirectoriesChanged;
-            this.FileSystemWatcher.Renamed += OnFilesOrDirectoriesChanged;
-            this.FileSystemWatcher.Created += OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Deleted += OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Changed += OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Renamed += OnFilesOrDirectoriesChanged;
+                this.FileSystemWatcher.Created += OnFilesOrDirectoriesChanged;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error watching project subdirectory " + this.FullPath + ". Project items may not properly refresh.", ex);
+            }
         }
 
         /// <summary>
@@ -389,8 +519,29 @@
                     }
                     break;
             }
+        }
 
-            this.RaisePropertyChanged(nameof(this.ChildItems));
+        /// <summary>
+        /// Utility function for copying the contents of one directory to another.
+        /// </summary>
+        /// <param name="source">The source directory.</param>
+        /// <param name="target">The destination directory.</param>
+        private static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        {
+            Directory.CreateDirectory(target.FullName);
+
+            // Copy each file into the new directory.
+            foreach (FileInfo fileInfo in source.GetFiles())
+            {
+                fileInfo.CopyTo(Path.Combine(target.FullName, fileInfo.Name), false);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
+                DirectoryItem.CopyAll(diSourceSubDir, nextTargetSubDir);
+            }
         }
     }
     //// End class
