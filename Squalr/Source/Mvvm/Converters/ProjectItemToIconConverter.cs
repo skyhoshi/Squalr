@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Source.Mvvm.Converters
 {
     using Squalr.Content;
+    using Squalr.Engine.Common;
     using Squalr.Source.ProjectExplorer.ProjectItems;
     using System;
     using System.Globalization;
@@ -12,6 +13,11 @@
     /// </summary>
     public class ProjectItemToIconConverter : IValueConverter
     {
+        /// <summary>
+        /// An instance of <see cref="DataTypeToIconConverter"/>.
+        /// </summary>
+        private static DataTypeToIconConverter DataTypeToIconConverter = new DataTypeToIconConverter();
+
         /// <summary>
         /// Converts an Icon to a BitmapSource.
         /// </summary>
@@ -42,7 +48,7 @@
                     }
                     else
                     {
-                        return Images.CollectValues;
+                        return DataTypeToIconConverter.Convert(type.DataType, targetType, parameter, culture);
                     }
                 case ProjectItemView type when type is ScriptItemView:
                     return Images.Script;

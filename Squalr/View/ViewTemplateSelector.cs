@@ -65,16 +65,6 @@
         private DataTemplate changeCounterViewTemplate;
 
         /// <summary>
-        /// The template for the Input Correlator.
-        /// </summary>
-        private DataTemplate inputCorrelatorViewTemplate;
-
-        /// <summary>
-        /// The template for the Label Thresholder.
-        /// </summary>
-        private DataTemplate labelThresholderViewTemplate;
-
-        /// <summary>
         /// The template for the Pointer Scanner.
         /// </summary>
         private DataTemplate pointerScannerViewTemplate;
@@ -318,23 +308,6 @@
             {
                 this.changeCounterViewTemplate = value;
                 this.DataTemplates[typeof(ChangeCounterViewModel)] = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the template for the Input Correlator.
-        /// </summary>
-        public DataTemplate InputCorrelatorViewTemplate
-        {
-            get
-            {
-                return this.inputCorrelatorViewTemplate;
-            }
-
-            set
-            {
-                this.inputCorrelatorViewTemplate = value;
-                this.DataTemplates[typeof(InputCorrelatorViewModel)] = value;
             }
         }
 

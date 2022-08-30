@@ -186,7 +186,7 @@
             }
             else
             {
-                return Byte.TryParse(value, out _);
+                return value != null && Byte.TryParse(value, out _);
             }
         }
 
@@ -204,7 +204,7 @@
             }
             else
             {
-                return SByte.TryParse(value, out _);
+                return value != null && SByte.TryParse(value, out _);
             }
         }
 
@@ -222,7 +222,7 @@
             }
             else
             {
-                return Int16.TryParse(value, out _);
+                return value != null && Int16.TryParse(value, out _);
             }
         }
 
@@ -240,7 +240,7 @@
             }
             else
             {
-                return UInt16.TryParse(value, out _);
+                return value != null && UInt16.TryParse(value, out _);
             }
         }
 
@@ -258,7 +258,7 @@
             }
             else
             {
-                return Int32.TryParse(value, out _);
+                return value != null && Int32.TryParse(value, out _);
             }
         }
 
@@ -276,7 +276,7 @@
             }
             else
             {
-                return UInt32.TryParse(value, out _);
+                return value != null && UInt32.TryParse(value, out _);
             }
         }
 
@@ -294,7 +294,7 @@
             }
             else
             {
-                return Int64.TryParse(value, out _);
+                return value != null && Int64.TryParse(value, out _);
             }
         }
 
@@ -312,7 +312,7 @@
             }
             else
             {
-                return UInt64.TryParse(value, out _);
+                return value != null && UInt64.TryParse(value, out _);
             }
         }
 
@@ -330,7 +330,7 @@
             }
             else
             {
-                return Single.TryParse(value.EndsWith("f") ? value.Remove(value.LastIndexOf("f")) : value, out _);
+                return value != null && Single.TryParse(value.EndsWith("f") ? value.Remove(value.LastIndexOf("f")) : value, out _);
             }
         }
 
@@ -348,7 +348,7 @@
             }
             else
             {
-                return Double.TryParse(value, out _);
+                return value != null && Double.TryParse(value, out _);
             }
         }
 

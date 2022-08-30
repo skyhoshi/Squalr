@@ -93,7 +93,7 @@
                             Margin="0 0 4 0"
                             Width="16"
                             Height="16"
-                            Source="{x:Static content:Images.CollectValues}" />
+                            Source="{x:Static content:Images.Cpu}" />
                         <TextBlock
                             VerticalAlignment="Center"
                             Foreground="{StaticResource SqualrColorWhite}"
@@ -127,7 +127,7 @@
                             Margin="0 0 4 0"
                             Width="16"
                             Height="16"
-                            Source="{x:Static content:Images.CollectValues}" />
+                            Source="{x:Static content:Images.DolphinEmulator}" />
                         <TextBlock
                             VerticalAlignment="Center"
                             Foreground="{StaticResource SqualrColorWhite}"
@@ -302,123 +302,136 @@
                 </StackPanel>
             </Button>
         </Grid>
-        <TreeView
-            Name="ProjectExplorerTreeView"
-            Background="{StaticResource SqualrColorPanel}"
-            BorderBrush="White"
-            ContextMenu="{StaticResource RightClickMenu}"
-            ItemsSource="{Binding ProjectRoot}"
-            Visibility="{Binding Path=HasProjectRoot, Converter={StaticResource BooleanToHiddenConverter}}"
-            behaviors:MouseDoubleClickBehavior.Command="{Binding EditProjectItemCommand}"
-            behaviors:MouseDoubleClickBehavior.CommandParameter="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}">
-            <TreeView.Resources>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{Binding Color, Source={StaticResource SqualrColorHighlight}}" />
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{Binding Color, Source={StaticResource SqualrColorHighlight}}" />
-            </TreeView.Resources>
-            <TreeView.ItemContainerStyle>
-                <Style TargetType="{x:Type TreeViewItem}">
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{StaticResource SqualrColorHighlightBorder}" />
-                        </Trigger>
-                    </Style.Triggers>
-                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="ContextMenu" Value="{StaticResource ProjectItemRightClickMenu}" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Style.Resources>
-                        <Style TargetType="{x:Type Border}">
-                            <Setter Property="Grid.ColumnSpan" Value="2" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+                <TreeView
+                    Name="ProjectExplorerTreeView"
+                    Background="{StaticResource SqualrColorPanel}"
+                    BorderBrush="White"
+                    BorderThickness="1 1 1 0"
+                    ContextMenu="{StaticResource RightClickMenu}"
+                    ItemsSource="{Binding ProjectRoot}"
+                    Visibility="{Binding Path=HasProjectRoot, Converter={StaticResource BooleanToHiddenConverter}}"
+                    Grid.Row="0">
+                    <TreeView.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{Binding Color, Source={StaticResource SqualrColorHighlight}}" />
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="{Binding Color, Source={StaticResource SqualrColorHighlight}}" />
+                    </TreeView.Resources>
+                <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource SqualrColorHighlightBorder}" />
+                            </Trigger>
+                        </Style.Triggers>
+                        <Setter Property="behaviors:MouseDoubleClickBehavior.Command" Value="{Binding ProjectExplorerViewModel.EditProjectItemCommand, Source={StaticResource ViewModelLocator}}" />
+                            <Setter Property="behaviors:MouseDoubleClickBehavior.CommandParameter" Value="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}" />
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="ContextMenu" Value="{StaticResource ProjectItemRightClickMenu}" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Style.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="Grid.ColumnSpan" Value="2" />
+                                </Style>
+                            </Style.Resources>
                         </Style>
-                    </Style.Resources>
-                </Style>
-            </TreeView.ItemContainerStyle>
-            <!--  Click and Selection events  -->
-            <intr:Interaction.Triggers>
-                <intr:EventTrigger EventName="SelectedItemChanged">
-                    <intr:InvokeCommandAction Command="{Binding SelectProjectItemCommand}" CommandParameter="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}" />
-                </intr:EventTrigger>
-            </intr:Interaction.Triggers>
-            <!--  Keyboard shortcuts  -->
-            <TreeView.InputBindings>
-                <KeyBinding
-                    Key="C"
-                    Command="{Binding CopySelectionCommand}"
-                    Modifiers="Ctrl" />
-                <KeyBinding
-                    Key="X"
-                    Command="{Binding CutSelectionCommand}"
-                    Modifiers="Ctrl" />
-                <KeyBinding
-                    Key="V"
-                    Command="{Binding PasteSelectionCommand}"
-                    Modifiers="Ctrl" />
-                <KeyBinding Key="Space" Command="{Binding ToggleSelectionActivationCommand}" />
-                <KeyBinding Key="Delete" Command="{Binding DeleteSelectionCommand}" />
-            </TreeView.InputBindings>
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type proj:ProjectItemView}" ItemsSource="{Binding Path=ChildItems, Converter={StaticResource ProjectItemDirectoryConverter}}">
-                    <Border
-                        Background="{Binding Background, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
-                        BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
-                        BorderThickness="1">
-                        <Grid HorizontalAlignment="Stretch" Background="Transparent">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <CheckBox
-                                Grid.Column="0"
-                                Margin="0,0,4,0"
-                                IsChecked="{Binding Path=IsActivated}" />
-                            <Image
-                                Grid.Column="1"
-                                Width="16"
-                                Height="16"
-                                Source="{Binding Converter={StaticResource ProjectItemToIconConverter}}">
-                                <intr:Interaction.Triggers>
-                                    <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
-                                        <intr:ChangePropertyAction
-                                            PropertyName="IsSelected"
-                                            TargetObject="{Binding}"
-                                            Value="true" />
-                                    </intr:EventTrigger>
-                                </intr:Interaction.Triggers>
-                            </Image>
-                            <TextBlock
-                                Grid.Column="2"
-                                Margin="4,0,0,0"
-                                Foreground="{StaticResource SqualrColorWhite}"
-                                Text="{Binding Path=Name}">
-                                <intr:Interaction.Triggers>
-                                    <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
-                                        <intr:ChangePropertyAction
-                                            PropertyName="IsSelected"
-                                            TargetObject="{Binding}"
-                                            Value="true" />
-                                    </intr:EventTrigger>
-                                </intr:Interaction.Triggers>
-                            </TextBlock>
-                            <TextBlock
-                                Grid.Column="3"
-                                Margin="4,0,0,0"
-                                Foreground="{StaticResource SqualrColorGray74}"
-                                Text="{Binding Path=DisplayValue}">
-                                <intr:Interaction.Triggers>
-                                    <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
-                                        <intr:ChangePropertyAction
-                                            PropertyName="IsSelected"
-                                            TargetObject="{Binding}"
-                                            Value="true" />
-                                    </intr:EventTrigger>
-                                </intr:Interaction.Triggers>
-                            </TextBlock>
-                        </Grid>
-                    </Border>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+                    </TreeView.ItemContainerStyle>
+                    <!--  Click and Selection events  -->
+                    <intr:Interaction.Triggers>
+                        <intr:EventTrigger EventName="SelectedItemChanged">
+                            <intr:InvokeCommandAction Command="{Binding SelectProjectItemCommand}" CommandParameter="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}" />
+                        </intr:EventTrigger>
+                    </intr:Interaction.Triggers>
+                    <!--  Keyboard shortcuts  -->
+                    <TreeView.InputBindings>
+                        <KeyBinding
+                            Key="C"
+                            Command="{Binding CopySelectionCommand}"
+                            Modifiers="Ctrl" />
+                        <KeyBinding
+                            Key="X"
+                            Command="{Binding CutSelectionCommand}"
+                            Modifiers="Ctrl" />
+                        <KeyBinding
+                            Key="V"
+                            Command="{Binding PasteSelectionCommand}"
+                            Modifiers="Ctrl" />
+                        <KeyBinding Key="Space" Command="{Binding ToggleSelectionActivationCommand}" />
+                        <KeyBinding Key="Delete" Command="{Binding DeleteSelectionCommand}" />
+                    </TreeView.InputBindings>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="{x:Type proj:ProjectItemView}" ItemsSource="{Binding Path=ChildItems, Converter={StaticResource ProjectItemDirectoryConverter}}">
+                            <Border
+                                Background="{Binding Background, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
+                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
+                                BorderThickness="1">
+                                <Grid HorizontalAlignment="Stretch" Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox
+                                        Grid.Column="0"
+                                        Margin="0,0,4,0"
+                                        IsChecked="{Binding Path=IsActivated}" />
+                                    <Image
+                                        Grid.Column="1"
+                                        Width="16"
+                                        Height="16"
+                                        Source="{Binding Path=ImageSource}">
+                                        <intr:Interaction.Triggers>
+                                            <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
+                                                <intr:ChangePropertyAction
+                                                    PropertyName="IsSelected"
+                                                    TargetObject="{Binding}"
+                                                    Value="true" />
+                                            </intr:EventTrigger>
+                                        </intr:Interaction.Triggers>
+                                    </Image>
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Margin="4,0,0,0"
+                                        Foreground="{StaticResource SqualrColorWhite}"
+                                        Text="{Binding Path=Name}">
+                                        <intr:Interaction.Triggers>
+                                            <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
+                                                <intr:ChangePropertyAction
+                                                    PropertyName="IsSelected"
+                                                    TargetObject="{Binding}"
+                                                    Value="true" />
+                                            </intr:EventTrigger>
+                                        </intr:Interaction.Triggers>
+                                    </TextBlock>
+                                    <TextBlock
+                                        Grid.Column="3"
+                                        Margin="4,0,0,0"
+                                        Foreground="{StaticResource SqualrColorGray74}"
+                                        Text="{Binding Path=DisplayValue}">
+                                        <intr:Interaction.Triggers>
+                                            <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
+                                                <intr:ChangePropertyAction
+                                                    PropertyName="IsSelected"
+                                                    TargetObject="{Binding}"
+                                                    Value="true" />
+                                            </intr:EventTrigger>
+                                        </intr:Interaction.Triggers>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            <Border Background="{StaticResource SqualrColorPanel}"
+                BorderBrush="White"
+                BorderThickness="1 0 1 1"
+                Grid.Row="1">
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

@@ -2,11 +2,16 @@
 {
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Projects.Items;
+    using Squalr.Source.Mvvm.Converters;
     using System;
     using System.ComponentModel;
+    using System.Globalization;
+    using System.Windows.Media;
 
     public class ProjectItemView : INotifyPropertyChanged
     {
+        private static ProjectItemToIconConverter ProjectItemToIconConverter = new ProjectItemToIconConverter();
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private ProjectItem projectItem;
@@ -88,7 +93,25 @@
             set
             {
                 this.projectItem = value;
+
+                if (this.projectItem != null)
+                {
+                    this.projectItem.PropertyChanged += ProjectItem_PropertyChanged;
+                }
+
                 this.RaisePropertyChanged(nameof(this.ProjectItem));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the value at this address.
+        /// </summary>
+        [Browsable(false)]
+        public ImageSource ImageSource
+        {
+            get
+            {
+                return ProjectItemToIconConverter.Convert(this, null, null, CultureInfo.InvariantCulture) as ImageSource;
             }
         }
 
@@ -101,6 +124,24 @@
 
             set
             {
+            }
+        }
+
+        private void ProjectItem_PropertyChanged(Object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AddressItem.DataType))
+            {
+                this.RaisePropertyChanged(nameof(this.ImageSource));
+            }
+
+            if (e.PropertyName == nameof(PointerItem.PointerOffsets))
+            {
+                this.RaisePropertyChanged(nameof(this.ImageSource));
+            }
+
+            if (e.PropertyName == nameof(PointerItem.ModuleName))
+            {
+                this.RaisePropertyChanged(nameof(this.ImageSource));
             }
         }
     }

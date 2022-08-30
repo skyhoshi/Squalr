@@ -136,7 +136,7 @@
 
             set
             {
-                if (this.pointerOffsets != null && this.pointerOffsets.SequenceEqual(value))
+                if (value != null && this.pointerOffsets != null && this.pointerOffsets.SequenceEqual(value))
                 {
                     return;
                 }

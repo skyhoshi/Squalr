@@ -109,18 +109,6 @@ namespace Squalr.Engine.Scanning.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("500")]
-        public int InputCorrelatorTimeOutInterval {
-            get {
-                return ((int)(this["InputCorrelatorTimeOutInterval"]));
-            }
-            set {
-                this["InputCorrelatorTimeOutInterval"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("4")]
         public int Alignment {
             get {

@@ -56,11 +56,6 @@
             this.ResultReadIntervalHexDecBoxViewModel.PropertyChanged += this.ResultReadIntervalUpdated;
             this.ResultReadIntervalHexDecBoxViewModel.DataType = ScannableType.Int32;
             this.ResultReadIntervalHexDecBoxViewModel.SetValue(this.SettingsViewModel.ResultReadInterval);
-
-            this.InputCorrelatorTimeoutHexDecBoxViewModel = this.InputCorrelatorTimeoutHexDecBox.DataContext as HexDecBoxViewModel;
-            this.InputCorrelatorTimeoutHexDecBoxViewModel.PropertyChanged += this.InputCorrelatorTimeoutUpdated;
-            this.InputCorrelatorTimeoutHexDecBoxViewModel.DataType = ScannableType.Int32;
-            this.InputCorrelatorTimeoutHexDecBoxViewModel.SetValue(this.SettingsViewModel.InputCorrelatorTimeOutInterval);
         }
 
         /// <summary>
@@ -108,11 +103,6 @@
         /// Gets or sets the hex dec box for the input correlation timeout.
         /// </summary>
         private HexDecBoxViewModel ResultReadIntervalHexDecBoxViewModel { get; set; }
-
-        /// <summary>
-        /// Gets or sets the hex dec box for the input correlation timeout.
-        /// </summary>
-        private HexDecBoxViewModel InputCorrelatorTimeoutHexDecBoxViewModel { get; set; }
 
         /// <summary>
         /// Invoked when the scan alignment is changed, and informs the viewmodel.
@@ -251,26 +241,6 @@
                 }
 
                 this.SettingsViewModel.ResultReadInterval = (Int32)value;
-            }
-        }
-
-        /// <summary>
-        /// Invoked when the input correlator timeout changed, and informs the viewmodel.
-        /// </summary>
-        /// <param name="sender">Sending object.</param>
-        /// <param name="args">Event args.</param>
-        private void InputCorrelatorTimeoutUpdated(Object sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName == nameof(HexDecBoxViewModel.Text))
-            {
-                Object value = this.InputCorrelatorTimeoutHexDecBoxViewModel.GetValue();
-
-                if (value == null)
-                {
-                    return;
-                }
-
-                this.SettingsViewModel.InputCorrelatorTimeOutInterval = (Int32)value;
             }
         }
     }

@@ -192,17 +192,6 @@
         }
 
         /// <summary>
-        /// Gets the Input Correlator view model.
-        /// </summary>
-        public InputCorrelatorViewModel InputCorrelatorViewModel
-        {
-            get
-            {
-                return InputCorrelatorViewModel.GetInstance();
-            }
-        }
-
-        /// <summary>
         /// Gets the Manual Scanner view model.
         /// </summary>
         public ManualScannerViewModel ManualScannerViewModel

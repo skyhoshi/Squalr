@@ -96,19 +96,6 @@
             }
         }
 
-        public static Int32 InputCorrelatorTimeOutInterval
-        {
-            get
-            {
-                return Properties.Settings.Default.InputCorrelatorTimeOutInterval;
-            }
-
-            set
-            {
-                Properties.Settings.Default.InputCorrelatorTimeOutInterval = value;
-            }
-        }
-
         public static Int32 Alignment
         {
             get

@@ -274,20 +274,6 @@
                         Foreground="{StaticResource SqualrColorWhite}"
                         Text="Result Read Interval" />
                 </WrapPanel>
-                <WrapPanel Margin="0,4,0,4">
-                    <Controls:HexDecBox
-                        x:Name="InputCorrelatorTimeoutHexDecBox"
-                        Width="64"
-                        Margin="0,4,8,0"
-                        HorizontalAlignment="Left"
-                        BorderBrush="{StaticResource SqualrColorWhite}"
-                        BorderThickness="1" />
-                    <TextBlock
-                        Padding="8,0,0,0"
-                        VerticalAlignment="Center"
-                        Foreground="{StaticResource SqualrColorWhite}"
-                        Text="Input Correlator Timeout" />
-                </WrapPanel>
             </StackPanel>
         </TabItem>
         <TabItem Background="Transparent" Header="Emulators">

@@ -346,23 +346,6 @@
         }
 
         /// <summary>
-        /// Gets or sets a the allowed period of time for a given input to register as correlated with memory changes.
-        /// </summary>
-        public Int32 InputCorrelatorTimeOutInterval
-        {
-            get
-            {
-                return ScanSettings.InputCorrelatorTimeOutInterval;
-            }
-
-            set
-            {
-                ScanSettings.InputCorrelatorTimeOutInterval = value;
-                this.RaisePropertyChanged(nameof(this.InputCorrelatorTimeOutInterval));
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the virtual memory alignment required in scans.
         /// </summary>
         public Int32 Alignment

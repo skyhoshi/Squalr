@@ -112,8 +112,6 @@
     <None Remove="View\Editors\ScriptEditor.xaml" />
     <None Remove="View\Editors\TextEditor.xaml" />
     <None Remove="View\Editors\ValueEditor.xaml" />
-    <None Remove="View\InputCorrelator.xaml" />
-    <None Remove="View\LabelThresholder.xaml" />
     <None Remove="View\MainWindow.xaml" />
     <None Remove="View\Output.xaml" />
     <None Remove="View\PointerScanner.xaml" />
@@ -346,12 +344,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="View\Editors\ValueEditor.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="View\InputCorrelator.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="View\LabelThresholder.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="View\MainWindow.xaml">

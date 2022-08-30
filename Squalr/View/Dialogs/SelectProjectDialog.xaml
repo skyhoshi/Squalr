@@ -142,9 +142,12 @@
                     <shell:DataGridTemplateColumn Header="Projects">
                         <shell:DataGridTemplateColumn.CellTemplate>
                             <shell:DataTemplate>
-                                <shell:StackPanel Orientation="Horizontal">
+                                <shell:Grid>
+                                    <shell:TextBlock Text="{Binding Path=.}" 
+                                        Margin="4 0 0 0"/>
                                     <shell:Button
-                                        Margin="0,0,4,0"
+                                        HorizontalAlignment="Right"
+                                        Margin="0 0 4 0"
                                         Background="Transparent"
                                         Command="{Binding SelectProjectDialogViewModel.RenameProjectCommand, Source={StaticResource ViewModelLocator}}"
                                         CommandParameter="{Binding Path=.}"
@@ -154,8 +157,7 @@
                                             Height="16"
                                             Source="{x:Static content:Images.Edit}" />
                                     </shell:Button>
-                                    <shell:TextBlock Text="{Binding Path=.}" />
-                                </shell:StackPanel>
+                                </shell:Grid>
                             </shell:DataTemplate>
                         </shell:DataGridTemplateColumn.CellTemplate>
                     </shell:DataGridTemplateColumn>

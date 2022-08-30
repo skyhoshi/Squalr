@@ -642,40 +642,45 @@
 
             IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
             IList<NormalizedRegion> regions = new List<NormalizedRegion>();
+            Byte[] layoutMagicGC = { 0x5D, 0x1C, 0x9E, 0xA3 };
+            Byte[] layoutMagicWii = { 0xC2, 0x33, 0x9F, 0x3D };
+            Byte[] bootCode = { 0x0D, 0x15, 0xEA, 0x5E };
 
             switch (emulatorType)
             {
                 case EmulatorType.Dolphin:
                     IEnumerable<NormalizedRegion> mappedRegions = this.GetVirtualPages(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process));
-                    IEnumerable<NormalizedRegion> privateRegions = this.GetVirtualPages(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process));
 
                     foreach (NormalizedRegion region in mappedRegions)
                     {
                         // Dolphin stores main memory in a memory mapped region of this exact size.
                         if (region.RegionSize == 0x2000000 && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                         {
-                            // Check to see if there is a game id. This should weed out any false positives.
-                            bool readSuccess = false;
-                            Byte[] gameId = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress, 6, out readSuccess);
+                            // Check static signature data in the header, see: https://wiibrew.org/wiki/Memory_map
+                            Byte[] readlayoutMagicGC = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress + 0x18, 4, out _);
+                            Byte[] readlayoutMagicWii = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress + 0x1C, 4, out _);
+                            Byte[] readBootCode = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress + 0x20, 4, out _);
 
-                            if (readSuccess)
+                            if (readlayoutMagicGC == null || readlayoutMagicWii == null || readBootCode == null)
                             {
-                                String gameIdStr = Encoding.ASCII.GetString(gameId);
+                                continue;
+                            }
 
-                                // This is a faulty heuristic due to the fact that several games have a header corruption glitch
-                                if (gameIdStr.StartsWith('G') && gameIdStr.All(character => Char.IsLetterOrDigit(character)))
-                                {
-                                    // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
-                                    // Changing values in one will change the other. This means that we can just take the first one we find.
-                                    regions.Add(region);
-                                    break;
-                                }
+                            // Note that this check can fail if the user executes a header corruption glitch in games where it is possible to do so (ie SFA, TP, TWW)
+                            if ((Enumerable.SequenceEqual(layoutMagicGC, readlayoutMagicGC) || Enumerable.SequenceEqual(layoutMagicWii, readlayoutMagicWii)) && Enumerable.SequenceEqual(bootCode, readBootCode))
+                            {
+                                // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
+                                // Changing values in one will change the other. This means that we can just take the first one we find.
+                                regions.Add(region);
+                                break;
                             }
                         }
                     }
 
                     // Disabled for now: Fetching Wii extended memory. We should find a consistent signature for this.
                     /*
+                    IEnumerable<NormalizedRegion> privateRegions = this.GetVirtualPages(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process));
+
                     foreach (NormalizedRegion region in privateRegions)
                     {
                         // Dolphin stores wii memory in a memory mapped region of this exact size.
