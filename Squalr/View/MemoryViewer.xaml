@@ -63,7 +63,23 @@
             </Menu>
         </Border>
         <Grid Grid.Row="1">
-            <hexEditor:HexEditor Stream="{Binding MemoryStream}" Width="Auto" Height="Auto"/>
+            <hexEditor:HexEditor 
+                Background="{StaticResource SqualrColorFrame}"
+                Foreground="{StaticResource SqualrColorWhite}"
+                ForegroundHighLightOffSetHeaderColor="{StaticResource SqualrColorWhite}"
+                ForegroundOffSetHeaderColor="{StaticResource SqualrColorWhite}"
+                ForegroundSecondColor="{StaticResource SqualrColorGray85}"
+                ForegroundContrast="{StaticResource SqualrColorWhite}"
+                MouseOverColor="{StaticResource SqualrColorHighlight}"
+                HighLightColor="{StaticResource SqualrColorHighlight}"
+                StatusBarVisibility="Collapsed"
+                ContextMenu="{Binding Wat}"
+                Stream="{Binding MemoryStream}"
+                AllowAutoHighLightSelectionByte="False"
+                AllowAutoSelectSameByteAtDoubleClick="True"
+                Width="Auto"
+                Height="Auto"/>
+            <!--BarChartPanelVisibility="Visible"-->
         </Grid>
         <Border Height="24" Grid.Row="3" Background="{StaticResource SqualrColorFrame}">
             <WrapPanel HorizontalAlignment="Center">

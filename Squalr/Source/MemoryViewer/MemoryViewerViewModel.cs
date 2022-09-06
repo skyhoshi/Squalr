@@ -32,7 +32,7 @@
         /// </summary>
         Snapshot snapshot = null;
 
-        ByteArrayType viewSize = new ByteArrayType(4002);
+        ByteArrayType viewSize = new ByteArrayType(4096);
 
         /// <summary>
         /// 
@@ -126,7 +126,7 @@
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
                 SessionManager.Session.OpenedProcess,
                 this.snapshot,
-                TrackableTask.UniversalIdentifier);
+                withLogging: false);
 
             this.snapshot = valueCollectorTask.Result;
 
@@ -134,7 +134,7 @@
 
             if (size <= 0)
             {
-                this.memoryStream = null;
+                this.MemoryStream = null;
             }
             else
             {
@@ -146,20 +146,19 @@
 
                     if (value != null)
                     {
-                        if (this.memoryStream == null)
+                        if (this.MemoryStream == null)
                         {
-                            this.memoryStream = new MemoryStream(value);
+                            this.MemoryStream = new MemoryStream(value);
                         }
                         else
                         {
-                            this.memoryStream.Seek(0, SeekOrigin.Begin);
-                            this.memoryStream.Write(value, 0, (Int32)this.memoryStream.Length);
+                            this.MemoryStream.Seek(0, SeekOrigin.Begin);
+                            this.MemoryStream.Write(value, 0, (Int32)this.MemoryStream.Length);
+                            this.RaisePropertyChanged(nameof(this.MemoryStream));
                         }
                     }
                 }
             }
-
-            this.RaisePropertyChanged(nameof(this.MemoryStream));
         }
 
         /// <summary>
