@@ -213,6 +213,12 @@
                             Style="{Binding .}"
                              />
                         <shell:MenuItem
+                            Header="Memory Viewer"
+                            IsCheckable="True"
+                            IsChecked="{Binding MemoryViewerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
+                             />
+                        <shell:MenuItem
                             Header="Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding ScanResultsViewModel.IsVisible, Mode=TwoWay}"
@@ -1135,6 +1141,12 @@
                                 <view:SnapshotManager />
                             </shell:DataTemplate>
                         </view:ViewTemplateSelector.SnapshotManagerViewTemplate>
+                        <!--  Memory Viewer  -->
+                        <view:ViewTemplateSelector.MemoryViewerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:MemoryViewer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.MemoryViewerViewTemplate>
                         <!--  Scan Results  -->
                         <view:ViewTemplateSelector.ScanResultsViewTemplate>
                             <shell:DataTemplate>

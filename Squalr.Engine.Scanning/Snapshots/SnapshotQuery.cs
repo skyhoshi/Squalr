@@ -50,6 +50,35 @@
                     return null;
             }
         }
+        /// <summary>
+        /// Creates a new snapshot of memory in the target process. Will not read any memory.
+        /// </summary>
+        /// <returns>The snapshot of memory taken in the target process.</returns>
+        public static Snapshot CreateSnapshotByAddressRange(Process process, UInt64 startAddress, UInt64 endAddress)
+        {
+            MemoryProtectionEnum requiredPageFlags = 0;
+            MemoryProtectionEnum excludedPageFlags = 0;
+            MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
+            RegionBoundsHandling boundsHandling = RegionBoundsHandling.Resize;
+
+            List<ReadGroup> readGroups = new List<ReadGroup>();
+            IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
+                process,
+                requiredPageFlags,
+                excludedPageFlags,
+                allowedTypeFlags,
+                startAddress,
+                endAddress,
+                boundsHandling);
+
+            foreach (NormalizedRegion virtualPage in virtualPages)
+            {
+                virtualPage.Align(ScanSettings.Alignment);
+                readGroups.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
+            }
+
+            return new Snapshot(String.Empty, readGroups.SelectMany(readGroup => readGroup.Shard(SnapshotQuery.ShardSize)));
+        }
 
         /// <summary>
         /// Creates a snapshot from all usermode memory. Will not read any memory.

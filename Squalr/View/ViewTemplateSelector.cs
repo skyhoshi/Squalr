@@ -1,7 +1,7 @@
 ﻿namespace Squalr.View
 {
     using Source.DotNetExplorer;
-    using Source.Results;
+    using Source.ScanResults;
     using Source.Snapshots;
     using Squalr.Properties;
     using Squalr.Source.Debugger;
@@ -10,6 +10,7 @@
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.TextEditor;
+    using Squalr.Source.MemoryViewer;
     using Squalr.Source.Output;
     using Squalr.Source.ProcessSelector;
     using Squalr.Source.ProjectExplorer;
@@ -79,6 +80,11 @@
         /// The template for the Snapshot Manager.
         /// </summary>
         private DataTemplate snapshotManagerViewTemplate;
+
+        /// <summary>
+        /// The template for the Memory Viewer.
+        /// </summary>
+        private DataTemplate memoryViewerViewTemplate;
 
         /// <summary>
         /// The template for the Scan Results.
@@ -365,6 +371,23 @@
             {
                 this.snapshotManagerViewTemplate = value;
                 this.DataTemplates[typeof(SnapshotManagerViewModel)] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the template for the Memory Viewer.
+        /// </summary>
+        public DataTemplate MemoryViewerViewTemplate
+        {
+            get
+            {
+                return this.memoryViewerViewTemplate;
+            }
+
+            set
+            {
+                this.memoryViewerViewTemplate = value;
+                this.DataTemplates[typeof(MemoryViewerViewModel)] = value;
             }
         }
 

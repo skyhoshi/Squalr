@@ -7,7 +7,7 @@
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using Squalr.Source.Docking;
-    using Squalr.Source.Results;
+    using Squalr.Source.ScanResults;
     using Squalr.Source.Tasks;
     using System;
     using System.Threading;

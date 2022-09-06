@@ -1,4 +1,4 @@
-﻿namespace Squalr.Source.Results
+﻿namespace Squalr.Source.ScanResults
 {
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;

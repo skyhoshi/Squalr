@@ -1,4 +1,4 @@
-﻿namespace Squalr.Source.Results
+﻿namespace Squalr.Source.ScanResults
 {
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.ProjectExplorer.ProjectItems;

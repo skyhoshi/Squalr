@@ -108,7 +108,8 @@
             MemoryProtectionEnum excludedProtection,
             MemoryTypeEnum allowedTypes,
             UInt64 startAddress,
-            UInt64 endAddress)
+            UInt64 endAddress,
+            RegionBoundsHandling regionBoundsHandling = RegionBoundsHandling.Exclude)
         {
             MemoryProtectionFlags requiredFlags = 0;
             MemoryProtectionFlags excludedFlags = 0;
@@ -153,7 +154,7 @@
                 excludedFlags |= MemoryProtectionFlags.ExecuteWriteCopy;
             }
 
-            IEnumerable<MemoryBasicInformation64> memoryInfo = WindowsMemoryQuery.VirtualPages(process == null ? IntPtr.Zero : process.Handle, startAddress, endAddress, requiredFlags, excludedFlags, allowedTypes);
+            IEnumerable<MemoryBasicInformation64> memoryInfo = WindowsMemoryQuery.VirtualPages(process == null ? IntPtr.Zero : process.Handle, startAddress, endAddress, requiredFlags, excludedFlags, allowedTypes, regionBoundsHandling);
 
             IList<NormalizedRegion> regions = new List<NormalizedRegion>();
 
@@ -426,13 +427,14 @@
         /// <returns>
         /// A collection of <see cref="MemoryBasicInformation64"/> structures containing info about all virtual pages in the target process.
         /// </returns>
-        public static IEnumerable<MemoryBasicInformation64> VirtualPages(
+        private static IEnumerable<MemoryBasicInformation64> VirtualPages(
             IntPtr processHandle,
             UInt64 startAddress,
             UInt64 endAddress,
             MemoryProtectionFlags requiredProtection,
             MemoryProtectionFlags excludedProtection,
-            MemoryTypeEnum allowedTypes)
+            MemoryTypeEnum allowedTypes,
+            RegionBoundsHandling regionBoundsHandling = RegionBoundsHandling.Exclude)
         {
             if (startAddress >= endAddress)
             {
@@ -441,6 +443,13 @@
 
             Boolean wrappedAround = false;
             Int32 queryResult;
+            UInt64 currentAddress = startAddress;
+
+            // If partial matches are supported, we need to enumerate all memory regions. A small optimization may be possible here if we start from the min(0, startAddress - max page size) instead.
+            if (regionBoundsHandling == RegionBoundsHandling.Include || regionBoundsHandling == RegionBoundsHandling.Resize)
+            {
+                currentAddress = 0;
+            }
 
             // Enumerate the memory pages
             do
@@ -454,7 +463,7 @@
                     MemoryBasicInformation32 memoryInfo32 = new MemoryBasicInformation32();
 
                     // Query the memory region (32 bit native method)
-                    queryResult = NativeMethods.VirtualQueryEx(processHandle, startAddress.ToIntPtr(), out memoryInfo32, Marshal.SizeOf(memoryInfo32));
+                    queryResult = NativeMethods.VirtualQueryEx(processHandle, currentAddress.ToIntPtr(), out memoryInfo32, Marshal.SizeOf(memoryInfo32));
 
                     // Copy from the 32 bit struct to the 64 bit struct
                     memoryInfo.AllocationBase = memoryInfo32.AllocationBase;
@@ -468,17 +477,18 @@
                 else
                 {
                     // Query the memory region (64 bit native method)
-                    queryResult = NativeMethods.VirtualQueryEx(processHandle, startAddress.ToIntPtr(), out memoryInfo, Marshal.SizeOf(memoryInfo));
+                    queryResult = NativeMethods.VirtualQueryEx(processHandle, currentAddress.ToIntPtr(), out memoryInfo, Marshal.SizeOf(memoryInfo));
                 }
 
                 // Increment the starting address with the size of the page
-                UInt64 previousFrom = startAddress;
-                startAddress = startAddress.Add(memoryInfo.RegionSize);
+                UInt64 nextAddress = currentAddress.Add(memoryInfo.RegionSize);
 
-                if (previousFrom > startAddress)
+                if (currentAddress > nextAddress)
                 {
                     wrappedAround = true;
                 }
+
+                currentAddress = nextAddress;
 
                 // Ignore free memory. These are unallocated memory regions.
                 if ((memoryInfo.State & MemoryStateFlags.Free) != 0)
@@ -544,10 +554,37 @@
                     continue;
                 }
 
+                UInt64 regionStartAddress = memoryInfo.BaseAddress.ToUInt64();
+                UInt64 regionEndAddress = regionStartAddress + (UInt64)memoryInfo.RegionSize;
+
+                // Ignore regions not in the provided bounds
+                if (regionEndAddress < startAddress || regionStartAddress > endAddress)
+                {
+                    continue;
+                }
+
+                // Handle regions that are partially in the provided bounds based on given bounds handling method
+                if (regionStartAddress < startAddress || regionEndAddress > endAddress)
+                {
+                    switch (regionBoundsHandling)
+                    {
+                        case RegionBoundsHandling.Exclude:
+                            continue;
+                        case RegionBoundsHandling.Include:
+                            break;
+                        case RegionBoundsHandling.Resize:
+                            UInt64 newStartAddress = Math.Max(startAddress, regionStartAddress);
+                            UInt64 newEndAddress = Math.Min(endAddress, regionEndAddress);
+                            memoryInfo.BaseAddress = (IntPtr)newStartAddress;
+                            memoryInfo.RegionSize = (Int64)(newEndAddress - newStartAddress);
+                            break;
+                    }
+                }
+
                 // Return the memory page
                 yield return memoryInfo;
             }
-            while (startAddress < endAddress && queryResult != 0 && !wrappedAround);
+            while (currentAddress < endAddress && queryResult != 0 && !wrappedAround);
         }
 
         /// <summary>

@@ -370,6 +370,9 @@
     <Page Update="View\PropertyViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Update="View\MemoryViewer.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
     <Page Update="View\ScanResults.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

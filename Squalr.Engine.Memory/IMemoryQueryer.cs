@@ -6,6 +6,27 @@
     using System.Diagnostics;
 
     /// <summary>
+    /// An enum specifying how to handle any regions that partially fall within the specified range.
+    /// </summary>
+    public enum RegionBoundsHandling
+    {
+        /// <summary>
+        /// Exclude the entire region that is partially outside of the specified range.
+        /// </summary>
+        Exclude,
+
+        /// <summary>
+        /// Include the entire region that is partially outside of the specified range.
+        /// </summary>
+        Include,
+
+        /// <summary>
+        /// Resize region that is partially outside of the specified range to fit within the range.
+        /// </summary>
+        Resize,
+    }
+
+    /// <summary>
     /// An interface for querying virtual memory.
     /// </summary>
     public interface IMemoryQueryer
@@ -18,6 +39,7 @@
         /// <param name="allowedTypes">Memory types that can be present.</param>
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
+        /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         IEnumerable<NormalizedRegion> GetVirtualPages(
             Process process,
@@ -25,7 +47,8 @@
             MemoryProtectionEnum excludedProtection,
             MemoryTypeEnum allowedTypes,
             UInt64 startAddress,
-            UInt64 endAddress);
+            UInt64 endAddress,
+            RegionBoundsHandling regionBoundsHandling = RegionBoundsHandling.Exclude);
 
         /// <summary>
         /// Gets all virtual pages in the opened process.

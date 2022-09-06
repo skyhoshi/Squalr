@@ -6,7 +6,7 @@
     using Squalr.Engine.Scanning.Scanners.Pointers;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Source.Docking;
-    using Squalr.Source.Results;
+    using Squalr.Source.ScanResults;
     using Squalr.Source.Tasks;
     using System;
     using System.Threading;

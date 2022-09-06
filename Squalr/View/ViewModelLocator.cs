@@ -2,7 +2,7 @@
 {
     using Source.DotNetExplorer;
     using Source.Main;
-    using Source.Results;
+    using Source.ScanResults;
     using Source.Snapshots;
     using Squalr.Properties;
     using Squalr.Source.ChangeLog;
@@ -15,6 +15,7 @@
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.TextEditor;
     using Squalr.Source.Editors.ValueEditor;
+    using Squalr.Source.MemoryViewer;
     using Squalr.Source.Output;
     using Squalr.Source.ProcessSelector;
     using Squalr.Source.ProjectExplorer;
@@ -22,8 +23,6 @@
     using Squalr.Source.PropertyViewer;
     using Squalr.Source.Scanning;
     using Squalr.Source.Tasks;
-    using System;
-    using System.ComponentModel;
 
     /// <summary>
     /// This class contains static references to all the view models in the
@@ -244,6 +243,17 @@
             get
             {
                 return SnapshotManagerViewModel.GetInstance();
+            }
+        }
+
+        /// <summary>
+        /// Gets the Memory Viewer view model.
+        /// </summary>
+        public MemoryViewerViewModel MemoryViewerViewModel
+        {
+            get
+            {
+                return MemoryViewerViewModel.GetInstance();
             }
         }
 

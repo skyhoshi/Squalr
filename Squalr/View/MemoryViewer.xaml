@@ -1,0 +1,73 @@
+﻿<UserControl
+    x:Class="Squalr.View.MemoryViewer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:behaviors="clr-namespace:Squalr.Source.Mvvm.AttachedBehaviors"
+    xmlns:content="clr-namespace:Squalr.Content"
+    xmlns:hexEditor="clr-namespace:WpfHexaEditor;assembly=WPFHexaEditor"
+    xmlns:Controls="clr-namespace:Squalr.View.Controls"
+    xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:intr="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="SqualrMemoryViewer"
+    d:DesignHeight="256"
+    d:DesignWidth="512"
+    x:ClassModifier="public"
+    DataContext="{Binding MemoryViewerViewModel, Source={StaticResource ViewModelLocator}}"
+    mc:Ignorable="d">
+    <x:Code>
+        <![CDATA[ public MemoryViewer() { InitializeComponent(); }]]>
+    </x:Code>
+    <Grid Background="{StaticResource SqualrColorPanel}">
+        <Grid.Resources>
+            <converters:UInt64ToAddressConverter x:Key="IntPtrToAddressConverter" />
+            <converters:ValueToMetricSize x:Key="ValueToMetricSize" />
+            <converters:BooleanToVisibilityConverter
+                x:Key="BooleanToHiddenConverter"
+                False="Hidden"
+                True="Visible" />
+            <converters:ProjectItemToIconConverter x:Key="ProjectItemToIconConverter" />
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="{StaticResource SqualrColorFrame}">
+            <Menu
+                Grid.Column="1"
+                Padding="0 2 0 2"
+                Background="{StaticResource SqualrColorFrame}"
+                BorderBrush="{StaticResource SqualrColorWhite}"
+                Foreground="{StaticResource SqualrColorWhite}">
+                <MenuItem VerticalAlignment="Center" Command="{Binding GoToAddressCommand}">
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <Controls:HexDecBox
+                                x:Name="AddressHexDecBox"
+                                Width="196"
+                                HorizontalAlignment="Left"
+                                BorderBrush="{StaticResource SqualrColorWhite}"
+                                BorderThickness="1" />
+                            <Image
+                                Margin="4 0 0 0"
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.Increased}"
+                                ToolTip="Add Selected Items" />
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+            </Menu>
+        </Border>
+        <Grid Grid.Row="1">
+            <hexEditor:HexEditor Stream="{Binding MemoryStream}" Width="Auto" Height="Auto"/>
+        </Grid>
+        <Border Height="24" Grid.Row="3" Background="{StaticResource SqualrColorFrame}">
+            <WrapPanel HorizontalAlignment="Center">
+            </WrapPanel>
+        </Border>
+    </Grid>
+</UserControl>
