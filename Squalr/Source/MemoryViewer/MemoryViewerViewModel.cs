@@ -37,7 +37,7 @@
         /// <summary>
         /// 
         /// </summary>
-        private UInt64 address = 0x80000000;
+        private UInt64 address = 0x80406F98;
 
         /// <summary>
         /// Prevents a default instance of the <see cref="MemoryViewerViewModel" /> class from being created.

@@ -27,6 +27,11 @@
         private Boolean isHex;
 
         /// <summary>
+        /// A value indicating whether hex values support masking operators (*, x, ?).
+        /// </summary>
+        private Boolean supportsMasks;
+
+        /// <summary>
         /// 
         /// </summary>
         public HexDecBoxViewModel()
@@ -115,6 +120,25 @@
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether hex values support masking operators (*, x, ?).
+        /// </summary>
+        public Boolean SupportsMask
+        {
+            get
+            {
+                return this.supportsMasks;
+            }
+
+            set
+            {
+                this.supportsMasks = value;
+                this.RaisePropertyChanged(nameof(this.SupportsMask));
+                this.RaisePropertyChanged(nameof(this.IsValid));
+                this.RaisePropertyChanged(nameof(this.Self));
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the value is displayed as dec.
         /// </summary>
         public Boolean IsDec
@@ -160,7 +184,7 @@
         {
             get
             {
-                if (this.IsHex && SyntaxChecker.CanParseHex(this.DataType, this.Text))
+                if (this.IsHex && SyntaxChecker.CanParseHex(this.DataType, this.Text, this.SupportsMask && this.DataType is ByteArrayType))
                 {
                     return true;
                 }
@@ -239,6 +263,20 @@
         }
 
         /// <summary>
+        /// Gets the array of byte scan mask associated with this hex dec box.
+        /// </summary>
+        /// <returns>The array of byte scan mask.</returns>
+        public Object GetMask()
+        {
+            if (this.IsHex && this.SupportsMask)
+            {
+                return Conversions.ParseByteArrayMask(this.Text);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Sets the raw value being represented.
         /// </summary>
         /// <param name="value">The raw value.</param>
@@ -282,7 +320,7 @@
         /// </summary>
         private void ConvertDec()
         {
-            if (SyntaxChecker.CanParseHex(this.DataType, this.Text))
+            if (this.IsValid)
             {
                 this.Text = Conversions.ParseHexStringAsPrimitiveString(this.DataType, this.Text);
             }
@@ -295,7 +333,7 @@
         /// </summary>
         private void ConvertHex()
         {
-            if (SyntaxChecker.CanParseValue(this.DataType, this.Text))
+            if (this.IsValid)
             {
                 this.Text = Conversions.ParsePrimitiveStringAsHexString(this.DataType, this.Text);
             }

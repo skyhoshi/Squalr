@@ -57,7 +57,7 @@
         {
             IList<SnapshotRegion> regions = new List<SnapshotRegion>();
 
-            shardSize = Math.Min((shardSize / Vectors.VectorSize) * Vectors.VectorSize, this.RegionSize);
+            shardSize = Math.Min(shardSize / Vectors.VectorSize * Vectors.VectorSize, this.RegionSize);
 
             Int32 remaining = this.RegionSize;
             Int32 offset = 0;

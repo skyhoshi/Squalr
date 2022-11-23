@@ -20,6 +20,7 @@
             this.InitializeComponent();
 
             this.ValueHexDecBoxViewModel = this.ValueHexDecBox.DataContext as HexDecBoxViewModel;
+            this.ValueHexDecBoxViewModel.SupportsMask = true;
             this.ValueHexDecBoxViewModel.PropertyChanged += HexDecBoxViewModelPropertyChanged;
 
             ScanResultsViewModel.GetInstance().PropertyChanged += ScanResultsPropertyChanged;
@@ -40,6 +41,7 @@
             if (e.PropertyName == nameof(ValueHexDecBoxViewModel.Text))
             {
                 ManualScannerViewModel.GetInstance().UpdateActiveValueCommand.Execute(this.ValueHexDecBoxViewModel.GetValue());
+                ManualScannerViewModel.GetInstance().UpdateActiveArgsCommand.Execute(this.ValueHexDecBoxViewModel.GetMask());
             }
         }
     }

@@ -51,7 +51,7 @@
                             Int32 processedPages = 0;
                             ConcurrentScanBag regions = new ConcurrentScanBag();
 
-                            ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
+                            ParallelOptions options = ParallelSettings.ParallelSettingsNone.Clone();
                             options.CancellationToken = cancellationToken;
 
                             Parallel.ForEach(

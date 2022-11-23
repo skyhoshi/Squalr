@@ -7,6 +7,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Collection of methods to convert values from one format to another format.
@@ -131,7 +132,7 @@
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return BitConverter.ToUInt64(BitConverter.GetBytes((Double)realValue), 0).ToString("X");
                 case ScannableType type when type == ScannableType.String:
-                    return String.Join(' ', Conversions.ParseByteArrayString(value).Select(str => Conversions.ParsePrimitiveStringAsHexString(ScannableType.Byte, str.ToString(), signHex)));
+                    return String.Join(' ', Conversions.ParseByteArrayString(value, true, true).Select(str => Conversions.ParsePrimitiveStringAsHexString(ScannableType.Byte, str.ToString(), signHex)));
                 case ScannableType type when type == ScannableType.IntPtr:
                     return ((IntPtr)realValue).ToString("X");
                 case ScannableType type when type == ScannableType.UIntPtr:
@@ -205,8 +206,8 @@
                 case ScannableType type when type == ScannableType.Double:
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return BitConverter.ToDouble(BitConverter.GetBytes(realValue), 0).ToString();
-                case ByteArrayType _:
-                    return String.Join(' ', Conversions.ParseByteArrayString(value).Select(x => x.ToString()));
+                case ByteArrayType type:
+                    return String.Join(' ', Conversions.ParseByteArrayString(value, true, true).Select(x => x.ToString()));
                 case ScannableType type when type == ScannableType.IntPtr:
                     return ((IntPtr)realValue).ToString();
                 case ScannableType type when type == ScannableType.UIntPtr:
@@ -452,24 +453,51 @@
             }
         }
 
-        public static Byte[] ParseByteArrayString(String value, bool isHex = true)
+        public static Byte[] ParseByteArrayString(String value, Boolean isHex = true, Boolean filterMasks = false)
         {
-            IEnumerable<String> byteStrings = SplitByteArrayString(value, isHex);
+            if (isHex && filterMasks)
+            {
+                Regex wildcardRegex = new Regex("[?*x]");
+                value = wildcardRegex.Replace(value, "0");
+            }
 
-            return byteStrings.Select(str => Byte.Parse(str, isHex ? NumberStyles.HexNumber : NumberStyles.Integer)).ToArray();
+            IEnumerable<String> byteStrings = SplitByteArrayString(value, isHex);
+            Byte[] result = byteStrings.Select(str => Byte.Parse(str, isHex ? NumberStyles.HexNumber : NumberStyles.Integer)).ToArray();
+
+            return result;
         }
 
-        public static IEnumerable<String> SplitByteArrayString(String value, bool isHex = true)
+        public static Byte[] ParseByteArrayMask(String value)
+        {
+            Regex hexRegex = new Regex("[a-fA-F0-9]");
+            Regex wildcardRegex = new Regex("[?*x]");
+            value = hexRegex.Replace(value, "0");
+            value = wildcardRegex.Replace(value, "F");
+
+            IEnumerable<String> byteStrings = SplitByteArrayString(value, true);
+            Byte[] result = byteStrings.Select(str => Byte.Parse(str, NumberStyles.HexNumber)).ToArray();
+
+            return result;
+        }
+
+        public static IEnumerable<String> SplitByteArrayString(String value, Boolean isHex = true)
         {
             // First split on whitespace, which has priority for separating bytes
-            String[] values = value?.Split(' ') ?? new String[0];
+            String[] values = value?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new String[0];
 
-            // Next group bytes into chunks of two (or three, for dec), from left to right
-            Int32 index = 0;
-            return values.Select(str => str
-                .ToLookup(character => index++ / (isHex ? 2 : 3))
-                .Select(lookup => new String(lookup.ToArray())))
-                    .SelectMany(str => str);
+            // Next group bytes into chunks of two from left to right
+            if (isHex)
+            {
+                Int32 index = 0;
+                return values.Select(str => str
+                    .ToLookup(character => index++ / 2)
+                    .Select(lookup => new String(lookup.ToArray())))
+                        .SelectMany(str => str);
+            }
+            else
+            {
+                return values;
+            }
         }
 
         public static String ValueToMetricSize(UInt64 value)

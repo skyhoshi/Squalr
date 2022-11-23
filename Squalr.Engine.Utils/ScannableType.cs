@@ -25,13 +25,19 @@ namespace Squalr.Engine.Common
     [DataContract]
     public class ByteArrayType : ScannableType
     {
-        public ByteArrayType(Int32 length = 1) : base(typeof(Byte[]))
+        public ByteArrayType(Int32 length = 1, Byte[] mask = null) : base(typeof(Byte[]))
         {
             this.Length = length;
+            this.Mask = mask;
         }
 
         [DataMember]
         public Int32 Length { get; set; }
+
+        /// <summary>
+        /// Gets or sets the mask used during scanning. Not serialized.
+        /// </summary>
+        public Byte[] Mask { get; set; }
     };
 
     /// <summary>

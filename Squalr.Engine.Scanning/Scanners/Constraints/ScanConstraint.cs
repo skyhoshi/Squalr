@@ -20,6 +20,11 @@
         private Object constraintValue;
 
         /// <summary>
+        /// The args associated with this constraint, if applicable.
+        /// </summary>
+        private Object constraintArgs;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraint" /> class.
         /// </summary>
         public ScanConstraint()
@@ -33,10 +38,11 @@
         /// </summary>
         /// <param name="valueConstraint">The constraint type.</param>
         /// <param name="value">The value associated with this constraint.</param>
-        public ScanConstraint(ConstraintType valueConstraint, Object value = null)
+        public ScanConstraint(ConstraintType valueConstraint, Object value = null, Object args = null)
         {
             this.Constraint = valueConstraint;
             this.ConstraintValue = value;
+            this.ConstraintArgs = args;
         }
 
         /// <summary>
@@ -85,6 +91,30 @@
             {
                 this.constraintValue = value;
                 this.RaisePropertyChanged(nameof(this.ConstraintValue));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets any optional arguements provided with the constraint, if applicable.
+        /// </summary>
+        public Object ConstraintArgs
+        {
+            get
+            {
+                if (this.IsValuedConstraint())
+                {
+                    return this.constraintArgs;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            set
+            {
+                this.constraintArgs = value;
+                this.RaisePropertyChanged(nameof(this.ConstraintArgs));
             }
         }
 
@@ -192,7 +222,7 @@
         /// <returns>The cloned scan constraint.</returns>
         public override Constraint Clone()
         {
-            return new ScanConstraint(this.Constraint, this.ConstraintValue);
+            return new ScanConstraint(this.Constraint, this.ConstraintValue, this.ConstraintArgs);
         }
 
         /// <summary>

@@ -1,10 +1,8 @@
 ﻿namespace Squalr.Engine.Common
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Linq;
 
     /// <summary>
     /// A static class used to check syntax for various values and types.
@@ -90,7 +88,7 @@
                 case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
                     return SyntaxChecker.IsDouble(value);
                 case ByteArrayType _:
-                    return SyntaxChecker.IsArrayOfBytes(value);
+                    return SyntaxChecker.IsArrayOfBytes(value, false);
                 default:
                     return false;
             }
@@ -101,8 +99,9 @@
         /// </summary>
         /// <param name="dataType">The type of the given value.</param>
         /// <param name="value">The value to be parsed.</param>
+        /// <param name="allowMasks">Whether hex values support masking operators (*, x, ?).</param>
         /// <returns>A boolean indicating if the value is parseable as hex.</returns>
-        public static Boolean CanParseHex(ScannableType dataType, String value)
+        public static Boolean CanParseHex(ScannableType dataType, String value, Boolean allowMasks = false)
         {
             if (value == null)
             {
@@ -119,6 +118,13 @@
             while (value.StartsWith("0") && value.Length > 1)
             {
                 value = value.Substring(1);
+            }
+
+            if (allowMasks)
+            {
+                value = value.Replace("*", "0");
+                value = value.Replace("x", "0");
+                value = value.Replace("?", "0");
             }
 
             // Remove negative sign from signed integer types, as TryParse methods do not handle negative hex values
@@ -170,6 +176,27 @@
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Determines if the given string can be parsed as an array of bytes.
+        /// </summary>
+        /// <param name="value">The value as a string.</param>
+        /// <param name="isHex">Whether or not the value is encoded in hex.</param>
+        /// <returns>A boolean indicating if the value could be parsed.</returns>
+        public static Boolean IsArrayOfBytes(String value, Boolean isHex = false)
+        {
+            IEnumerable<String> byteStrings = Conversions.SplitByteArrayString(value, isHex);
+
+            foreach (String next in byteStrings)
+            {
+                if (!SyntaxChecker.IsByte(next, isHex))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -350,27 +377,6 @@
             {
                 return value != null && Double.TryParse(value, out _);
             }
-        }
-
-        /// <summary>
-        /// Determines if the given string can be parsed as an array of bytes.
-        /// </summary>
-        /// <param name="value">The value as a string.</param>
-        /// <param name="isHex">Whether or not the value is encoded in hex.</param>
-        /// <returns>A boolean indicating if the value could be parsed.</returns>
-        private static Boolean IsArrayOfBytes(String value, Boolean isHex = false)
-        {
-            IEnumerable<String> byteStrings = Conversions.SplitByteArrayString(value, isHex);
-
-            foreach (String next in byteStrings)
-            {
-                if (!SyntaxChecker.IsByte(next, isHex))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
     //// End class
