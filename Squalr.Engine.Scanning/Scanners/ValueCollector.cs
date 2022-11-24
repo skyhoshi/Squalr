@@ -66,7 +66,7 @@
                             cancellationToken.ThrowIfCancellationRequested();
 
                             stopwatch.Stop();
-                            snapshot.LoadMetaData(ScannableType.Byte.Size);
+                            snapshot.ComputeElementCount(ScannableType.Byte.Size);
 
                             if (withLogging)
                             {

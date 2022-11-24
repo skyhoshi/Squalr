@@ -345,7 +345,7 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update(Snapshot snapshot)
         {
-            snapshot?.LoadMetaData(this.ActiveType.Size);
+            snapshot?.ComputeElementCount(this.ActiveType.Size);
             this.ResultCount = snapshot == null ? 0 : snapshot.ElementCount;
             this.ByteCount = snapshot == null ? 0 : snapshot.ByteCount;
             this.CurrentPage = 0;

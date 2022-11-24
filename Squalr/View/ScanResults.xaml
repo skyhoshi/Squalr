@@ -46,7 +46,7 @@
                             Width="16"
                             Height="16"
                             Source="{x:Static content:Images.Increased}"
-                            ToolTip="Add Selected Items" />
+                            ToolTip="Add Selected Items to Current Project" />
                     </MenuItem.Header>
                 </MenuItem>
             </Menu>

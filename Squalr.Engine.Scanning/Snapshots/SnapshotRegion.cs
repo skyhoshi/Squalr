@@ -45,7 +45,7 @@
         public Int32 ReadGroupOffset { get; set; }
 
         /// <summary>
-        /// Gets the size of this snapshot in bytes.
+        /// Gets the size of this snapshot region in bytes.
         /// </summary>
         public Int32 RegionSize { get; set; }
 
@@ -79,10 +79,14 @@
         /// <summary>
         /// Gets the number of elements contained in this snapshot.
         /// <param name="dataTypeSize">The size of an element.</param>
+        /// <param name="alignment">The memory address alignment of each element.</param>
         /// </summary>
-        public Int32 GetElementCount(int dataTypeSize)
+        public Int32 GetElementCount(Int32 dataTypeSize, Int32 alignment)
         {
-            return this.RegionSize / (dataTypeSize <= 0 ? 1 : dataTypeSize);
+            // Int32 usableRange = this.RegionSize - dataTypeSize; // Not needed, the readgroup should have enough bytes that we can read "out of bounds" safely.
+            Int32 elementCount = this.RegionSize / (alignment <= 0 ? 1 : alignment);
+
+            return elementCount;
         }
 
         /// <summary>
@@ -90,44 +94,11 @@
         /// </summary>
         /// <param name="index">The index of the snapshot element.</param>
         /// <returns>Returns the snapshot element at the specified index.</returns>
-        public SnapshotElementIndexer this[Int32 index]
+        public SnapshotElementIndexer this[Int32 index, Int32 alignment]
         {
             get
             {
-                return new SnapshotElementIndexer(region: this, elementIndex: index);
-            }
-        }
-
-        /// <summary>
-        /// Gets the enumerator for an element reference within this snapshot region.
-        /// </summary>
-        /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementIndexer> IterateElements(Int32 elementSize)
-        {
-            Int32 elementCount = this.GetElementCount(elementSize);
-            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this);
-
-            for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
-            {
-                yield return snapshotElement;
-            }
-        }
-
-        /// <summary>
-        /// Gets the enumerator for an element reference within this snapshot region.
-        /// </summary>
-        /// <param name="pointerIncrementMode">The method for incrementing pointers.</param>
-        /// <param name="constraints">The constraint to use for element comparisons.</param>
-        /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementComparer> IterateComparer(SnapshotElementComparer.PointerIncrementMode pointerIncrementMode, Constraint constraints, ScannableType dataType)
-        {
-            Int32 elementCount = this.GetElementCount(dataType.Size);
-            SnapshotElementComparer snapshotElement = new SnapshotElementComparer(region: this, pointerIncrementMode: pointerIncrementMode, constraints: constraints, dataType: dataType);
-
-            for (Int32 elementIndex = 0; elementIndex < elementCount; elementIndex++)
-            {
-                yield return snapshotElement;
-                snapshotElement.IncrementPointers();
+                return new SnapshotElementIndexer(region: this, elementIndex: index, alignment: alignment);
             }
         }
     }

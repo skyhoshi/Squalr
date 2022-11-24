@@ -29,6 +29,7 @@
             this.VectorReadIndex = 0;
             this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size;
+            this.Alignment = constraints.Alignment;
             this.ResultRegions = new List<SnapshotRegion>();
 
             this.Compare = this.ElementCompare;
@@ -332,6 +333,11 @@
         private Int32 DataTypeSize { get; set; }
 
         /// <summary>
+        /// Gets or sets the enforced memory alignment for this scan.
+        /// </summary>
+        private Int32 Alignment { get; set; }
+
+        /// <summary>
         /// Gets or sets the data type being compared.
         /// </summary>
         private ScannableType DataType { get; set; }
@@ -357,6 +363,25 @@
         {
             for (; this.VectorReadIndex < this.Region.RegionSize; this.VectorReadIndex += this.VectorSize)
             {
+                // TODO: Incrmenting by vector size is broken because this fails to account for alignment.
+                // This complicates the shit out of things, because we claim that if all vector elements match, the RLE increases.
+                // However, if we now factor in alignment, the RLE can be split (!!) violating that assumption.
+                // This is pretty insane and my brain hurts.
+                // Perhaps the answer is to track the run length as a vector of bytes itself :thenk:
+                // This can be decomposed at the end of the alignment cycle to figure out how many individual RLE segments are contained
+                // Optimize for common case of course
+
+                // In reality we want some algorithm like this:
+                // - Load a vector (say 128 bytes => 32 ints)
+                // - Check the RLE on these 32 (store to vector of 32 separate bytes) to a value of 0 or 1
+                // - Load next vector based on alignment. If this == data type size, no work is required.
+                // - Store the RLE results in the NEXT bit of the RLE vector. So now each vector should contain 00, 01, 10, or 11.
+                // - <Repeat>
+                // - Now we should have various flag vectors of individual RLEs.
+                //     - Common case: All 0s (no matches), or all 1s(all matches)
+                // - We can then decompose these flags to figure out the true run lengths TODO: How?
+
+
                 Vector<Byte> scanResults = this.VectorCompare();
 
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
@@ -375,7 +400,7 @@
                 }
 
                 // Otherwise the vector contains a mixture of true and false
-                for (Int32 index = 0; index < this.VectorSize; index += this.DataTypeSize)
+                for (Int32 index = 0; index < this.VectorSize; index += this.Alignment)
                 {
                     // Vector result was false
                     if (scanResults[unchecked(index)] == 0)
@@ -385,7 +410,7 @@
                     // Vector result was true
                     else
                     {
-                        this.RunLength += this.DataTypeSize;
+                        this.RunLength += this.Alignment;
                         this.Encoding = true;
                     }
                 }
@@ -471,7 +496,10 @@
 
                 if (enforcedSize <= 0 || this.RunLength >= enforcedSize)
                 {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.VectorReadBase + this.VectorReadIndex + offset - this.RunLength, this.RunLength));
+                    Int32 readgroupOffset = this.VectorReadBase + this.VectorReadIndex + offset - this.RunLength;
+                    Int32 elementCount = this.DataTypeSize <= 0 ? this.RunLength : (this.RunLength / this.DataTypeSize);
+
+                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, elementCount));
                 }
 
                 this.RunLength = 0;

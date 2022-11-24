@@ -48,9 +48,10 @@
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
+                            const Int32 alignment = 4;
                             ScannableType pointerDataType = previousPointerBag.PointerSize.ToDataType();
                             ScanConstraint scanConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Unchanged);
-                            ScanConstraints scanConstraints = new ScanConstraints(pointerDataType, scanConstraint);
+                            ScanConstraints scanConstraints = new ScanConstraints(pointerDataType, scanConstraint, alignment);
 
                             IList<Level> oldLevels = previousPointerBag.Levels;
                             IList<Level> newLevels = new List<Level>();

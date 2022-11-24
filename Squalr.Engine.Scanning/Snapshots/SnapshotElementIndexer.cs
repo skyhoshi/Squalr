@@ -17,10 +17,11 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, Int32 alignment = 1)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
+            this.Alignment = Math.Clamp(alignment, 1, alignment);
         }
 
         /// <summary>
@@ -57,9 +58,14 @@
         /// </summary>
         public Int32 ElementIndex { get; set; }
 
+        /// <summary>
+        /// Gets the index of this element.
+        /// </summary>
+        public Int32 Alignment { get; set; }
+
         public Object LoadCurrentValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex * this.Alignment])
             {
                 return LoadValues(dataType, pointerBase);
             }
@@ -67,13 +73,13 @@
 
         public Object LoadPreviousValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex * this.Alignment])
             {
                 return LoadValues(dataType, pointerBase);
             }
         }
 
-        public Object LoadValues(ScannableType dataType, Byte* pointerBase)
+        private Object LoadValues(ScannableType dataType, Byte* pointerBase)
         {
             switch (dataType)
             {

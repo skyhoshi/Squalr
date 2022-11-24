@@ -17,6 +17,11 @@
         /// </summary>
         private IEnumerable<ReadGroup> readGroups;
 
+        /// <summary>
+        /// The snapshot memory address alignment.
+        /// </summary>
+        private Int32 alignment = 1;
+
         // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -73,15 +78,6 @@
         }
 
         /// <summary>
-        /// Updates the base address of each region in this snapshot to match the provided alignment.
-        /// </summary>
-        /// <param name="alignment">The base address alignment.</param>
-        public void Align(Int32 alignment)
-        {
-            this.ReadGroups.ForEach(readGroup => readGroup.Align(alignment));
-        }
-
-        /// <summary>
         /// Gets the time since the last update was performed on this snapshot.
         /// </summary>
         public DateTime TimeSinceLastUpdate { get; private set; }
@@ -99,6 +95,23 @@
             set
             {
                 this.readGroups = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the snapshot memory address alignment.
+        /// </summary>
+        public Int32 Alignment
+        {
+            get
+            {
+                return this.alignment;
+            }
+
+            set
+            {
+                this.alignment = value;
+                this.ReadGroups?.ForEach(readGroup => readGroup?.Align(this.alignment));
             }
         }
 
@@ -146,7 +159,9 @@
                     return null;
                 }
 
-                return region[(elementIndex - region.BaseElementIndex).ToInt32()];
+                SnapshotElementIndexer indexer = region[(elementIndex - region.BaseElementIndex).ToInt32(), this.Alignment];
+
+                return indexer;
             }
         }
 
@@ -157,7 +172,7 @@
         /// <param name="label">The new snapshot label value.</param>
         public void SetElementLabels<LabelType>(LabelType label) where LabelType : struct, IComparable<LabelType>
         {
-            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((Int32)(x.RegionSize))).Cast<Object>().ToArray()));
+            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((Int32)x.RegionSize)).Cast<Object>().ToArray()));
         }
 
         /// <summary>
@@ -172,7 +187,11 @@
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }
 
-        public void LoadMetaData(Int32 elementSize)
+        /// <summary>
+        /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
+        /// </summary>
+        /// <param name="elementSize"></param>
+        public void ComputeElementCount(Int32 elementSize)
         {
             this.ByteCount = 0;
             this.ElementCount = 0;
@@ -181,7 +200,7 @@
             {
                 region.BaseElementIndex = this.ElementCount;
                 this.ByteCount += region.RegionSize.ToUInt64();
-                this.ElementCount += region.GetElementCount(elementSize).ToUInt64();
+                this.ElementCount += region.GetElementCount(elementSize, this.Alignment).ToUInt64();
             });
         }
 
@@ -258,7 +277,7 @@
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(elementSize).ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(elementSize, this.Alignment).ToUInt64())
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }

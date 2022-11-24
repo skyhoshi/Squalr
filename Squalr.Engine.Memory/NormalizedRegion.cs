@@ -70,7 +70,7 @@
         /// <param name="alignment">The base address alignment.</param>
         public void Align(Int32 alignment)
         {
-            if (this.BaseAddress.Mod(alignment) == 0)
+            if (alignment <= 0 || this.BaseAddress.Mod(alignment) == 0)
             {
                 return;
             }

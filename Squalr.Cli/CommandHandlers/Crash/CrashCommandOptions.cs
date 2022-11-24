@@ -15,6 +15,7 @@
         {
             // If set to 0.0, assume unset and set to 1.0. Otherwise, clamp in bounds.
             Intensity = Intensity <= 0.0 ? 1.0 : Math.Clamp(Intensity, 0.0, 1.0);
+            Int32 alignment = 1;
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
@@ -31,7 +32,7 @@
             // Scan for any changed values
             TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
                 valueRecollectorTask.Result,
-                new ScanConstraints(ScannableType.Byte, new ScanConstraint(ScanConstraint.ConstraintType.Changed)),
+                new ScanConstraints(ScannableType.Byte, new ScanConstraint(ScanConstraint.ConstraintType.Changed), alignment),
                 TrackableTask.UniversalIdentifier);
 
             Random random = new Random();
@@ -39,11 +40,11 @@
             // Start overwriting any memory that changed with 0s
             foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
             {
-                for (Int32 index = 0; index < region.GetElementCount(ScannableType.Byte.Size); index++)
+                for (Int32 index = 0; index < region.GetElementCount(ScannableType.Byte.Size, alignment); index++)
                 {
                     if (random.NextDouble() <= Intensity)
                     {
-                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index].GetBaseAddress(ScannableType.Byte.Size), 0);
+                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index, alignment].GetBaseAddress(ScannableType.Byte.Size), 0);
                     }
                 }
             }

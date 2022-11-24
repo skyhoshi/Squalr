@@ -60,7 +60,8 @@
                                     return;
                                 }
 
-                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null);
+                                const Int32 alignment = 4;
+                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
                                 SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 

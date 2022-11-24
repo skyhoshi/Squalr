@@ -89,7 +89,7 @@
                             result = new Snapshot(ManualScanner.Name, regions);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
-                            result.LoadMetaData(constraints.ElementType.Size);
+                            result.ComputeElementCount(constraints.ElementType.Size);
                             Logger.Log(LogLevel.Info, "Results: " + result.ElementCount + " (" + Conversions.ValueToMetricSize(result.ByteCount) + ")");
                         }
                         catch (OperationCanceledException ex)

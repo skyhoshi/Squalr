@@ -13,7 +13,7 @@
     /// </summary>
     public class PointerBag : IEnumerable<Level>
     {
-        private static Random Random = new Random();
+        private static Random RandInstance = new Random();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PointerBag" /> class.
@@ -90,7 +90,8 @@
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        SnapshotElementIndexer randomElement = snapshotRegion[Random.Next(0, snapshotRegion.GetElementCount(PointerSize.ToSize()))];
+                        Int32 elementCount = snapshotRegion.GetElementCount(PointerSize.ToSize(), currentSnapshot.Alignment);
+                        SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount), currentSnapshot.Alignment];
                         UInt64 baseAddress = randomElement.GetBaseAddress(PointerSize.ToSize());
                         Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
 
@@ -113,8 +114,8 @@
 
         private ExtractedPointer ExtractRandomPointer(Snapshot snapshot)
         {
-            SnapshotRegion extractedRegion = snapshot.SnapshotRegions[Random.Next(0, snapshot.SnapshotRegions.Length)];
-            SnapshotElementIndexer extractedElement = extractedRegion[Random.Next(0, extractedRegion.GetElementCount(PointerSize.ToSize()))];
+            UInt64 elementIndex = PointerBag.RandInstance.RandomUInt64(0, snapshot.ElementCount);
+            SnapshotElementIndexer extractedElement = snapshot[elementIndex, PointerSize.ToSize()];
 
             return this.ExtractPointerFromElement(extractedElement);
         }
