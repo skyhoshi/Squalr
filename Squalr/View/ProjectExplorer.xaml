@@ -339,12 +339,12 @@
                     </TreeView.Resources>
                 <TreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type TreeViewItem}">
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="BorderBrush" Value="{StaticResource SqualrColorHighlightBorder}" />
-                            </Trigger>
-                        </Style.Triggers>
-                        <Setter Property="behaviors:MouseDoubleClickBehavior.Command" Value="{Binding ProjectExplorerViewModel.EditProjectItemCommand, Source={StaticResource ViewModelLocator}}" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="BorderBrush" Value="{StaticResource SqualrColorHighlightBorder}" />
+                                </Trigger>
+                            </Style.Triggers>
+                            <Setter Property="behaviors:MouseDoubleClickBehavior.Command" Value="{Binding ProjectExplorerViewModel.EditProjectItemCommand, Source={StaticResource ViewModelLocator}}" />
                             <Setter Property="behaviors:MouseDoubleClickBehavior.CommandParameter" Value="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}" />
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
