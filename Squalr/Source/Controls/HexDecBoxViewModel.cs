@@ -268,7 +268,7 @@
         /// <returns>The array of byte scan mask.</returns>
         public Object GetMask()
         {
-            if (this.IsHex && this.SupportsMask)
+            if (this.IsHex && this.SupportsMask && this.IsValid)
             {
                 return Conversions.ParseByteArrayMask(this.Text);
             }
