@@ -532,7 +532,16 @@
             if (this.Encoding)
             {
                 Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength * this.Alignment;
-                this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
+                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)readgroupOffset);
+                UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
+
+                // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
+                // This check catches any potential errors introduced this way.
+                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
+                {
+                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
+                }
+
                 this.RunLength = 0;
                 this.Encoding = false;
             }
