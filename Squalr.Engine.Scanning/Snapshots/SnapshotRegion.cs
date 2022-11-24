@@ -45,7 +45,7 @@
         public Int32 ReadGroupOffset { get; set; }
 
         /// <summary>
-        /// Gets the size of this snapshot region in bytes.
+        /// Gets or sets the size of this snapshot region in bytes.
         /// </summary>
         public Int32 RegionSize { get; set; }
 
@@ -87,6 +87,13 @@
             Int32 elementCount = this.RegionSize / (alignment <= 0 ? 1 : alignment);
 
             return elementCount;
+        }
+
+        public void ResizeForSafeReading(Int32 dataTypeSize)
+        {
+            Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
+
+            this.RegionSize = Math.Clamp(this.RegionSize, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
         }
 
         /// <summary>

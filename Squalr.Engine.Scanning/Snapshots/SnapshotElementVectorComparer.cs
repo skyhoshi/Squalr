@@ -25,8 +25,7 @@
             this.Region = region;
             this.VectorSize = Vectors.VectorSize;
             this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
-            this.ByteArrayReadIndex = 0;
-            this.VectorReadIndex = 0;
+            this.VectorReadOffset = 0;
             this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size;
             this.Alignment = constraints.Alignment;
@@ -40,14 +39,19 @@
         }
 
         /// <summary>
-        /// Gets or sets the index for the beginning of the byte array scan.
+        /// Gets or sets the index from which the next vector is read.
         /// </summary>
-        public Int32 ByteArrayReadIndex { get; private set; }
+        public Int32 VectorReadOffset { get; private set; }
 
         /// <summary>
-        /// Gets or sets the index of this element.
+        /// Gets or sets the alignment offset, which is also used for reading the next vector.
         /// </summary>
-        public Int32 VectorReadIndex { get; private set; }
+        public Int32 AlignmentReadOffset { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the index from which the run length encoding is started.
+        /// </summary>
+        public Int32 RunLengthEncodeOffset { get; private set; }
 
         /// <summary>
         /// Gets the current values at the current vector read index.
@@ -56,7 +60,7 @@
         {
             get
             {
-                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadIndex));
+                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
             }
         }
 
@@ -67,7 +71,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadIndex)));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
             }
         }
 
@@ -78,7 +82,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadIndex)));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
             }
         }
 
@@ -89,7 +93,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadIndex + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
             }
         }
 
@@ -100,7 +104,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadIndex + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
             }
         }
 
@@ -346,6 +350,21 @@
         /// Gets or sets the list of discovered result regions.
         /// </summary>
         private IList<SnapshotRegion> ResultRegions { get; set; }
+        
+        /// <summary>
+        /// An alignment mask table for computing temporary run length encoding data during scans.
+        /// </summary>
+        private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
+        {
+                new Vector<Byte>(1 << 0),
+                new Vector<Byte>(1 << 1),
+                new Vector<Byte>(1 << 2),
+                new Vector<Byte>(1 << 3),
+                new Vector<Byte>(1 << 4),
+                new Vector<Byte>(1 << 5),
+                new Vector<Byte>(1 << 6),
+                new Vector<Byte>(1 << 7),
+        };
 
         /// <summary>
         /// Sets a custom comparison function to use in scanning.
@@ -361,27 +380,81 @@
         /// </summary>
         public IList<SnapshotRegion> ElementCompare()
         {
-            for (; this.VectorReadIndex < this.Region.RegionSize; this.VectorReadIndex += this.VectorSize)
+            /*
+             * This algorithm works as such:
+             * 1) Load a vector of the data type to scan (say 128 bytes => 16 doubles).
+             * 2) Simultaneously scan all 16 doubles (scan result will be true/false).
+             * 3) Store the results in a run length encoding (RLE) vector.
+             *      Important: this RLE vector is a lie, because if we are scanning mis-aligned ints, we will have missed them.
+             *      For example, if there is no alignment, there are 7 additional doubles between each of the doubles we just scanned!
+             * 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
+             *      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
+             * 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
+            */
+
+            Int32 scanCountPerVector = this.DataTypeSize / this.Alignment;
+            Int32 elementsPerVector = this.VectorSize / this.DataTypeSize;
+            Int32 incrementSize = this.VectorSize - scanCountPerVector;
+            Vector<Byte> runLengthVector;
+            Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
+            this.RunLengthEncodeOffset = this.VectorReadOffset;
+
+            // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
+            this.Region.ResizeForSafeReading(this.VectorSize);
+
+            for (; this.VectorReadOffset < this.Region.RegionSize; this.VectorReadOffset += this.VectorSize)
             {
-                // TODO: Incrmenting by vector size is broken because this fails to account for alignment.
-                // This complicates the shit out of things, because we claim that if all vector elements match, the RLE increases.
-                // However, if we now factor in alignment, the RLE can be split (!!) violating that assumption.
-                // This is pretty insane and my brain hurts.
-                // Perhaps the answer is to track the run length as a vector of bytes itself :thenk:
-                // This can be decomposed at the end of the alignment cycle to figure out how many individual RLE segments are contained
-                // Optimize for common case of course
+                runLengthVector = Vector<Byte>.Zero;
+                this.AlignmentReadOffset = 0;
 
-                // In reality we want some algorithm like this:
-                // - Load a vector (say 128 bytes => 32 ints)
-                // - Check the RLE on these 32 (store to vector of 32 separate bytes) to a value of 0 or 1
-                // - Load next vector based on alignment. If this == data type size, no work is required.
-                // - Store the RLE results in the NEXT bit of the RLE vector. So now each vector should contain 00, 01, 10, or 11.
-                // - <Repeat>
-                // - Now we should have various flag vectors of individual RLEs.
-                //     - Common case: All 0s (no matches), or all 1s(all matches)
-                // - We can then decompose these flags to figure out the true run lengths TODO: How?
+                // For misalinged types, we will need to increment the vector read index and perform additional scans
+                for (Int32 alignment = 0; this.VectorReadOffset < this.Region.RegionSize && alignment < scanCountPerVector; alignment++)
+                {
+                    // Call the desired comparison function to get the results
+                    Vector<Byte> scanResults = this.VectorCompare();
 
+                    // Store in-progress scan results for this batch
+                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, SnapshotElementVectorComparer.AlignmentMaskTable[alignment]));
 
+                    this.AlignmentReadOffset++;
+                }
+
+                // Optimization: check all vector results true
+                if (Vector.EqualsAll(runLengthVector, allEqualsVector))
+                {
+                    this.RunLength += elementsPerVector;
+                    this.Encoding = true;
+                    continue;
+                }
+                // Optimization: check all vector results false
+                else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
+                {
+                    this.EncodeCurrentResults();
+                    continue;
+                }
+
+                // Otherwise the vector contains a mixture of true and false
+                for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
+                {
+                    Byte runLengthFlags = runLengthVector[unchecked(resultIndex)];
+
+                    for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
+                    {
+                        Boolean runLengthResult = (runLengthFlags & unchecked((Byte)(1 << alignmentIndex))) != 0;
+
+                        if (runLengthResult)
+                        {
+                            this.RunLength++;
+                            this.Encoding = true;
+                        }
+                        else
+                        {
+                            this.EncodeCurrentResults(resultIndex + alignmentIndex);
+                        }
+                    }
+                }
+
+                /*
                 Vector<Byte> scanResults = this.VectorCompare();
 
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
@@ -414,6 +487,7 @@
                         this.Encoding = true;
                     }
                 }
+                */
             }
 
             return this.GatherCollectedRegions();
@@ -434,7 +508,7 @@
             }
 
             // Note that array of bytes must increment by 1 per iteration, unlike data type scans which can increment by vector size
-            for (; this.VectorReadIndex <= this.Region.RegionSize - ByteArraySize; this.VectorReadIndex++)
+            for (; this.VectorReadOffset <= this.Region.RegionSize - ByteArraySize; this.VectorReadOffset++)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 
@@ -485,23 +559,15 @@
         /// <summary>
         /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
         /// </summary>
-        /// <param name="offset">TODO - This seems to be an offset from the vector read index, but why? I can no longer recall how this works.</param>
+        /// <param name="vectorReadOffset">While performing run length encoding, the VectorReadOffset may have changed, and this can be used to make corrections.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EncodeCurrentResults(Int32 offset = 0, Int32 enforcedSize = 0)
+        private void EncodeCurrentResults(Int32 vectorReadOffset = 0)
         {
             // Create the final region if we are still encoding
             if (this.Encoding)
             {
-                this.RunLength = enforcedSize > 0 ? Math.Min(this.RunLength, enforcedSize) : this.RunLength;
-
-                if (enforcedSize <= 0 || this.RunLength >= enforcedSize)
-                {
-                    Int32 readgroupOffset = this.VectorReadBase + this.VectorReadIndex + offset - this.RunLength;
-                    Int32 elementCount = this.DataTypeSize <= 0 ? this.RunLength : (this.RunLength / this.DataTypeSize);
-
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, elementCount));
-                }
-
+                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength;
+                this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
                 this.RunLength = 0;
                 this.Encoding = false;
             }
