@@ -436,7 +436,7 @@
                 // Otherwise the vector contains a mixture of true and false
                 for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
                 {
-                    Byte runLengthFlags = runLengthVector[unchecked(resultIndex)];
+                    Byte runLengthFlags = runLengthVector[resultIndex];
 
                     for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
                     {
@@ -453,41 +453,6 @@
                         }
                     }
                 }
-
-                /*
-                Vector<Byte> scanResults = this.VectorCompare();
-
-                // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
-                if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.RunLength += this.VectorSize;
-                    this.Encoding = true;
-                    continue;
-                }
-
-                // Optimization: check all vector results false
-                else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.EncodeCurrentResults();
-                    continue;
-                }
-
-                // Otherwise the vector contains a mixture of true and false
-                for (Int32 index = 0; index < this.VectorSize; index += this.Alignment)
-                {
-                    // Vector result was false
-                    if (scanResults[unchecked(index)] == 0)
-                    {
-                        this.EncodeCurrentResults(index);
-                    }
-                    // Vector result was true
-                    else
-                    {
-                        this.RunLength += this.Alignment;
-                        this.Encoding = true;
-                    }
-                }
-                */
             }
 
             return this.GatherCollectedRegions();
@@ -566,7 +531,7 @@
             // Create the final region if we are still encoding
             if (this.Encoding)
             {
-                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength;
+                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength * this.Alignment;
                 this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
                 this.RunLength = 0;
                 this.Encoding = false;

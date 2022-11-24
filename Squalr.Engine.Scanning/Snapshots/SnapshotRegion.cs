@@ -89,6 +89,10 @@
             return elementCount;
         }
 
+        /// <summary>
+        /// Resize the snapshot region for safe reading given an allowed data type size.
+        /// </summary>
+        /// <param name="dataTypeSize"></param>
         public void ResizeForSafeReading(Int32 dataTypeSize)
         {
             Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
