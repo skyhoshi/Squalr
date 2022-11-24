@@ -1,6 +1,7 @@
 ﻿namespace Squalr.View.Controls
 {
     using System.Windows.Controls;
+    using System.Windows.Input;
 
     /// <summary>
     /// Interaction logic for HexDecBox.xaml

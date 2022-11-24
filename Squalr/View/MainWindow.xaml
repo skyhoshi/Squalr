@@ -1084,6 +1084,7 @@
                                 </shell:Border.InputBindings>
                             </shell:Border>
                             <shell:MenuItem
+                                Focusable="False"
                                 Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}"
                                 ToolTip="Start Scan">
                                 <shell:MenuItem.InputBindings>

@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels
 {
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;

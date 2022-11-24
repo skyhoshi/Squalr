@@ -3,6 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
