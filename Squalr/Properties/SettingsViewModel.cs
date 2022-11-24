@@ -4,6 +4,7 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Scanning;
+    using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using System;
     using System.ComponentModel;
@@ -276,6 +277,131 @@
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment1
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment1;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment1;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment2
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment2;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment2;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment4
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment4;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment4;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 8.
+        /// </summary>
+        public Boolean IsAlignment8
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment8;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment8;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is automatic (matches data type).
+        /// </summary>
+        public Boolean IsAlignmentAuto
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Auto;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Auto;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a the interval of reupdating frozen values.
         /// </summary>
         public Int32 FreezeInterval
@@ -348,7 +474,7 @@
         /// <summary>
         /// Gets or sets the virtual memory alignment required in scans.
         /// </summary>
-        public Int32 Alignment
+        public MemoryAlignment Alignment
         {
             get
             {

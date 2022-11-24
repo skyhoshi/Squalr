@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using System;
@@ -68,9 +69,12 @@
         /// Updates the base address of this region to match the provided alignment.
         /// </summary>
         /// <param name="alignment">The base address alignment.</param>
-        public void Align(Int32 alignment)
+        public void Align(MemoryAlignment alignment)
         {
-            if (alignment <= 0 || this.BaseAddress.Mod(alignment) == 0)
+            // The enum values are the same as the integer values
+            Int32 alignmentValue = unchecked((Int32)alignment);
+
+            if (alignmentValue <= 0 || this.BaseAddress.Mod(alignmentValue) == 0)
             {
                 return;
             }
@@ -79,8 +83,8 @@
             unchecked
             {
                 UInt64 endAddress = this.EndAddress;
-                this.BaseAddress = this.BaseAddress.Subtract(this.BaseAddress.Mod(alignment), wrapAround: false);
-                this.BaseAddress = this.BaseAddress.Add(alignment);
+                this.BaseAddress = this.BaseAddress.Subtract(this.BaseAddress.Mod(alignmentValue), wrapAround: false);
+                this.BaseAddress = this.BaseAddress.Add(alignmentValue);
                 this.EndAddress = endAddress;
             }
         }

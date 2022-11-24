@@ -17,11 +17,11 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, Int32 alignment = 1)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, MemoryAlignment alignment = MemoryAlignment.Alignment1)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
-            this.Alignment = Math.Clamp(alignment, 1, alignment);
+            this.Alignment = alignment;
         }
 
         /// <summary>
@@ -59,13 +59,13 @@
         public Int32 ElementIndex { get; set; }
 
         /// <summary>
-        /// Gets the index of this element.
+        /// Gets or sets the memory alignment of this indexer.
         /// </summary>
-        public Int32 Alignment { get; set; }
+        public MemoryAlignment Alignment { get; set; }
 
         public Object LoadCurrentValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex * this.Alignment])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
                 return LoadValues(dataType, pointerBase);
             }
@@ -73,7 +73,7 @@
 
         public Object LoadPreviousValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex * this.Alignment])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
                 return LoadValues(dataType, pointerBase);
             }

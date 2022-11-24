@@ -13,7 +13,7 @@
     {
         private static readonly Brush DecBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
 
-        private static readonly Brush HexBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x22, 0x8B, 0x22));
+        private static readonly Brush HexBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x22, 0xEB, 0x22));
 
         private static readonly Brush InvalidBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0, 0));
 

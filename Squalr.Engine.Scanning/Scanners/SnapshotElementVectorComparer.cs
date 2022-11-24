@@ -23,209 +23,217 @@
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public SnapshotElementVectorComparer(SnapshotRegion region, ScanConstraints constraints)
         {
-            Region = region;
-            VectorSize = Vectors.VectorSize;
-            VectorReadBase = Region.ReadGroupOffset - Region.ReadGroupOffset % VectorSize;
-            VectorReadOffset = 0;
-            DataType = constraints.ElementType;
-            DataTypeSize = constraints.ElementType.Size;
-            Alignment = constraints.Alignment;
-            ResultRegions = new List<SnapshotRegion>();
+            this.Region = region;
+            this.VectorSize = Vectors.VectorSize;
+            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
+            this.VectorReadOffset = 0;
+            this.DataType = constraints.ElementType;
+            this.DataTypeSize = constraints.ElementType.Size;
+            this.ResultRegions = new List<SnapshotRegion>();
 
-            Compare = ElementCompare;
-            // this.Compare = this.DataType is ByteArrayType ? this.ArrayOfBytesCompare : this.ElementCompare;
+            if (this.DataType is ByteArrayType)
+            {
+                this.Alignment = MemoryAlignment.Alignment1;
+                this.Compare = this.ElementCompare;
+                // this.Compare = this.DataType is ByteArrayType ? this.ArrayOfBytesCompare : this.ElementCompare;
+            }
+            else
+            {
+                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
+                this.Compare = this.ElementCompare;
+            }
 
-            SetConstraintFunctions();
-            VectorCompare = BuildCompareActions(constraints?.RootConstraint);
+            this.SetConstraintFunctions();
+            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
 
         /// <summary>
         /// Gets or sets the index from which the next vector is read.
         /// </summary>
-        public int VectorReadOffset { get; private set; }
+        public Int32 VectorReadOffset { get; private set; }
 
         /// <summary>
         /// Gets or sets the alignment offset, which is also used for reading the next vector.
         /// </summary>
-        public int AlignmentReadOffset { get; private set; }
+        public Int32 AlignmentReadOffset { get; private set; }
 
         /// <summary>
         /// Gets or sets the index from which the run length encoding is started.
         /// </summary>
-        public int RunLengthEncodeOffset { get; private set; }
+        public Int32 RunLengthEncodeOffset { get; private set; }
 
         /// <summary>
         /// Gets the current values at the current vector read index.
         /// </summary>
-        public ulong CurrentAddress
+        public UInt64 CurrentAddress
         {
             get
             {
-                return Region.ReadGroup.BaseAddress + unchecked((uint)(VectorReadBase + VectorReadOffset + AlignmentReadOffset));
+                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
             }
         }
 
         /// <summary>
         /// Gets the current values at the current vector read index.
         /// </summary>
-        public Vector<byte> CurrentValues
+        public Vector<Byte> CurrentValues
         {
             get
             {
-                return new Vector<byte>(Region.ReadGroup.CurrentValues, unchecked(VectorReadBase + VectorReadOffset + AlignmentReadOffset));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
             }
         }
 
         /// <summary>
         /// Gets the previous values at the current vector read index.
         /// </summary>
-        public Vector<byte> PreviousValues
+        public Vector<Byte> PreviousValues
         {
             get
             {
-                return new Vector<byte>(Region.ReadGroup.PreviousValues, unchecked(VectorReadBase + VectorReadOffset + AlignmentReadOffset));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
             }
         }
 
         /// <summary>
         /// Gets the current values at the current vector read index.
         /// </summary>
-        public Vector<byte> CurrentValuesArrayOfBytes
+        public Vector<Byte> CurrentValuesArrayOfBytes
         {
             get
             {
-                return new Vector<byte>(Region.ReadGroup.CurrentValues, unchecked(VectorReadBase + VectorReadOffset + ArrayOfBytesChunkIndex * VectorSize));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
             }
         }
 
         /// <summary>
         /// Gets the previous values at the current vector read index.
         /// </summary>
-        public Vector<byte> PreviousValuesArrayOfBytes
+        public Vector<Byte> PreviousValuesArrayOfBytes
         {
             get
             {
-                return new Vector<byte>(Region.ReadGroup.PreviousValues, unchecked(VectorReadBase + VectorReadOffset + ArrayOfBytesChunkIndex * VectorSize));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
             }
         }
 
         /// <summary>
         /// Gets the current values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> CurrentValuesBigEndian16
+        public Vector<Byte> CurrentValuesBigEndian16
         {
             get
             {
-                Vector<short> result = Vector.AsVectorInt16(CurrentValues);
+                Vector<Int16> result = Vector.AsVectorInt16(this.CurrentValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(short); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(short));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Gets the previous values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> PreviousValuesBigEndian16
+        public Vector<Byte> PreviousValuesBigEndian16
         {
             get
             {
-                Vector<short> result = Vector.AsVectorInt16(PreviousValues);
+                Vector<Int16> result = Vector.AsVectorInt16(this.PreviousValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(short); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(short));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Gets the current values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> CurrentValuesBigEndian32
+        public Vector<Byte> CurrentValuesBigEndian32
         {
             get
             {
-                Vector<int> result = Vector.AsVectorInt32(CurrentValues);
+                Vector<Int32> result = Vector.AsVectorInt32(this.CurrentValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(int); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(int));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Gets the previous values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> PreviousValuesBigEndian32
+        public Vector<Byte> PreviousValuesBigEndian32
         {
             get
             {
-                Vector<int> result = Vector.AsVectorInt32(PreviousValues);
+                Vector<Int32> result = Vector.AsVectorInt32(this.PreviousValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(int); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(int));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Gets the current values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> CurrentValuesBigEndian64
+        public Vector<Byte> CurrentValuesBigEndian64
         {
             get
             {
-                Vector<long> result = Vector.AsVectorInt64(CurrentValues);
+                Vector<Int64> result = Vector.AsVectorInt64(this.CurrentValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(long); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(long));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Gets the previous values at the current vector read index in big endian format.
         /// </summary>
-        public Vector<byte> PreviousValuesBigEndian64
+        public Vector<Byte> PreviousValuesBigEndian64
         {
             get
             {
-                Vector<long> result = Vector.AsVectorInt64(PreviousValues);
+                Vector<Int64> result = Vector.AsVectorInt64(this.PreviousValues);
 
-                for (int index = 0; index < Vectors.VectorSize / sizeof(long); index++)
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
                 {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(EndianStorage, index * sizeof(long));
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
                 }
 
-                return new Vector<byte>(EndianStorage);
+                return new Vector<Byte>(this.EndianStorage);
             }
         }
 
         /// <summary>
         /// Iterator for array of bytes vectorized chunks.
         /// </summary>
-        private int ArrayOfBytesChunkIndex { get; set; }
+        private Int32 ArrayOfBytesChunkIndex { get; set; }
 
         /// <summary>
         /// Temporary storage used to reverse the endianness of scanned values.
         /// </summary>
-        private byte[] EndianStorage = new byte[Vectors.VectorSize];
+        private Byte[] EndianStorage = new Byte[Vectors.VectorSize];
 
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
@@ -235,77 +243,77 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
-        private Func<Vector<byte>> VectorCompare { get; set; }
+        private Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has changed.
         /// </summary>
-        private Func<Vector<byte>> Changed { get; set; }
+        private Func<Vector<Byte>> Changed { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has not changed.
         /// </summary>
-        private Func<Vector<byte>> Unchanged { get; set; }
+        private Func<Vector<Byte>> Unchanged { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has increased.
         /// </summary>
-        private Func<Vector<byte>> Increased { get; set; }
+        private Func<Vector<Byte>> Increased { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has decreased.
         /// </summary>
-        private Func<Vector<byte>> Decreased { get; set; }
+        private Func<Vector<Byte>> Decreased { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value equal to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> EqualToValue { get; set; }
+        private Func<Object, Vector<Byte>> EqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value not equal to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> NotEqualToValue { get; set; }
+        private Func<Object, Vector<Byte>> NotEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value greater than to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> GreaterThanValue { get; set; }
+        private Func<Object, Vector<Byte>> GreaterThanValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value greater than or equal to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> GreaterThanOrEqualToValue { get; set; }
+        private Func<Object, Vector<Byte>> GreaterThanOrEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value less than to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> LessThanValue { get; set; }
+        private Func<Object, Vector<Byte>> LessThanValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value less than to the given value.
         /// </summary>
-        private Func<object, Vector<byte>> LessThanOrEqualToValue { get; set; }
+        private Func<Object, Vector<Byte>> LessThanOrEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if the element has increased it's value by the given value.
         /// </summary>
-        private Func<object, Vector<byte>> IncreasedByValue { get; set; }
+        private Func<Object, Vector<Byte>> IncreasedByValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if the element has decreased it's value by the given value.
         /// </summary>
-        private Func<object, Vector<byte>> DecreasedByValue { get; set; }
+        private Func<Object, Vector<Byte>> DecreasedByValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this array of bytes has a value equal to the given array of bytes.
         /// </summary>
-        private Func<object, Vector<byte>, Vector<byte>> EqualToArrayOfBytes { get; set; }
+        private Func<Object, Vector<Byte>, Vector<Byte>> EqualToArrayOfBytes { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this array of bytes has a value not equal to the given array of bytes.
         /// </summary>
-        private Func<object, Vector<byte>, Vector<byte>> NotEqualToArrayOfBytes { get; set; }
+        private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToArrayOfBytes { get; set; }
 
         /// <summary>
         /// Gets or sets the parent snapshot region.
@@ -315,32 +323,32 @@
         /// <summary>
         /// Gets or sets a value indicating whether we are currently encoding a new result region.
         /// </summary>
-        private bool Encoding { get; set; }
+        private Boolean Encoding { get; set; }
 
         /// <summary>
         /// Gets or sets the current run length for run length encoded current scan results.
         /// </summary>
-        private int RunLength { get; set; }
+        private Int32 RunLength { get; set; }
 
         /// <summary>
         /// Gets or sets the index of this element.
         /// </summary>
-        private int VectorReadBase { get; set; }
+        private Int32 VectorReadBase { get; set; }
 
         /// <summary>
         /// Gets or sets the SSE vector size on the machine.
         /// </summary>
-        private int VectorSize { get; set; }
+        private Int32 VectorSize { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the data type being compared.
         /// </summary>
-        private int DataTypeSize { get; set; }
+        private Int32 DataTypeSize { get; set; }
 
         /// <summary>
         /// Gets or sets the enforced memory alignment for this scan.
         /// </summary>
-        private int Alignment { get; set; }
+        private MemoryAlignment Alignment { get; set; }
 
         /// <summary>
         /// Gets or sets the data type being compared.
@@ -355,25 +363,25 @@
         /// <summary>
         /// An alignment mask table for computing temporary run length encoding data during scans.
         /// </summary>
-        private static readonly Vector<byte>[] AlignmentMaskTable = new Vector<byte>[8]
+        private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
         {
-                new Vector<byte>(1 << 0),
-                new Vector<byte>(1 << 1),
-                new Vector<byte>(1 << 2),
-                new Vector<byte>(1 << 3),
-                new Vector<byte>(1 << 4),
-                new Vector<byte>(1 << 5),
-                new Vector<byte>(1 << 6),
-                new Vector<byte>(1 << 7),
+                new Vector<Byte>(1 << 0),
+                new Vector<Byte>(1 << 1),
+                new Vector<Byte>(1 << 2),
+                new Vector<Byte>(1 << 3),
+                new Vector<Byte>(1 << 4),
+                new Vector<Byte>(1 << 5),
+                new Vector<Byte>(1 << 6),
+                new Vector<Byte>(1 << 7),
         };
 
         /// <summary>
         /// Sets a custom comparison function to use in scanning.
         /// </summary>
         /// <param name="customCompare"></param>
-        public void SetCustomCompareAction(Func<Vector<byte>> customCompare)
+        public void SetCustomCompareAction(Func<Vector<Byte>> customCompare)
         {
-            VectorCompare = customCompare;
+            this.VectorCompare = customCompare;
         }
 
         /// <summary>
@@ -390,74 +398,73 @@
              *      For example, if there is no alignment, there are 7 additional doubles between each of the doubles we just scanned!
              * 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
              *      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
-             *      The actual vector values will have consecutive duplicates, as we are mapping 16 double scan results to 128 bytes, meaning each double has 16 bytes of redundancy
              * 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
             */
 
-            int scanCountPerVector = DataTypeSize / Alignment;
-            int elementsPerVector = VectorSize / DataTypeSize;
-            int incrementSize = VectorSize - scanCountPerVector;
-            Vector<byte> runLengthVector;
-            Vector<byte> allEqualsVector = new Vector<byte>(unchecked((byte)(1 << unchecked((byte)scanCountPerVector) - 1)));
-            RunLengthEncodeOffset = VectorReadOffset;
+            Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
+            Int32 elementsPerVector = this.VectorSize / this.DataTypeSize;
+            Int32 incrementSize = this.VectorSize - scanCountPerVector;
+            Vector<Byte> runLengthVector;
+            Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
+            this.RunLengthEncodeOffset = this.VectorReadOffset;
 
             // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
-            Region.ResizeForSafeReading(VectorSize);
+            this.Region.ResizeForSafeReading(this.VectorSize);
 
-            for (; VectorReadOffset < Region.RegionSize; VectorReadOffset += VectorSize)
+            for (; this.VectorReadOffset < this.Region.RegionSize; this.VectorReadOffset += this.VectorSize)
             {
-                runLengthVector = Vector<byte>.Zero;
-                AlignmentReadOffset = 0;
+                runLengthVector = Vector<Byte>.Zero;
+                this.AlignmentReadOffset = 0;
 
                 // For misalinged types, we will need to increment the vector read index and perform additional scans
-                for (int alignment = 0; VectorReadOffset < Region.RegionSize && alignment < scanCountPerVector; alignment++)
+                for (Int32 alignment = 0; this.VectorReadOffset < this.Region.RegionSize && alignment < scanCountPerVector; alignment++)
                 {
                     // Call the desired comparison function to get the results
-                    Vector<byte> scanResults = VectorCompare();
+                    Vector<Byte> scanResults = this.VectorCompare();
 
                     // Store in-progress scan results for this batch
-                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, AlignmentMaskTable[alignment]));
+                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, SnapshotElementVectorComparer.AlignmentMaskTable[alignment]));
 
-                    AlignmentReadOffset++;
+                    this.AlignmentReadOffset++;
                 }
 
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    RunLength += elementsPerVector;
-                    Encoding = true;
+                    this.RunLength += elementsPerVector;
+                    this.Encoding = true;
                     continue;
                 }
                 // Optimization: check all vector results false
-                else if (Vector.EqualsAll(runLengthVector, Vector<byte>.Zero))
+                else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    EncodeCurrentResults();
+                    this.EncodeCurrentResults();
                     continue;
                 }
 
                 // Otherwise the vector contains a mixture of true and false
-                for (int resultIndex = 0; resultIndex < VectorSize; resultIndex += DataTypeSize)
+                for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
                 {
-                    byte runLengthFlags = runLengthVector[resultIndex];
+                    Byte runLengthFlags = runLengthVector[resultIndex];
 
-                    for (int alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
+                    for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
                     {
-                        bool runLengthResult = (runLengthFlags & unchecked((byte)(1 << alignmentIndex))) != 0;
+                        Boolean runLengthResult = (runLengthFlags & unchecked((Byte)(1 << alignmentIndex))) != 0;
 
                         if (runLengthResult)
                         {
-                            RunLength++;
-                            Encoding = true;
+                            this.RunLength++;
+                            this.Encoding = true;
                         }
                         else
                         {
-                            EncodeCurrentResults(resultIndex + alignmentIndex);
+                            this.EncodeCurrentResults(resultIndex + alignmentIndex);
                         }
                     }
                 }
             }
 
-            return GatherCollectedRegions();
+            return this.GatherCollectedRegions();
         }
 
         /*
@@ -519,8 +526,8 @@
         /// </summary>
         public IList<SnapshotRegion> GatherCollectedRegions()
         {
-            EncodeCurrentResults();
-            return ResultRegions;
+            this.EncodeCurrentResults();
+            return this.ResultRegions;
         }
 
         /// <summary>
@@ -528,24 +535,24 @@
         /// </summary>
         /// <param name="vectorReadOffset">While performing run length encoding, the VectorReadOffset may have changed, and this can be used to make corrections.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EncodeCurrentResults(int vectorReadOffset = 0)
+        private void EncodeCurrentResults(Int32 vectorReadOffset = 0)
         {
             // Create the final region if we are still encoding
-            if (Encoding)
+            if (this.Encoding)
             {
-                int readgroupOffset = VectorReadBase + VectorReadOffset + vectorReadOffset - RunLength * Alignment;
-                ulong absoluteAddressStart = Region.ReadGroup.BaseAddress + unchecked((ulong)readgroupOffset);
-                ulong absoluteAddressEnd = absoluteAddressStart + unchecked((ulong)RunLength);
+                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength * unchecked((Int32)this.Alignment);
+                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)readgroupOffset);
+                UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
 
                 // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
                 // This check catches any potential errors introduced this way.
-                if (absoluteAddressStart >= Region.BaseAddress && absoluteAddressEnd <= Region.EndAddress)
+                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
                 {
-                    ResultRegions.Add(new SnapshotRegion(Region.ReadGroup, readgroupOffset, RunLength));
+                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
                 }
 
-                RunLength = 0;
-                Encoding = false;
+                this.RunLength = 0;
+                this.Encoding = false;
             }
         }
 
@@ -554,265 +561,265 @@
         /// </summary>
         private unsafe void SetConstraintFunctions()
         {
-            switch (DataType)
+            switch (this.DataType)
             {
                 case ScannableType type when type == ScannableType.Byte:
-                    Changed = () => Vector.OnesComplement(Vector.Equals(CurrentValues, PreviousValues));
-                    Unchanged = () => Vector.Equals(CurrentValues, PreviousValues);
-                    Increased = () => Vector.GreaterThan(CurrentValues, PreviousValues);
-                    Decreased = () => Vector.LessThan(CurrentValues, PreviousValues);
-                    EqualToValue = (value) => Vector.Equals(CurrentValues, new Vector<byte>(unchecked((byte)value)));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.Equals(CurrentValues, new Vector<byte>(unchecked((byte)value))));
-                    GreaterThanValue = (value) => Vector.GreaterThan(CurrentValues, new Vector<byte>(unchecked((byte)value)));
-                    GreaterThanOrEqualToValue = (value) => Vector.GreaterThanOrEqual(CurrentValues, new Vector<byte>(unchecked((byte)value)));
-                    LessThanValue = (value) => Vector.LessThan(CurrentValues, new Vector<byte>(unchecked((byte)value)));
-                    LessThanOrEqualToValue = (value) => Vector.LessThanOrEqual(CurrentValues, new Vector<byte>(unchecked((byte)value)));
-                    IncreasedByValue = (value) => Vector.Equals(CurrentValues, Vector.Add(PreviousValues, new Vector<byte>(unchecked((byte)value))));
-                    DecreasedByValue = (value) => Vector.Equals(CurrentValues, Vector.Subtract(PreviousValues, new Vector<byte>(unchecked((byte)value))));
+                    this.Changed = () => Vector.OnesComplement(Vector.Equals(this.CurrentValues, this.PreviousValues));
+                    this.Unchanged = () => Vector.Equals(this.CurrentValues, this.PreviousValues);
+                    this.Increased = () => Vector.GreaterThan(this.CurrentValues, this.PreviousValues);
+                    this.Decreased = () => Vector.LessThan(this.CurrentValues, this.PreviousValues);
+                    this.EqualToValue = (value) => Vector.Equals(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.Equals(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value))));
+                    this.GreaterThanValue = (value) => Vector.GreaterThan(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.GreaterThanOrEqual(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)));
+                    this.LessThanValue = (value) => Vector.LessThan(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)));
+                    this.LessThanOrEqualToValue = (value) => Vector.LessThanOrEqual(this.CurrentValues, new Vector<Byte>(unchecked((Byte)value)));
+                    this.IncreasedByValue = (value) => Vector.Equals(this.CurrentValues, Vector.Add(this.PreviousValues, new Vector<Byte>(unchecked((Byte)value))));
+                    this.DecreasedByValue = (value) => Vector.Equals(this.CurrentValues, Vector.Subtract(this.PreviousValues, new Vector<Byte>(unchecked((Byte)value))));
                     break;
                 case ScannableType type when type == ScannableType.SByte:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), Vector.AsVectorSByte(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), Vector.AsVectorSByte(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSByte(CurrentValues), Vector.AsVectorSByte(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSByte(CurrentValues), Vector.AsVectorSByte(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSByte(CurrentValues), new Vector<sbyte>(unchecked((sbyte)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), Vector.Add(Vector.AsVectorSByte(PreviousValues), new Vector<sbyte>(unchecked((sbyte)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(CurrentValues), Vector.Subtract(Vector.AsVectorSByte(PreviousValues), new Vector<sbyte>(unchecked((sbyte)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), Vector.AsVectorSByte(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), Vector.AsVectorSByte(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSByte(this.CurrentValues), Vector.AsVectorSByte(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSByte(this.CurrentValues), Vector.AsVectorSByte(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSByte(this.CurrentValues), new Vector<SByte>(unchecked((SByte)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), Vector.Add(Vector.AsVectorSByte(this.PreviousValues), new Vector<SByte>(unchecked((SByte)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSByte(this.CurrentValues), Vector.Subtract(Vector.AsVectorSByte(this.PreviousValues), new Vector<SByte>(unchecked((SByte)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int16:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), Vector.AsVectorInt16(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), Vector.AsVectorInt16(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(CurrentValues), Vector.AsVectorInt16(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(CurrentValues), Vector.AsVectorInt16(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt16(CurrentValues), new Vector<short>(unchecked((short)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), Vector.Add(Vector.AsVectorInt16(PreviousValues), new Vector<short>(unchecked((short)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValues), Vector.Subtract(Vector.AsVectorInt16(PreviousValues), new Vector<short>(unchecked((short)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), Vector.AsVectorInt16(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), Vector.AsVectorInt16(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(this.CurrentValues), Vector.AsVectorInt16(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(this.CurrentValues), Vector.AsVectorInt16(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt16(this.CurrentValues), new Vector<Int16>(unchecked((Int16)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), Vector.Add(Vector.AsVectorInt16(this.PreviousValues), new Vector<Int16>(unchecked((Int16)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValues), Vector.Subtract(Vector.AsVectorInt16(this.PreviousValues), new Vector<Int16>(unchecked((Int16)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int16BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.AsVectorInt16(PreviousValuesBigEndian16))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.AsVectorInt16(PreviousValuesBigEndian16)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.AsVectorInt16(PreviousValuesBigEndian16)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.AsVectorInt16(PreviousValuesBigEndian16)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt16(CurrentValuesBigEndian16), new Vector<short>(unchecked((short)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.Add(Vector.AsVectorInt16(PreviousValuesBigEndian16), new Vector<short>(unchecked((short)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(CurrentValuesBigEndian16), Vector.Subtract(Vector.AsVectorInt16(PreviousValuesBigEndian16), new Vector<short>(unchecked((short)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.AsVectorInt16(this.PreviousValuesBigEndian16))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.AsVectorInt16(this.PreviousValuesBigEndian16)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.AsVectorInt16(this.PreviousValuesBigEndian16)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.AsVectorInt16(this.PreviousValuesBigEndian16)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.Add(Vector.AsVectorInt16(this.PreviousValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt16(this.CurrentValuesBigEndian16), Vector.Subtract(Vector.AsVectorInt16(this.PreviousValuesBigEndian16), new Vector<Int16>(unchecked((Int16)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int32:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), Vector.AsVectorInt32(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), Vector.AsVectorInt32(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(CurrentValues), Vector.AsVectorInt32(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(CurrentValues), Vector.AsVectorInt32(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt32(CurrentValues), new Vector<int>(unchecked((int)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), Vector.Add(Vector.AsVectorInt32(PreviousValues), new Vector<int>(unchecked((int)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValues), Vector.Subtract(Vector.AsVectorInt32(PreviousValues), new Vector<int>(unchecked((int)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), Vector.AsVectorInt32(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), Vector.AsVectorInt32(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(this.CurrentValues), Vector.AsVectorInt32(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(this.CurrentValues), Vector.AsVectorInt32(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt32(this.CurrentValues), new Vector<Int32>(unchecked((Int32)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), Vector.Add(Vector.AsVectorInt32(this.PreviousValues), new Vector<Int32>(unchecked((Int32)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValues), Vector.Subtract(Vector.AsVectorInt32(this.PreviousValues), new Vector<Int32>(unchecked((Int32)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int32BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.AsVectorInt32(PreviousValuesBigEndian32))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.AsVectorInt32(PreviousValuesBigEndian32)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.AsVectorInt32(PreviousValuesBigEndian32)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.AsVectorInt32(PreviousValuesBigEndian32)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt32(CurrentValuesBigEndian32), new Vector<int>(unchecked((int)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorInt32(PreviousValuesBigEndian32), new Vector<int>(unchecked((int)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorInt32(PreviousValuesBigEndian32), new Vector<int>(unchecked((int)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.AsVectorInt32(this.PreviousValuesBigEndian32))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.AsVectorInt32(this.PreviousValuesBigEndian32)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.AsVectorInt32(this.PreviousValuesBigEndian32)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.AsVectorInt32(this.PreviousValuesBigEndian32)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorInt32(this.PreviousValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt32(this.CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorInt32(this.PreviousValuesBigEndian32), new Vector<Int32>(unchecked((Int32)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int64:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), Vector.AsVectorInt64(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), Vector.AsVectorInt64(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(CurrentValues), Vector.AsVectorInt64(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(CurrentValues), Vector.AsVectorInt64(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), Vector.Add(Vector.AsVectorInt64(PreviousValues), new Vector<long>(unchecked((long)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValues), Vector.Subtract(Vector.AsVectorInt64(PreviousValues), new Vector<long>(unchecked((long)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), Vector.AsVectorInt64(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), Vector.AsVectorInt64(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(this.CurrentValues), Vector.AsVectorInt64(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(this.CurrentValues), Vector.AsVectorInt64(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), Vector.Add(Vector.AsVectorInt64(this.PreviousValues), new Vector<Int64>(unchecked((Int64)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValues), Vector.Subtract(Vector.AsVectorInt64(this.PreviousValues), new Vector<Int64>(unchecked((Int64)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Int64BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.AsVectorInt64(PreviousValuesBigEndian64))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.AsVectorInt64(PreviousValuesBigEndian64)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.AsVectorInt64(PreviousValuesBigEndian64)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.AsVectorInt64(PreviousValuesBigEndian64)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), new Vector<long>(unchecked((long)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), new Vector<long>(unchecked((long)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(CurrentValues), new Vector<long>(unchecked((long)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt64(CurrentValuesBigEndian64), new Vector<long>(unchecked((long)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(CurrentValuesBigEndian64), new Vector<long>(unchecked((long)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt64(CurrentValuesBigEndian64), new Vector<long>(unchecked((long)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorInt64(PreviousValuesBigEndian64), new Vector<long>(unchecked((long)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorInt64(PreviousValuesBigEndian64), new Vector<long>(unchecked((long)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.AsVectorInt64(this.PreviousValuesBigEndian64))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.AsVectorInt64(this.PreviousValuesBigEndian64)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.AsVectorInt64(this.PreviousValuesBigEndian64)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.AsVectorInt64(this.PreviousValuesBigEndian64)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorInt64(this.CurrentValues), new Vector<Int64>(unchecked((Int64)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorInt64(this.PreviousValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorInt64(this.CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorInt64(this.PreviousValuesBigEndian64), new Vector<Int64>(unchecked((Int64)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt16:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), Vector.AsVectorUInt16(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), Vector.AsVectorUInt16(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(CurrentValues), Vector.AsVectorUInt16(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(CurrentValues), Vector.AsVectorUInt16(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt16(CurrentValues), new Vector<ushort>(unchecked((ushort)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), Vector.Add(Vector.AsVectorUInt16(PreviousValues), new Vector<ushort>(unchecked((ushort)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValues), Vector.Subtract(Vector.AsVectorUInt16(PreviousValues), new Vector<ushort>(unchecked((ushort)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), Vector.AsVectorUInt16(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), Vector.AsVectorUInt16(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(this.CurrentValues), Vector.AsVectorUInt16(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(this.CurrentValues), Vector.AsVectorUInt16(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt16(this.CurrentValues), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), Vector.Add(Vector.AsVectorUInt16(this.PreviousValues), new Vector<UInt16>(unchecked((UInt16)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValues), Vector.Subtract(Vector.AsVectorUInt16(this.PreviousValues), new Vector<UInt16>(unchecked((UInt16)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt16BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.AsVectorUInt16(PreviousValuesBigEndian16))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.AsVectorUInt16(PreviousValuesBigEndian16)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.AsVectorUInt16(PreviousValuesBigEndian16)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.AsVectorUInt16(PreviousValuesBigEndian16)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt16(CurrentValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.Add(Vector.AsVectorUInt16(PreviousValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(CurrentValuesBigEndian16), Vector.Subtract(Vector.AsVectorUInt16(PreviousValuesBigEndian16), new Vector<ushort>(unchecked((ushort)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.AsVectorUInt16(this.PreviousValuesBigEndian16))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.AsVectorUInt16(this.PreviousValuesBigEndian16)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.AsVectorUInt16(this.PreviousValuesBigEndian16)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.AsVectorUInt16(this.PreviousValuesBigEndian16)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.Add(Vector.AsVectorUInt16(this.PreviousValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt16(this.CurrentValuesBigEndian16), Vector.Subtract(Vector.AsVectorUInt16(this.PreviousValuesBigEndian16), new Vector<UInt16>(unchecked((UInt16)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt32:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), Vector.AsVectorUInt32(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), Vector.AsVectorUInt32(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(CurrentValues), Vector.AsVectorUInt32(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(CurrentValues), Vector.AsVectorUInt32(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt32(CurrentValues), new Vector<uint>(unchecked((uint)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), Vector.Add(Vector.AsVectorUInt32(PreviousValues), new Vector<uint>(unchecked((uint)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValues), Vector.Subtract(Vector.AsVectorUInt32(PreviousValues), new Vector<uint>(unchecked((uint)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), Vector.AsVectorUInt32(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), Vector.AsVectorUInt32(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(this.CurrentValues), Vector.AsVectorUInt32(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(this.CurrentValues), Vector.AsVectorUInt32(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt32(this.CurrentValues), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), Vector.Add(Vector.AsVectorUInt32(this.PreviousValues), new Vector<UInt32>(unchecked((UInt32)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValues), Vector.Subtract(Vector.AsVectorUInt32(this.PreviousValues), new Vector<UInt32>(unchecked((UInt32)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt32BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.AsVectorUInt32(PreviousValuesBigEndian32))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.AsVectorUInt32(PreviousValuesBigEndian32)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.AsVectorUInt32(PreviousValuesBigEndian32)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.AsVectorUInt32(PreviousValuesBigEndian32)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt32(CurrentValuesBigEndian32), new Vector<uint>(unchecked((uint)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorUInt32(PreviousValuesBigEndian32), new Vector<uint>(unchecked((uint)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorUInt32(PreviousValuesBigEndian32), new Vector<uint>(unchecked((uint)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.AsVectorUInt32(this.PreviousValuesBigEndian32))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.AsVectorUInt32(this.PreviousValuesBigEndian32)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.AsVectorUInt32(this.PreviousValuesBigEndian32)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.AsVectorUInt32(this.PreviousValuesBigEndian32)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorUInt32(this.PreviousValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt32(this.CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorUInt32(this.PreviousValuesBigEndian32), new Vector<UInt32>(unchecked((UInt32)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt64:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), Vector.AsVectorUInt64(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), Vector.AsVectorUInt64(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(CurrentValues), Vector.AsVectorUInt64(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(CurrentValues), Vector.AsVectorUInt64(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt64(CurrentValues), new Vector<ulong>(unchecked((ulong)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), Vector.Add(Vector.AsVectorUInt64(PreviousValues), new Vector<ulong>(unchecked((ulong)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValues), Vector.Subtract(Vector.AsVectorUInt64(PreviousValues), new Vector<ulong>(unchecked((ulong)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), Vector.AsVectorUInt64(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), Vector.AsVectorUInt64(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(this.CurrentValues), Vector.AsVectorUInt64(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(this.CurrentValues), Vector.AsVectorUInt64(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt64(this.CurrentValues), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), Vector.Add(Vector.AsVectorUInt64(this.PreviousValues), new Vector<UInt64>(unchecked((UInt64)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValues), Vector.Subtract(Vector.AsVectorUInt64(this.PreviousValues), new Vector<UInt64>(unchecked((UInt64)value)))));
                     break;
                 case ScannableType type when type == ScannableType.UInt64BE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.AsVectorUInt64(PreviousValuesBigEndian64))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.AsVectorUInt64(PreviousValuesBigEndian64)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.AsVectorUInt64(PreviousValuesBigEndian64)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.AsVectorUInt64(PreviousValuesBigEndian64)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt64(CurrentValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorUInt64(PreviousValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorUInt64(PreviousValuesBigEndian64), new Vector<ulong>(unchecked((ulong)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.AsVectorUInt64(this.PreviousValuesBigEndian64))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.AsVectorUInt64(this.PreviousValuesBigEndian64)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.AsVectorUInt64(this.PreviousValuesBigEndian64)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.AsVectorUInt64(this.PreviousValuesBigEndian64)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorUInt64(this.PreviousValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorUInt64(this.CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorUInt64(this.PreviousValuesBigEndian64), new Vector<UInt64>(unchecked((UInt64)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Single:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), Vector.AsVectorSingle(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), Vector.AsVectorSingle(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(CurrentValues), Vector.AsVectorSingle(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(CurrentValues), Vector.AsVectorSingle(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSingle(CurrentValues), new Vector<float>(unchecked((float)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), Vector.Add(Vector.AsVectorSingle(PreviousValues), new Vector<float>(unchecked((float)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValues), Vector.Subtract(Vector.AsVectorSingle(PreviousValues), new Vector<float>(unchecked((float)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), Vector.AsVectorSingle(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), Vector.AsVectorSingle(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(this.CurrentValues), Vector.AsVectorSingle(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(this.CurrentValues), Vector.AsVectorSingle(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSingle(this.CurrentValues), new Vector<Single>(unchecked((Single)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), Vector.Add(Vector.AsVectorSingle(this.PreviousValues), new Vector<Single>(unchecked((Single)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValues), Vector.Subtract(Vector.AsVectorSingle(this.PreviousValues), new Vector<Single>(unchecked((Single)value)))));
                     break;
                 case ScannableType type when type == ScannableType.SingleBE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.AsVectorSingle(PreviousValuesBigEndian32))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.AsVectorSingle(PreviousValuesBigEndian32)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.AsVectorSingle(PreviousValuesBigEndian32)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.AsVectorSingle(PreviousValuesBigEndian32)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSingle(CurrentValuesBigEndian32), new Vector<float>(unchecked((float)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorSingle(PreviousValuesBigEndian32), new Vector<float>(unchecked((float)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorSingle(PreviousValuesBigEndian32), new Vector<float>(unchecked((float)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.AsVectorSingle(this.PreviousValuesBigEndian32))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.AsVectorSingle(this.PreviousValuesBigEndian32)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.AsVectorSingle(this.PreviousValuesBigEndian32)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.AsVectorSingle(this.PreviousValuesBigEndian32)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), new Vector<Single>(unchecked((Single)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.Add(Vector.AsVectorSingle(this.PreviousValuesBigEndian32), new Vector<Single>(unchecked((Single)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorSingle(this.CurrentValuesBigEndian32), Vector.Subtract(Vector.AsVectorSingle(this.PreviousValuesBigEndian32), new Vector<Single>(unchecked((Single)value)))));
                     break;
                 case ScannableType type when type == ScannableType.Double:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), Vector.AsVectorDouble(PreviousValues))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), Vector.AsVectorDouble(PreviousValues)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(CurrentValues), Vector.AsVectorDouble(PreviousValues)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(CurrentValues), Vector.AsVectorDouble(PreviousValues)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorDouble(CurrentValues), new Vector<double>(unchecked((double)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), Vector.Add(Vector.AsVectorDouble(PreviousValues), new Vector<double>(unchecked((double)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValues), Vector.Subtract(Vector.AsVectorDouble(PreviousValues), new Vector<double>(unchecked((double)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), Vector.AsVectorDouble(this.PreviousValues))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), Vector.AsVectorDouble(this.PreviousValues)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(this.CurrentValues), Vector.AsVectorDouble(this.PreviousValues)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(this.CurrentValues), Vector.AsVectorDouble(this.PreviousValues)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorDouble(this.CurrentValues), new Vector<Double>(unchecked((Double)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), Vector.Add(Vector.AsVectorDouble(this.PreviousValues), new Vector<Double>(unchecked((Double)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValues), Vector.Subtract(Vector.AsVectorDouble(this.PreviousValues), new Vector<Double>(unchecked((Double)value)))));
                     break;
                 case ScannableType type when type == ScannableType.DoubleBE:
-                    Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.AsVectorDouble(PreviousValuesBigEndian64))));
-                    Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.AsVectorDouble(PreviousValuesBigEndian64)));
-                    Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.AsVectorDouble(PreviousValuesBigEndian64)));
-                    Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.AsVectorDouble(PreviousValuesBigEndian64)));
-                    EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value))));
-                    NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value)))));
-                    GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value))));
-                    GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value))));
-                    LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value))));
-                    LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorDouble(CurrentValuesBigEndian64), new Vector<double>(unchecked((double)value))));
-                    IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorDouble(PreviousValuesBigEndian64), new Vector<double>(unchecked((double)value)))));
-                    DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorDouble(PreviousValuesBigEndian64), new Vector<double>(unchecked((double)value)))));
+                    this.Changed = () => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.AsVectorDouble(this.PreviousValuesBigEndian64))));
+                    this.Unchanged = () => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.AsVectorDouble(this.PreviousValuesBigEndian64)));
+                    this.Increased = () => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.AsVectorDouble(this.PreviousValuesBigEndian64)));
+                    this.Decreased = () => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.AsVectorDouble(this.PreviousValuesBigEndian64)));
+                    this.EqualToValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
+                    this.NotEqualToValue = (value) => Vector.OnesComplement(Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
+                    this.GreaterThanValue = (value) => Vector.AsVectorByte(Vector.GreaterThan(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
+                    this.GreaterThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.GreaterThanOrEqual(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
+                    this.LessThanValue = (value) => Vector.AsVectorByte(Vector.LessThan(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
+                    this.LessThanOrEqualToValue = (value) => Vector.AsVectorByte(Vector.LessThanOrEqual(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), new Vector<Double>(unchecked((Double)value))));
+                    this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
+                    this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
                     break;
                 case ByteArrayType type:
-                    Changed = () => new Vector<byte>(Convert.ToByte(!Vector.EqualsAll(CurrentValuesArrayOfBytes, PreviousValuesArrayOfBytes)));
-                    Unchanged = () => new Vector<byte>(Convert.ToByte(Vector.EqualsAll(CurrentValuesArrayOfBytes, PreviousValuesArrayOfBytes)));
-                    EqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.Equals(CurrentValuesArrayOfBytes, unchecked((Vector<byte>)value)), mask);
-                    NotEqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.OnesComplement(Vector.Equals(CurrentValuesArrayOfBytes, unchecked((Vector<byte>)value))), mask);
+                    this.Changed = () => new Vector<Byte>(Convert.ToByte(!Vector.EqualsAll(this.CurrentValuesArrayOfBytes, this.PreviousValuesArrayOfBytes)));
+                    this.Unchanged = () => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValuesArrayOfBytes, this.PreviousValuesArrayOfBytes)));
+                    this.EqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.Equals(this.CurrentValuesArrayOfBytes, unchecked((Vector<Byte>)value)), mask);
+                    this.NotEqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.OnesComplement(Vector.Equals(this.CurrentValuesArrayOfBytes, unchecked((Vector<Byte>)value))), mask);
                     break;
                 default:
                     throw new ArgumentException();
@@ -824,7 +831,7 @@
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the scan.</param>
         /// <param name="compareActionValue">The value to use for the scan.</param>
-        private Func<Vector<byte>> BuildCompareActions(Constraint constraint)
+        private Func<Vector<Byte>> BuildCompareActions(Constraint constraint)
         {
             switch (constraint)
             {
@@ -839,38 +846,38 @@
                         case OperationConstraint.OperationType.AND:
                             return () =>
                             {
-                                Vector<byte> resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<byte>.Zero))
+                                if (resultLeft.Equals(Vector<Byte>.Zero))
                                 {
-                                    return Vector<byte>.Zero;
+                                    return Vector<Byte>.Zero;
                                 }
 
-                                Vector<byte> resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return Vector.BitwiseAnd(resultLeft, resultRight);
                             };
                         case OperationConstraint.OperationType.OR:
                             return () =>
                             {
-                                Vector<byte> resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<byte>.One))
+                                if (resultLeft.Equals(Vector<Byte>.One))
                                 {
-                                    return Vector<byte>.One;
+                                    return Vector<Byte>.One;
                                 }
 
-                                Vector<byte> resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return Vector.BitwiseOr(resultLeft, resultRight);
                             };
                         case OperationConstraint.OperationType.XOR:
                             return () =>
                             {
-                                Vector<byte> resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
-                                Vector<byte> resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
+                                Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return Vector.Xor(resultLeft, resultRight);
                             };
@@ -886,11 +893,11 @@
                      *   - Vector AND all of the results together for detecting equal/not equal. Early exit if any chunk fails.
                      *   - Vector OR all of the results together for detecting changed/unchanged
                     */
-                    if (DataType is ByteArrayType)
+                    if (this.DataType is ByteArrayType)
                     {
-                        ByteArrayType byteArrayType = DataType as ByteArrayType;
-                        byte[] arrayOfBytes = scanConstraint?.ConstraintValue as byte[];
-                        byte[] mask = scanConstraint?.ConstraintArgs as byte[];
+                        ByteArrayType byteArrayType = this.DataType as ByteArrayType;
+                        Byte[] arrayOfBytes = scanConstraint?.ConstraintValue as Byte[];
+                        Byte[] mask = scanConstraint?.ConstraintArgs as Byte[];
 
                         if (arrayOfBytes == null || mask == null || arrayOfBytes.Length != mask.Length)
                         {
@@ -904,42 +911,42 @@
 
                                 if (scanConstraint.Constraint == ScanConstraint.ConstraintType.Unchanged)
                                 {
-                                    return Unchanged;
+                                    return this.Unchanged;
                                 }
                                 else
                                 {
-                                    return Changed;
+                                    return this.Changed;
                                 }
                             case ScanConstraint.ConstraintType.Equal:
                             case ScanConstraint.ConstraintType.NotEqual:
-                                int remainder = arrayOfBytes.Length % VectorSize;
-                                int chunkCount = arrayOfBytes.Length / VectorSize + (remainder > 0 ? 1 : 0);
-                                Span<byte> arrayOfByteSpan = new Span<byte>(arrayOfBytes);
-                                Span<byte> maskSpan = new Span<byte>(mask);
-                                Vector<byte>[] arrayOfByteChunks = new Vector<byte>[chunkCount];
-                                Vector<byte>[] maskChunks = new Vector<byte>[chunkCount];
+                                Int32 remainder = arrayOfBytes.Length % this.VectorSize;
+                                Int32 chunkCount = arrayOfBytes.Length / this.VectorSize + (remainder > 0 ? 1 : 0);
+                                Span<Byte> arrayOfByteSpan = new Span<Byte>(arrayOfBytes);
+                                Span<Byte> maskSpan = new Span<Byte>(mask);
+                                Vector<Byte>[] arrayOfByteChunks = new Vector<Byte>[chunkCount];
+                                Vector<Byte>[] maskChunks = new Vector<Byte>[chunkCount];
 
-                                for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+                                for (Int32 chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
                                 {
-                                    int currentChunkSize = remainder > 0 && chunkIndex == chunkCount - 1 ? remainder : VectorSize;
-                                    Span<byte> arrayOfBytesChunk = arrayOfByteSpan.Slice(VectorSize * chunkIndex, currentChunkSize);
-                                    Span<byte> maskChunk = maskSpan.Slice(VectorSize * chunkIndex, currentChunkSize);
+                                    Int32 currentChunkSize = remainder > 0 && chunkIndex == chunkCount - 1 ? remainder : this.VectorSize;
+                                    Span<Byte> arrayOfBytesChunk = arrayOfByteSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
+                                    Span<Byte> maskChunk = maskSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
 
-                                    if (currentChunkSize != VectorSize)
+                                    if (currentChunkSize != this.VectorSize)
                                     {
-                                        byte[] arrayOfBytesChunkPadded = Enumerable.Repeat<byte>(0x00, VectorSize).ToArray();
-                                        byte[] maskChunkPadded = Enumerable.Repeat<byte>(0xFF, VectorSize).ToArray();
+                                        Byte[] arrayOfBytesChunkPadded = Enumerable.Repeat<Byte>(0x00, this.VectorSize).ToArray();
+                                        Byte[] maskChunkPadded = Enumerable.Repeat<Byte>(0xFF, this.VectorSize).ToArray();
 
                                         arrayOfBytesChunk.CopyTo(arrayOfBytesChunkPadded);
                                         maskChunk.CopyTo(maskChunkPadded);
 
-                                        arrayOfByteChunks[chunkIndex] = new Vector<byte>(arrayOfBytesChunkPadded);
-                                        maskChunks[chunkIndex] = new Vector<byte>(maskChunkPadded);
+                                        arrayOfByteChunks[chunkIndex] = new Vector<Byte>(arrayOfBytesChunkPadded);
+                                        maskChunks[chunkIndex] = new Vector<Byte>(maskChunkPadded);
                                     }
                                     else
                                     {
-                                        arrayOfByteChunks[chunkIndex] = new Vector<byte>(arrayOfBytesChunk);
-                                        maskChunks[chunkIndex] = new Vector<byte>(maskChunk);
+                                        arrayOfByteChunks[chunkIndex] = new Vector<Byte>(arrayOfBytesChunk);
+                                        maskChunks[chunkIndex] = new Vector<Byte>(maskChunk);
                                     }
                                 }
 
@@ -947,13 +954,13 @@
                                 {
                                     return () =>
                                     {
-                                        Vector<byte> result = Vector<byte>.One;
+                                        Vector<Byte> result = Vector<Byte>.One;
 
-                                        for (ArrayOfBytesChunkIndex = 0; ArrayOfBytesChunkIndex < chunkCount; ArrayOfBytesChunkIndex++)
+                                        for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
                                         {
-                                            result = Vector.BitwiseAnd(result, EqualToArrayOfBytes(arrayOfByteChunks[ArrayOfBytesChunkIndex], maskChunks[ArrayOfBytesChunkIndex]));
+                                            result = Vector.BitwiseAnd(result, this.EqualToArrayOfBytes(arrayOfByteChunks[this.ArrayOfBytesChunkIndex], maskChunks[this.ArrayOfBytesChunkIndex]));
 
-                                            if (Vector.EqualsAll(result, Vector<byte>.Zero))
+                                            if (Vector.EqualsAll(result, Vector<Byte>.Zero))
                                             {
                                                 break;
                                             }
@@ -966,13 +973,13 @@
                                 {
                                     return () =>
                                     {
-                                        Vector<byte> result = Vector<byte>.One;
+                                        Vector<Byte> result = Vector<Byte>.One;
 
-                                        for (ArrayOfBytesChunkIndex = 0; ArrayOfBytesChunkIndex < chunkCount; ArrayOfBytesChunkIndex++)
+                                        for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
                                         {
-                                            result = Vector.BitwiseAnd(result, NotEqualToArrayOfBytes(arrayOfByteChunks[ArrayOfBytesChunkIndex], maskChunks[ArrayOfBytesChunkIndex]));
+                                            result = Vector.BitwiseAnd(result, this.NotEqualToArrayOfBytes(arrayOfByteChunks[this.ArrayOfBytesChunkIndex], maskChunks[this.ArrayOfBytesChunkIndex]));
 
-                                            if (Vector.EqualsAll(result, Vector<byte>.Zero))
+                                            if (Vector.EqualsAll(result, Vector<Byte>.Zero))
                                             {
                                                 break;
                                             }
@@ -990,29 +997,29 @@
                         switch (scanConstraint.Constraint)
                         {
                             case ScanConstraint.ConstraintType.Unchanged:
-                                return Unchanged;
+                                return this.Unchanged;
                             case ScanConstraint.ConstraintType.Changed:
-                                return Changed;
+                                return this.Changed;
                             case ScanConstraint.ConstraintType.Increased:
-                                return Increased;
+                                return this.Increased;
                             case ScanConstraint.ConstraintType.Decreased:
-                                return Decreased;
+                                return this.Decreased;
                             case ScanConstraint.ConstraintType.IncreasedByX:
-                                return () => IncreasedByValue(scanConstraint.ConstraintValue);
+                                return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.DecreasedByX:
-                                return () => DecreasedByValue(scanConstraint.ConstraintValue);
+                                return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.Equal:
-                                return () => EqualToValue(scanConstraint.ConstraintValue);
+                                return () => this.EqualToValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.NotEqual:
-                                return () => NotEqualToValue(scanConstraint.ConstraintValue);
+                                return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.GreaterThan:
-                                return () => GreaterThanValue(scanConstraint.ConstraintValue);
+                                return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.GreaterThanOrEqual:
-                                return () => GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
+                                return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.LessThan:
-                                return () => LessThanValue(scanConstraint.ConstraintValue);
+                                return () => this.LessThanValue(scanConstraint.ConstraintValue);
                             case ScanConstraint.ConstraintType.LessThanOrEqual:
-                                return () => LessThanOrEqualToValue(scanConstraint.ConstraintValue);
+                                return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
                             default:
                                 throw new Exception("Unsupported constraint type");
                         }

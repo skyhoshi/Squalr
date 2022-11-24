@@ -81,10 +81,10 @@
         /// <param name="dataTypeSize">The size of an element.</param>
         /// <param name="alignment">The memory address alignment of each element.</param>
         /// </summary>
-        public Int32 GetElementCount(Int32 dataTypeSize, Int32 alignment)
+        public Int32 GetElementCount(Int32 dataTypeSize, MemoryAlignment alignment)
         {
-            // Int32 usableRange = this.RegionSize - dataTypeSize; // Not needed, the readgroup should have enough bytes that we can read "out of bounds" safely.
-            Int32 elementCount = this.RegionSize / (alignment <= 0 ? 1 : alignment);
+            Int32 alignmentValue = unchecked((Int32)alignment);
+            Int32 elementCount = this.RegionSize / (alignmentValue <= 0 ? 1 : alignmentValue);
 
             return elementCount;
         }
@@ -105,7 +105,7 @@
         /// </summary>
         /// <param name="index">The index of the snapshot element.</param>
         /// <returns>Returns the snapshot element at the specified index.</returns>
-        public SnapshotElementIndexer this[Int32 index, Int32 alignment]
+        public SnapshotElementIndexer this[Int32 index, MemoryAlignment alignment]
         {
             get
             {

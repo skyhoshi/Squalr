@@ -202,7 +202,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the total number of addresses found.
+        /// Gets or sets the current page from which can results are loaded.
         /// </summary>
         public UInt64 CurrentPage
         {

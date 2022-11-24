@@ -48,7 +48,7 @@
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
-                            const Int32 alignment = 4;
+                            const MemoryAlignment alignment = MemoryAlignment.Alignment4;
                             ScannableType pointerDataType = previousPointerBag.PointerSize.ToDataType();
                             ScanConstraint scanConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Unchanged);
                             ScanConstraints scanConstraints = new ScanConstraints(pointerDataType, scanConstraint, alignment);

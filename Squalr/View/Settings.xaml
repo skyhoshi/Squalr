@@ -6,8 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="SqualrSettings"
-    d:DesignHeight="256"
-    d:DesignWidth="416"
+    d:DesignHeight="320"
+    d:DesignWidth="512"
     x:ClassModifier="public"
     DataContext="{Binding SettingsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
@@ -176,12 +176,58 @@
                                     Padding="0,0,4,0"
                                     Foreground="{StaticResource SqualrColorWhite}"
                                     Text="Alignment:" />
-                                <Controls:HexDecBox
-                                    x:Name="AlignmentHexDecBox"
-                                    Width="64"
-                                    Margin="0,0,8,0"
-                                    BorderBrush="{StaticResource SqualrColorWhite}"
-                                    BorderThickness="1" />
+                            </WrapPanel>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <WrapPanel Grid.Row="0" Grid.Column="0">
+                                    <RadioButton IsChecked="{Binding IsAlignment1, Mode=TwoWay}" />
+                                    <TextBlock
+                                    Padding="4,0,0,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="1 Byte" />
+                                </WrapPanel>
+                                <WrapPanel Grid.Row="1" Grid.Column="0">
+                                    <RadioButton IsChecked="{Binding IsAlignment2, Mode=TwoWay}" />
+                                    <TextBlock
+                                    Padding="4,0,0,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="2 Bytes" />
+                                </WrapPanel>
+                                <WrapPanel Grid.Row="0" Grid.Column="1" Margin="24 0 0 0">
+                                    <RadioButton IsChecked="{Binding IsAlignment4, Mode=TwoWay}" />
+                                    <TextBlock
+                                    Padding="4,0,0,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="4 Bytes" />
+                                </WrapPanel>
+                                <WrapPanel Grid.Row="1" Grid.Column="1" Margin="24 0 0 0">
+                                    <RadioButton IsChecked="{Binding c, Mode=TwoWay}" />
+                                    <TextBlock
+                                    Padding="4,0,0,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="8 Bytes" />
+                                </WrapPanel>
+                                <WrapPanel Grid.Row="0" Grid.Column="2" Margin="24 0 0 0">
+                                    <RadioButton IsChecked="{Binding IsAlignmentAuto, Mode=TwoWay}" />
+                                    <TextBlock
+                                    Padding="4,0,0,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="Auto" />
+                                </WrapPanel>
+                            </Grid>
+                            <WrapPanel>
+                                <TextBlock
+                                    Padding="0,0,4,0"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="Scan Range:" />
                             </WrapPanel>
                             <WrapPanel>
                                 <RadioButton IsChecked="{Binding IsUserMode, Mode=TwoWay}" />

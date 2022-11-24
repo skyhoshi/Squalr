@@ -19,12 +19,6 @@
         {
             this.InitializeComponent();
 
-            this.AlignmentHexDecBoxViewModel = this.AlignmentHexDecBox.DataContext as HexDecBoxViewModel;
-            this.AlignmentHexDecBoxViewModel.PropertyChanged += this.AlignmentUpdated;
-            this.AlignmentHexDecBoxViewModel.DataType = ScannableType.Int32;
-            this.AlignmentHexDecBoxViewModel.IsHex = true;
-            this.AlignmentHexDecBoxViewModel.SetValue(this.SettingsViewModel.Alignment);
-
             this.ScanRangeStartHexDecBoxViewModel = this.ScanRangeStartHexDecBox.DataContext as HexDecBoxViewModel;
             this.ScanRangeStartHexDecBoxViewModel.PropertyChanged += this.StartRangeUpdated;
             this.ScanRangeStartHexDecBoxViewModel.DataType = ScannableType.UInt64;
@@ -70,11 +64,6 @@
         }
 
         /// <summary>
-        /// Gets or sets the hex dec box for the scan alignment.
-        /// </summary>
-        private HexDecBoxViewModel AlignmentHexDecBoxViewModel { get; set; }
-
-        /// <summary>
         /// Gets or sets the hex dec box for the scan range start.
         /// </summary>
         private HexDecBoxViewModel ScanRangeStartHexDecBoxViewModel { get; set; }
@@ -103,26 +92,6 @@
         /// Gets or sets the hex dec box for the input correlation timeout.
         /// </summary>
         private HexDecBoxViewModel ResultReadIntervalHexDecBoxViewModel { get; set; }
-
-        /// <summary>
-        /// Invoked when the scan alignment is changed, and informs the viewmodel.
-        /// </summary>
-        /// <param name="sender">Sending object.</param>
-        /// <param name="args">Event args.</param>
-        private void AlignmentUpdated(Object sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName == nameof(HexDecBoxViewModel.Text))
-            {
-                Object value = this.AlignmentHexDecBoxViewModel.GetValue();
-
-                if (value == null)
-                {
-                    return;
-                }
-
-                this.SettingsViewModel.Alignment = (Int32)value;
-            }
-        }
 
         /// <summary>
         /// Invoked when the scan start range is changed, and informs the viewmodel.

@@ -20,7 +20,7 @@
         /// <summary>
         /// The snapshot memory address alignment.
         /// </summary>
-        private Int32 alignment = 1;
+        private MemoryAlignment alignment = MemoryAlignment.Alignment1;
 
         // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
         public event PropertyChangedEventHandler PropertyChanged;
@@ -101,7 +101,7 @@
         /// <summary>
         /// Gets or sets the snapshot memory address alignment.
         /// </summary>
-        public Int32 Alignment
+        public MemoryAlignment Alignment
         {
             get
             {

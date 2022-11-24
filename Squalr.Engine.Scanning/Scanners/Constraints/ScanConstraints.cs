@@ -10,14 +10,9 @@
     public class ScanConstraints : Constraint, INotifyPropertyChanged
     {
         /// <summary>
-        /// The enforced memory alignment.
-        /// </summary>
-        private Int32 alignment;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraints" /> class.
         /// </summary>
-        public ScanConstraints(Type elementType, Constraint rootConstraint, Int32 alignment)
+        public ScanConstraints(Type elementType, Constraint rootConstraint, MemoryAlignment alignment)
         {
             this.Alignment = alignment;
             this.RootConstraint = rootConstraint;
@@ -34,18 +29,7 @@
         /// <summary>
         /// Gets or sets the enforced memory alignment.
         /// </summary>
-        public Int32 Alignment
-        {
-            get
-            {
-                return this.alignment;
-            }
-
-            set
-            {
-                this.alignment = value;
-            }
-        }
+        public MemoryAlignment Alignment { get; private set; }
 
         /// <summary>
         /// Gets the root constraint for this scan constraint set. Usually, this is just a single scan constraint like "> 5".

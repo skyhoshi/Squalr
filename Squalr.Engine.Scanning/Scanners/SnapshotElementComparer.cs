@@ -2,7 +2,6 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
-    using Squalr.Engine.Scanning;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -22,16 +21,16 @@
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
         public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, ScannableType dataType)
         {
-            Region = region;
-            CurrentTypeCode = Type.GetTypeCode(dataType);
+            this.Region = region;
+            this.CurrentTypeCode = Type.GetTypeCode(dataType);
 
             // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
-            CurrentValuesHandle = GCHandle.Alloc(Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
-            PreviousValuesHandle = GCHandle.Alloc(Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
+            this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
+            this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
 
-            InitializePointers();
-            SetConstraintFunctions();
-            SetPointerFunction(pointerIncrementMode);
+            this.InitializePointers();
+            this.SetConstraintFunctions();
+            this.SetPointerFunction(pointerIncrementMode);
         }
 
         /// <summary>
@@ -42,7 +41,7 @@
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
         public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, ScannableType dataType) : this(region, pointerIncrementMode, dataType)
         {
-            ElementCompare = BuildCompareActions(constraints);
+            this.ElementCompare = this.BuildCompareActions(constraints);
         }
 
         /// <summary>
@@ -51,8 +50,8 @@
         ~SnapshotElementComparer()
         {
             // Let the GC do what it wants now
-            CurrentValuesHandle.Free();
-            PreviousValuesHandle.Free();
+            this.CurrentValuesHandle.Free();
+            this.PreviousValuesHandle.Free();
         }
 
         /// <summary>
@@ -63,67 +62,67 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
-        public Func<bool> ElementCompare { get; private set; }
+        public Func<Boolean> ElementCompare { get; private set; }
 
         /// <summary>
         /// Gets a function which determines if this element has changed.
         /// </summary>
-        private Func<bool> Changed { get; set; }
+        private Func<Boolean> Changed { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has not changed.
         /// </summary>
-        private Func<bool> Unchanged { get; set; }
+        private Func<Boolean> Unchanged { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has increased.
         /// </summary>
-        private Func<bool> Increased { get; set; }
+        private Func<Boolean> Increased { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has decreased.
         /// </summary>
-        private Func<bool> Decreased { get; set; }
+        private Func<Boolean> Decreased { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value equal to the given value.
         /// </summary>
-        private Func<object, bool> EqualToValue { get; set; }
+        private Func<Object, Boolean> EqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value not equal to the given value.
         /// </summary>
-        private Func<object, bool> NotEqualToValue { get; set; }
+        private Func<Object, Boolean> NotEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value greater than to the given value.
         /// </summary>
-        private Func<object, bool> GreaterThanValue { get; set; }
+        private Func<Object, Boolean> GreaterThanValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value greater than or equal to the given value.
         /// </summary>
-        private Func<object, bool> GreaterThanOrEqualToValue { get; set; }
+        private Func<Object, Boolean> GreaterThanOrEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value less than to the given value.
         /// </summary>
-        private Func<object, bool> LessThanValue { get; set; }
+        private Func<Object, Boolean> LessThanValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has a value less than to the given value.
         /// </summary>
-        private Func<object, bool> LessThanOrEqualToValue { get; set; }
+        private Func<Object, Boolean> LessThanOrEqualToValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if the element has increased it's value by the given value.
         /// </summary>
-        private Func<object, bool> IncreasedByValue { get; set; }
+        private Func<Object, Boolean> IncreasedByValue { get; set; }
 
         /// <summary>
         /// Gets a function which determines if the element has decreased it's value by the given value.
         /// </summary>
-        private Func<object, bool> DecreasedByValue { get; set; }
+        private Func<Object, Boolean> DecreasedByValue { get; set; }
 
         /// <summary>
         /// Enums determining which pointers need to be updated every iteration.
@@ -159,27 +158,27 @@
         /// <summary>
         /// Gets the base address of this element.
         /// </summary>
-        public ulong BaseAddress
+        public UInt64 BaseAddress
         {
             get
             {
-                return Region.BaseAddress.Add(ElementIndex);
+                return this.Region.BaseAddress.Add(this.ElementIndex);
             }
         }
 
         /// <summary>
         /// Gets or sets the label associated with this element.
         /// </summary>
-        public object ElementLabel
+        public Object ElementLabel
         {
             get
             {
-                return Region.ReadGroup.ElementLabels[CurrentLabelIndex];
+                return this.Region.ReadGroup.ElementLabels[this.CurrentLabelIndex];
             }
 
             set
             {
-                Region.ReadGroup.ElementLabels[CurrentLabelIndex] = value;
+                this.Region.ReadGroup.ElementLabels[this.CurrentLabelIndex] = value;
             }
         }
 
@@ -201,43 +200,43 @@
         /// <summary>
         /// Gets or sets the pointer to the current value.
         /// </summary>
-        private unsafe byte* CurrentValuePointer { get; set; }
+        private unsafe Byte* CurrentValuePointer { get; set; }
 
         /// <summary>
         /// Gets or sets the pointer to the previous value.
         /// </summary>
-        private unsafe byte* PreviousValuePointer { get; set; }
+        private unsafe Byte* PreviousValuePointer { get; set; }
 
         /// <summary>
         /// Gets or sets the index of this element, used for setting and getting the label.
         /// Note that we cannot have a pointer to the label, as it is a non-blittable type.
         /// </summary>
-        private int CurrentLabelIndex { get; set; }
+        private Int32 CurrentLabelIndex { get; set; }
 
         /// <summary>
         /// Gets the index of this element.
         /// </summary>
-        private unsafe int ElementIndex
+        private unsafe Int32 ElementIndex
         {
             get
             {
                 // Use the incremented current value pointer or label index to figure out the index of this element
-                if (CurrentLabelIndex != 0)
+                if (this.CurrentLabelIndex != 0)
                 {
-                    return CurrentLabelIndex;
+                    return this.CurrentLabelIndex;
                 }
-                else if (CurrentValuePointer != null)
+                else if (this.CurrentValuePointer != null)
                 {
-                    fixed (byte* pointerBase = &Region.ReadGroup.CurrentValues[Region.ReadGroupOffset])
+                    fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset])
                     {
-                        return (int)(CurrentValuePointer - pointerBase);
+                        return (Int32)(this.CurrentValuePointer - pointerBase);
                     }
                 }
-                else if (PreviousValuePointer != null)
+                else if (this.PreviousValuePointer != null)
                 {
-                    fixed (byte* pointerBase = &Region.ReadGroup.PreviousValues[Region.ReadGroupOffset])
+                    fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset])
                     {
-                        return (int)(PreviousValuePointer - pointerBase);
+                        return (Int32)(this.PreviousValuePointer - pointerBase);
                     }
                 }
                 else
@@ -256,9 +255,9 @@
         /// Sets a custom comparison function to use in scanning.
         /// </summary>
         /// <param name="customCompare"></param>
-        public void SetCustomCompareAction(Func<bool> customCompare)
+        public void SetCustomCompareAction(Func<Boolean> customCompare)
         {
-            ElementCompare = customCompare;
+            this.ElementCompare = customCompare;
         }
 
         /// <summary>
@@ -266,9 +265,9 @@
         /// </summary>
         /// <returns>The current value of this element.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe object GetCurrentValue()
+        public unsafe Object GetCurrentValue()
         {
-            return LoadValue(CurrentValuePointer);
+            return this.LoadValue(this.CurrentValuePointer);
         }
 
         /// <summary>
@@ -276,9 +275,9 @@
         /// </summary>
         /// <returns>The previous value of this element.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe object GetPreviousValue()
+        public unsafe Object GetPreviousValue()
         {
-            return LoadValue(PreviousValuePointer);
+            return this.LoadValue(this.PreviousValuePointer);
         }
 
         /// <summary>
@@ -286,9 +285,9 @@
         /// </summary>
         /// <returns>The label of this element.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe object GetElementLabel()
+        public unsafe Object GetElementLabel()
         {
-            return Region.ReadGroup.ElementLabels == null ? null : Region.ReadGroup.ElementLabels[CurrentLabelIndex];
+            return this.Region.ReadGroup.ElementLabels == null ? null : this.Region.ReadGroup.ElementLabels[this.CurrentLabelIndex];
         }
 
         /// <summary>
@@ -296,9 +295,9 @@
         /// </summary>
         /// <param name="newLabel">The new element label.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetElementLabel(object newLabel)
+        public unsafe void SetElementLabel(Object newLabel)
         {
-            Region.ReadGroup.ElementLabels[CurrentLabelIndex] = newLabel;
+            this.Region.ReadGroup.ElementLabels[this.CurrentLabelIndex] = newLabel;
         }
 
         /// <summary>
@@ -306,9 +305,9 @@
         /// </summary>
         /// <returns>True if a current value is present.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe bool HasCurrentValue()
+        public unsafe Boolean HasCurrentValue()
         {
-            if (CurrentValuePointer == (byte*)0)
+            if (this.CurrentValuePointer == (Byte*)0)
             {
                 return false;
             }
@@ -321,9 +320,9 @@
         /// </summary>
         /// <returns>True if a previous value is present.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe bool HasPreviousValue()
+        public unsafe Boolean HasPreviousValue()
         {
-            if (PreviousValuePointer == (byte*)0)
+            if (this.PreviousValuePointer == (Byte*)0)
             {
                 return false;
             }
@@ -336,30 +335,30 @@
         /// </summary>
         private unsafe void InitializePointers()
         {
-            CurrentLabelIndex = 0;
+            this.CurrentLabelIndex = 0;
 
-            if (Region.ReadGroup.CurrentValues != null && Region.ReadGroup.CurrentValues.Length > 0)
+            if (this.Region.ReadGroup.CurrentValues != null && this.Region.ReadGroup.CurrentValues.Length > 0)
             {
-                fixed (byte* pointerBase = &Region.ReadGroup.CurrentValues[Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset])
                 {
-                    CurrentValuePointer = pointerBase;
+                    this.CurrentValuePointer = pointerBase;
                 }
             }
             else
             {
-                CurrentValuePointer = null;
+                this.CurrentValuePointer = null;
             }
 
-            if (Region.ReadGroup.PreviousValues != null && Region.ReadGroup.PreviousValues.Length > 0)
+            if (this.Region.ReadGroup.PreviousValues != null && this.Region.ReadGroup.PreviousValues.Length > 0)
             {
-                fixed (byte* pointerBase = &Region.ReadGroup.PreviousValues[Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset])
                 {
-                    PreviousValuePointer = pointerBase;
+                    this.PreviousValuePointer = pointerBase;
                 }
             }
             else
             {
-                PreviousValuePointer = null;
+                this.PreviousValuePointer = null;
             }
         }
 
@@ -368,147 +367,147 @@
         /// </summary>
         private unsafe void SetConstraintFunctions()
         {
-            switch (CurrentTypeCode)
+            switch (this.CurrentTypeCode)
             {
                 case TypeCode.Byte:
-                    Changed = () => { return *CurrentValuePointer != *PreviousValuePointer; };
-                    Unchanged = () => { return *CurrentValuePointer == *PreviousValuePointer; };
-                    Increased = () => { return *CurrentValuePointer > *PreviousValuePointer; };
-                    Decreased = () => { return *CurrentValuePointer < *PreviousValuePointer; };
-                    EqualToValue = (value) => { return *CurrentValuePointer == (byte)value; };
-                    NotEqualToValue = (value) => { return *CurrentValuePointer != (byte)value; };
-                    GreaterThanValue = (value) => { return *CurrentValuePointer > (byte)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *CurrentValuePointer >= (byte)value; };
-                    LessThanValue = (value) => { return *CurrentValuePointer < (byte)value; };
-                    LessThanOrEqualToValue = (value) => { return *CurrentValuePointer <= (byte)value; };
-                    IncreasedByValue = (value) => { return *CurrentValuePointer == unchecked(*PreviousValuePointer + (byte)value); };
-                    DecreasedByValue = (value) => { return *CurrentValuePointer == unchecked(*PreviousValuePointer - (byte)value); };
+                    this.Changed = () => { return *this.CurrentValuePointer != *this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *this.CurrentValuePointer == *this.PreviousValuePointer; };
+                    this.Increased = () => { return *this.CurrentValuePointer > *this.PreviousValuePointer; };
+                    this.Decreased = () => { return *this.CurrentValuePointer < *this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *this.CurrentValuePointer == (Byte)value; };
+                    this.NotEqualToValue = (value) => { return *this.CurrentValuePointer != (Byte)value; };
+                    this.GreaterThanValue = (value) => { return *this.CurrentValuePointer > (Byte)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *this.CurrentValuePointer >= (Byte)value; };
+                    this.LessThanValue = (value) => { return *this.CurrentValuePointer < (Byte)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *this.CurrentValuePointer <= (Byte)value; };
+                    this.IncreasedByValue = (value) => { return *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer + (Byte)value); };
+                    this.DecreasedByValue = (value) => { return *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer - (Byte)value); };
                     break;
                 case TypeCode.SByte:
-                    Changed = () => { return *(sbyte*)CurrentValuePointer != *(sbyte*)PreviousValuePointer; };
-                    Unchanged = () => { return *(sbyte*)CurrentValuePointer == *(sbyte*)PreviousValuePointer; };
-                    Increased = () => { return *(sbyte*)CurrentValuePointer > *(sbyte*)PreviousValuePointer; };
-                    Decreased = () => { return *(sbyte*)CurrentValuePointer < *(sbyte*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(sbyte*)CurrentValuePointer == (sbyte)value; };
-                    NotEqualToValue = (value) => { return *(sbyte*)CurrentValuePointer != (sbyte)value; };
-                    GreaterThanValue = (value) => { return *(sbyte*)CurrentValuePointer > (sbyte)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(sbyte*)CurrentValuePointer >= (sbyte)value; };
-                    LessThanValue = (value) => { return *(sbyte*)CurrentValuePointer < (sbyte)value; };
-                    LessThanOrEqualToValue = (value) => { return *(sbyte*)CurrentValuePointer <= (sbyte)value; };
-                    IncreasedByValue = (value) => { return *(sbyte*)CurrentValuePointer == unchecked(*(sbyte*)PreviousValuePointer + (sbyte)value); };
-                    DecreasedByValue = (value) => { return *(sbyte*)CurrentValuePointer == unchecked(*(sbyte*)PreviousValuePointer - (sbyte)value); };
+                    this.Changed = () => { return *(SByte*)this.CurrentValuePointer != *(SByte*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(SByte*)this.CurrentValuePointer == *(SByte*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(SByte*)this.CurrentValuePointer > *(SByte*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(SByte*)this.CurrentValuePointer < *(SByte*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer == (SByte)value; };
+                    this.NotEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer != (SByte)value; };
+                    this.GreaterThanValue = (value) => { return *(SByte*)this.CurrentValuePointer > (SByte)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer >= (SByte)value; };
+                    this.LessThanValue = (value) => { return *(SByte*)this.CurrentValuePointer < (SByte)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer <= (SByte)value; };
+                    this.IncreasedByValue = (value) => { return *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer + (SByte)value); };
+                    this.DecreasedByValue = (value) => { return *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer - (SByte)value); };
                     break;
                 case TypeCode.Int16:
-                    Changed = () => { return *(short*)CurrentValuePointer != *(short*)PreviousValuePointer; };
-                    Unchanged = () => { return *(short*)CurrentValuePointer == *(short*)PreviousValuePointer; };
-                    Increased = () => { return *(short*)CurrentValuePointer > *(short*)PreviousValuePointer; };
-                    Decreased = () => { return *(short*)CurrentValuePointer < *(short*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(short*)CurrentValuePointer == (short)value; };
-                    NotEqualToValue = (value) => { return *(short*)CurrentValuePointer != (short)value; };
-                    GreaterThanValue = (value) => { return *(short*)CurrentValuePointer > (short)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(short*)CurrentValuePointer >= (short)value; };
-                    LessThanValue = (value) => { return *(short*)CurrentValuePointer < (short)value; };
-                    LessThanOrEqualToValue = (value) => { return *(short*)CurrentValuePointer <= (short)value; };
-                    IncreasedByValue = (value) => { return *(short*)CurrentValuePointer == unchecked(*(short*)PreviousValuePointer + (short)value); };
-                    DecreasedByValue = (value) => { return *(short*)CurrentValuePointer == unchecked(*(short*)PreviousValuePointer - (short)value); };
+                    this.Changed = () => { return *(Int16*)this.CurrentValuePointer != *(Int16*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(Int16*)this.CurrentValuePointer == *(Int16*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(Int16*)this.CurrentValuePointer > *(Int16*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(Int16*)this.CurrentValuePointer < *(Int16*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer == (Int16)value; };
+                    this.NotEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer != (Int16)value; };
+                    this.GreaterThanValue = (value) => { return *(Int16*)this.CurrentValuePointer > (Int16)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer >= (Int16)value; };
+                    this.LessThanValue = (value) => { return *(Int16*)this.CurrentValuePointer < (Int16)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer <= (Int16)value; };
+                    this.IncreasedByValue = (value) => { return *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer + (Int16)value); };
+                    this.DecreasedByValue = (value) => { return *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer - (Int16)value); };
                     break;
                 case TypeCode.Int32:
-                    Changed = () => { return *(int*)CurrentValuePointer != *(int*)PreviousValuePointer; };
-                    Unchanged = () => { return *(int*)CurrentValuePointer == *(int*)PreviousValuePointer; };
-                    Increased = () => { return *(int*)CurrentValuePointer > *(int*)PreviousValuePointer; };
-                    Decreased = () => { return *(int*)CurrentValuePointer < *(int*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(int*)CurrentValuePointer == (int)value; };
-                    NotEqualToValue = (value) => { return *(int*)CurrentValuePointer != (int)value; };
-                    GreaterThanValue = (value) => { return *(int*)CurrentValuePointer > (int)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(int*)CurrentValuePointer >= (int)value; };
-                    LessThanValue = (value) => { return *(int*)CurrentValuePointer < (int)value; };
-                    LessThanOrEqualToValue = (value) => { return *(int*)CurrentValuePointer <= (int)value; };
-                    IncreasedByValue = (value) => { return *(int*)CurrentValuePointer == unchecked(*(int*)PreviousValuePointer + (int)value); };
-                    DecreasedByValue = (value) => { return *(int*)CurrentValuePointer == unchecked(*(int*)PreviousValuePointer - (int)value); };
+                    this.Changed = () => { return *(Int32*)this.CurrentValuePointer != *(Int32*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(Int32*)this.CurrentValuePointer == *(Int32*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(Int32*)this.CurrentValuePointer > *(Int32*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(Int32*)this.CurrentValuePointer < *(Int32*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer == (Int32)value; };
+                    this.NotEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer != (Int32)value; };
+                    this.GreaterThanValue = (value) => { return *(Int32*)this.CurrentValuePointer > (Int32)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer >= (Int32)value; };
+                    this.LessThanValue = (value) => { return *(Int32*)this.CurrentValuePointer < (Int32)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer <= (Int32)value; };
+                    this.IncreasedByValue = (value) => { return *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer + (Int32)value); };
+                    this.DecreasedByValue = (value) => { return *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer - (Int32)value); };
                     break;
                 case TypeCode.Int64:
-                    Changed = () => { return *(long*)CurrentValuePointer != *(long*)PreviousValuePointer; };
-                    Unchanged = () => { return *(long*)CurrentValuePointer == *(long*)PreviousValuePointer; };
-                    Increased = () => { return *(long*)CurrentValuePointer > *(long*)PreviousValuePointer; };
-                    Decreased = () => { return *(long*)CurrentValuePointer < *(long*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(long*)CurrentValuePointer == (long)value; };
-                    NotEqualToValue = (value) => { return *(long*)CurrentValuePointer != (long)value; };
-                    GreaterThanValue = (value) => { return *(long*)CurrentValuePointer > (long)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(long*)CurrentValuePointer >= (long)value; };
-                    LessThanValue = (value) => { return *(long*)CurrentValuePointer < (long)value; };
-                    LessThanOrEqualToValue = (value) => { return *(long*)CurrentValuePointer <= (long)value; };
-                    IncreasedByValue = (value) => { return *(long*)CurrentValuePointer == unchecked(*(long*)PreviousValuePointer + (long)value); };
-                    DecreasedByValue = (value) => { return *(long*)CurrentValuePointer == unchecked(*(long*)PreviousValuePointer - (long)value); };
+                    this.Changed = () => { return *(Int64*)this.CurrentValuePointer != *(Int64*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(Int64*)this.CurrentValuePointer == *(Int64*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(Int64*)this.CurrentValuePointer > *(Int64*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(Int64*)this.CurrentValuePointer < *(Int64*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer == (Int64)value; };
+                    this.NotEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer != (Int64)value; };
+                    this.GreaterThanValue = (value) => { return *(Int64*)this.CurrentValuePointer > (Int64)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer >= (Int64)value; };
+                    this.LessThanValue = (value) => { return *(Int64*)this.CurrentValuePointer < (Int64)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer <= (Int64)value; };
+                    this.IncreasedByValue = (value) => { return *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer + (Int64)value); };
+                    this.DecreasedByValue = (value) => { return *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer - (Int64)value); };
                     break;
                 case TypeCode.UInt16:
-                    Changed = () => { return *(ushort*)CurrentValuePointer != *(ushort*)PreviousValuePointer; };
-                    Unchanged = () => { return *(ushort*)CurrentValuePointer == *(ushort*)PreviousValuePointer; };
-                    Increased = () => { return *(ushort*)CurrentValuePointer > *(ushort*)PreviousValuePointer; };
-                    Decreased = () => { return *(ushort*)CurrentValuePointer < *(ushort*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(ushort*)CurrentValuePointer == (ushort)value; };
-                    NotEqualToValue = (value) => { return *(ushort*)CurrentValuePointer != (ushort)value; };
-                    GreaterThanValue = (value) => { return *(ushort*)CurrentValuePointer > (ushort)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(ushort*)CurrentValuePointer >= (ushort)value; };
-                    LessThanValue = (value) => { return *(ushort*)CurrentValuePointer < (ushort)value; };
-                    LessThanOrEqualToValue = (value) => { return *(ushort*)CurrentValuePointer <= (ushort)value; };
-                    IncreasedByValue = (value) => { return *(ushort*)CurrentValuePointer == unchecked(*(ushort*)PreviousValuePointer + (ushort)value); };
-                    DecreasedByValue = (value) => { return *(ushort*)CurrentValuePointer == unchecked(*(ushort*)PreviousValuePointer - (ushort)value); };
+                    this.Changed = () => { return *(UInt16*)this.CurrentValuePointer != *(UInt16*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(UInt16*)this.CurrentValuePointer == *(UInt16*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(UInt16*)this.CurrentValuePointer > *(UInt16*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(UInt16*)this.CurrentValuePointer < *(UInt16*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer == (UInt16)value; };
+                    this.NotEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer != (UInt16)value; };
+                    this.GreaterThanValue = (value) => { return *(UInt16*)this.CurrentValuePointer > (UInt16)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer >= (UInt16)value; };
+                    this.LessThanValue = (value) => { return *(UInt16*)this.CurrentValuePointer < (UInt16)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer <= (UInt16)value; };
+                    this.IncreasedByValue = (value) => { return *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer + (UInt16)value); };
+                    this.DecreasedByValue = (value) => { return *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer - (UInt16)value); };
                     break;
                 case TypeCode.UInt32:
-                    Changed = () => { return *(uint*)CurrentValuePointer != *(uint*)PreviousValuePointer; };
-                    Unchanged = () => { return *(uint*)CurrentValuePointer == *(uint*)PreviousValuePointer; };
-                    Increased = () => { return *(uint*)CurrentValuePointer > *(uint*)PreviousValuePointer; };
-                    Decreased = () => { return *(uint*)CurrentValuePointer < *(uint*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(uint*)CurrentValuePointer == (uint)value; };
-                    NotEqualToValue = (value) => { return *(uint*)CurrentValuePointer != (uint)value; };
-                    GreaterThanValue = (value) => { return *(uint*)CurrentValuePointer > (uint)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(uint*)CurrentValuePointer >= (uint)value; };
-                    LessThanValue = (value) => { return *(uint*)CurrentValuePointer < (uint)value; };
-                    LessThanOrEqualToValue = (value) => { return *(uint*)CurrentValuePointer <= (uint)value; };
-                    IncreasedByValue = (value) => { return *(uint*)CurrentValuePointer == unchecked(*(uint*)PreviousValuePointer + (uint)value); };
-                    DecreasedByValue = (value) => { return *(uint*)CurrentValuePointer == unchecked(*(uint*)PreviousValuePointer - (uint)value); };
+                    this.Changed = () => { return *(UInt32*)this.CurrentValuePointer != *(UInt32*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(UInt32*)this.CurrentValuePointer == *(UInt32*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(UInt32*)this.CurrentValuePointer > *(UInt32*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(UInt32*)this.CurrentValuePointer < *(UInt32*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer == (UInt32)value; };
+                    this.NotEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer != (UInt32)value; };
+                    this.GreaterThanValue = (value) => { return *(UInt32*)this.CurrentValuePointer > (UInt32)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer >= (UInt32)value; };
+                    this.LessThanValue = (value) => { return *(UInt32*)this.CurrentValuePointer < (UInt32)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer <= (UInt32)value; };
+                    this.IncreasedByValue = (value) => { return *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer + (UInt32)value); };
+                    this.DecreasedByValue = (value) => { return *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer - (UInt32)value); };
                     break;
                 case TypeCode.UInt64:
-                    Changed = () => { return *(ulong*)CurrentValuePointer != *(ulong*)PreviousValuePointer; };
-                    Unchanged = () => { return *(ulong*)CurrentValuePointer == *(ulong*)PreviousValuePointer; };
-                    Increased = () => { return *(ulong*)CurrentValuePointer > *(ulong*)PreviousValuePointer; };
-                    Decreased = () => { return *(ulong*)CurrentValuePointer < *(ulong*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return *(ulong*)CurrentValuePointer == (ulong)value; };
-                    NotEqualToValue = (value) => { return *(ulong*)CurrentValuePointer != (ulong)value; };
-                    GreaterThanValue = (value) => { return *(ulong*)CurrentValuePointer > (ulong)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(ulong*)CurrentValuePointer >= (ulong)value; };
-                    LessThanValue = (value) => { return *(ulong*)CurrentValuePointer < (ulong)value; };
-                    LessThanOrEqualToValue = (value) => { return *(ulong*)CurrentValuePointer <= (ulong)value; };
-                    IncreasedByValue = (value) => { return *(ulong*)CurrentValuePointer == unchecked(*(ulong*)PreviousValuePointer + (ulong)value); };
-                    DecreasedByValue = (value) => { return *(ulong*)CurrentValuePointer == unchecked(*(ulong*)PreviousValuePointer - (ulong)value); };
+                    this.Changed = () => { return *(UInt64*)this.CurrentValuePointer != *(UInt64*)this.PreviousValuePointer; };
+                    this.Unchanged = () => { return *(UInt64*)this.CurrentValuePointer == *(UInt64*)this.PreviousValuePointer; };
+                    this.Increased = () => { return *(UInt64*)this.CurrentValuePointer > *(UInt64*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(UInt64*)this.CurrentValuePointer < *(UInt64*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer == (UInt64)value; };
+                    this.NotEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer != (UInt64)value; };
+                    this.GreaterThanValue = (value) => { return *(UInt64*)this.CurrentValuePointer > (UInt64)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer >= (UInt64)value; };
+                    this.LessThanValue = (value) => { return *(UInt64*)this.CurrentValuePointer < (UInt64)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer <= (UInt64)value; };
+                    this.IncreasedByValue = (value) => { return *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer + (UInt64)value); };
+                    this.DecreasedByValue = (value) => { return *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer - (UInt64)value); };
                     break;
                 case TypeCode.Single:
-                    Changed = () => { return !(*(float*)CurrentValuePointer).AlmostEquals(*(float*)PreviousValuePointer); };
-                    Unchanged = () => { return (*(float*)CurrentValuePointer).AlmostEquals(*(float*)PreviousValuePointer); };
-                    Increased = () => { return *(float*)CurrentValuePointer > *(float*)PreviousValuePointer; };
-                    Decreased = () => { return *(float*)CurrentValuePointer < *(float*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return (*(float*)CurrentValuePointer).AlmostEquals((float)value); };
-                    NotEqualToValue = (value) => { return !(*(float*)CurrentValuePointer).AlmostEquals((float)value); };
-                    GreaterThanValue = (value) => { return *(float*)CurrentValuePointer > (float)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(float*)CurrentValuePointer >= (float)value; };
-                    LessThanValue = (value) => { return *(float*)CurrentValuePointer < (float)value; };
-                    LessThanOrEqualToValue = (value) => { return *(float*)CurrentValuePointer <= (float)value; };
-                    IncreasedByValue = (value) => { return (*(float*)CurrentValuePointer).AlmostEquals(unchecked(*(float*)PreviousValuePointer + (float)value)); };
-                    DecreasedByValue = (value) => { return (*(float*)CurrentValuePointer).AlmostEquals(unchecked(*(float*)PreviousValuePointer - (float)value)); };
+                    this.Changed = () => { return !(*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer); };
+                    this.Unchanged = () => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer); };
+                    this.Increased = () => { return *(Single*)this.CurrentValuePointer > *(Single*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(Single*)this.CurrentValuePointer < *(Single*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value); };
+                    this.NotEqualToValue = (value) => { return !(*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value); };
+                    this.GreaterThanValue = (value) => { return *(Single*)this.CurrentValuePointer > (Single)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(Single*)this.CurrentValuePointer >= (Single)value; };
+                    this.LessThanValue = (value) => { return *(Single*)this.CurrentValuePointer < (Single)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(Single*)this.CurrentValuePointer <= (Single)value; };
+                    this.IncreasedByValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer + (Single)value)); };
+                    this.DecreasedByValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer - (Single)value)); };
                     break;
                 case TypeCode.Double:
-                    Changed = () => { return !(*(double*)CurrentValuePointer).AlmostEquals(*(double*)PreviousValuePointer); };
-                    Unchanged = () => { return (*(double*)CurrentValuePointer).AlmostEquals(*(double*)PreviousValuePointer); };
-                    Increased = () => { return *(double*)CurrentValuePointer > *(double*)PreviousValuePointer; };
-                    Decreased = () => { return *(double*)CurrentValuePointer < *(double*)PreviousValuePointer; };
-                    EqualToValue = (value) => { return (*(double*)CurrentValuePointer).AlmostEquals((double)value); };
-                    NotEqualToValue = (value) => { return !(*(double*)CurrentValuePointer).AlmostEquals((double)value); };
-                    GreaterThanValue = (value) => { return *(double*)CurrentValuePointer > (double)value; };
-                    GreaterThanOrEqualToValue = (value) => { return *(double*)CurrentValuePointer >= (double)value; };
-                    LessThanValue = (value) => { return *(double*)CurrentValuePointer < (double)value; };
-                    LessThanOrEqualToValue = (value) => { return *(double*)CurrentValuePointer <= (double)value; };
-                    IncreasedByValue = (value) => { return (*(double*)CurrentValuePointer).AlmostEquals(unchecked(*(double*)PreviousValuePointer + (double)value)); };
-                    DecreasedByValue = (value) => { return (*(double*)CurrentValuePointer).AlmostEquals(unchecked(*(double*)PreviousValuePointer - (double)value)); };
+                    this.Changed = () => { return !(*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer); };
+                    this.Unchanged = () => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer); };
+                    this.Increased = () => { return *(Double*)this.CurrentValuePointer > *(Double*)this.PreviousValuePointer; };
+                    this.Decreased = () => { return *(Double*)this.CurrentValuePointer < *(Double*)this.PreviousValuePointer; };
+                    this.EqualToValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value); };
+                    this.NotEqualToValue = (value) => { return !(*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value); };
+                    this.GreaterThanValue = (value) => { return *(Double*)this.CurrentValuePointer > (Double)value; };
+                    this.GreaterThanOrEqualToValue = (value) => { return *(Double*)this.CurrentValuePointer >= (Double)value; };
+                    this.LessThanValue = (value) => { return *(Double*)this.CurrentValuePointer < (Double)value; };
+                    this.LessThanOrEqualToValue = (value) => { return *(Double*)this.CurrentValuePointer <= (Double)value; };
+                    this.IncreasedByValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer + (Double)value)); };
+                    this.DecreasedByValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer - (Double)value)); };
                     break;
                 default:
                     throw new ArgumentException();
@@ -521,44 +520,44 @@
         /// <param name="pointerIncrementMode">The method by which to increment pointers.</param>
         private unsafe void SetPointerFunction(PointerIncrementMode pointerIncrementMode)
         {
-            int alignment = ScanSettings.Alignment;
+            MemoryAlignment alignment = ScanSettings.Alignment;
 
-            if (alignment == 1)
+            if (alignment == MemoryAlignment.Alignment1)
             {
                 switch (pointerIncrementMode)
                 {
                     case PointerIncrementMode.AllPointers:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex++;
-                            CurrentValuePointer++;
-                            PreviousValuePointer++;
+                            this.CurrentLabelIndex++;
+                            this.CurrentValuePointer++;
+                            this.PreviousValuePointer++;
                         };
                         break;
                     case PointerIncrementMode.CurrentOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentValuePointer++;
+                            this.CurrentValuePointer++;
                         };
                         break;
                     case PointerIncrementMode.LabelsOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex++;
+                            this.CurrentLabelIndex++;
                         };
                         break;
                     case PointerIncrementMode.NoPrevious:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex++;
-                            CurrentValuePointer++;
+                            this.CurrentLabelIndex++;
+                            this.CurrentValuePointer++;
                         };
                         break;
                     case PointerIncrementMode.ValuesOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentValuePointer++;
-                            PreviousValuePointer++;
+                            this.CurrentValuePointer++;
+                            this.PreviousValuePointer++;
                         };
                         break;
                 }
@@ -568,37 +567,37 @@
                 switch (pointerIncrementMode)
                 {
                     case PointerIncrementMode.AllPointers:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex += alignment;
-                            CurrentValuePointer += alignment;
-                            PreviousValuePointer += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
+                            this.PreviousValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.CurrentOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentValuePointer += alignment;
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.LabelsOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.NoPrevious:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentLabelIndex += alignment;
-                            CurrentValuePointer += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.ValuesOnly:
-                        IncrementPointers = () =>
+                        this.IncrementPointers = () =>
                         {
-                            CurrentValuePointer += alignment;
-                            PreviousValuePointer += alignment;
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
+                            this.PreviousValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                 }
@@ -609,7 +608,7 @@
         /// Sets the default compare action to use for this element.
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the element quick action.</param>
-        private Func<bool> BuildCompareActions(Constraint constraint)
+        private Func<Boolean> BuildCompareActions(Constraint constraint)
         {
             switch (constraint)
             {
@@ -624,24 +623,24 @@
                         case OperationConstraint.OperationType.AND:
                             return () =>
                             {
-                                bool resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
-                                bool resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Boolean resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
+                                Boolean resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return resultLeft & resultRight;
                             };
                         case OperationConstraint.OperationType.OR:
                             return () =>
                             {
-                                bool resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
-                                bool resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Boolean resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
+                                Boolean resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return resultLeft | resultRight;
                             };
                         case OperationConstraint.OperationType.XOR:
                             return () =>
                             {
-                                bool resultLeft = BuildCompareActions(operationConstraint.Left).Invoke();
-                                bool resultRight = BuildCompareActions(operationConstraint.Right).Invoke();
+                                Boolean resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
+                                Boolean resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
 
                                 return resultLeft ^ resultRight;
                             };
@@ -652,29 +651,29 @@
                     switch (scanConstraint.Constraint)
                     {
                         case ScanConstraint.ConstraintType.Unchanged:
-                            return Unchanged;
+                            return this.Unchanged;
                         case ScanConstraint.ConstraintType.Changed:
-                            return Changed;
+                            return this.Changed;
                         case ScanConstraint.ConstraintType.Increased:
-                            return Increased;
+                            return this.Increased;
                         case ScanConstraint.ConstraintType.Decreased:
-                            return Decreased;
+                            return this.Decreased;
                         case ScanConstraint.ConstraintType.IncreasedByX:
-                            return () => IncreasedByValue(scanConstraint.ConstraintValue);
+                            return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.DecreasedByX:
-                            return () => DecreasedByValue(scanConstraint.ConstraintValue);
+                            return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.Equal:
-                            return () => EqualToValue(scanConstraint.ConstraintValue);
+                            return () => this.EqualToValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.NotEqual:
-                            return () => NotEqualToValue(scanConstraint.ConstraintValue);
+                            return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.GreaterThan:
-                            return () => GreaterThanValue(scanConstraint.ConstraintValue);
+                            return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.GreaterThanOrEqual:
-                            return () => GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
+                            return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.LessThan:
-                            return () => LessThanValue(scanConstraint.ConstraintValue);
+                            return () => this.LessThanValue(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.LessThanOrEqual:
-                            return () => LessThanOrEqualToValue(scanConstraint.ConstraintValue);
+                            return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
                         default:
                             throw new Exception("Unknown constraint type");
                     }
@@ -689,30 +688,30 @@
         /// <param name="array">The byte array from which to read a value.</param>
         /// <returns>The value at the start of this array casted as the proper data type.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe object LoadValue(byte* array)
+        private unsafe Object LoadValue(Byte* array)
         {
-            switch (CurrentTypeCode)
+            switch (this.CurrentTypeCode)
             {
                 case TypeCode.Byte:
                     return *array;
                 case TypeCode.SByte:
-                    return *(sbyte*)array;
+                    return *(SByte*)array;
                 case TypeCode.Int16:
-                    return *(short*)array;
+                    return *(Int16*)array;
                 case TypeCode.Int32:
-                    return *(int*)array;
+                    return *(Int32*)array;
                 case TypeCode.Int64:
-                    return *(long*)array;
+                    return *(Int64*)array;
                 case TypeCode.UInt16:
-                    return *(ushort*)array;
+                    return *(UInt16*)array;
                 case TypeCode.UInt32:
-                    return *(uint*)array;
+                    return *(UInt32*)array;
                 case TypeCode.UInt64:
-                    return *(ulong*)array;
+                    return *(UInt64*)array;
                 case TypeCode.Single:
-                    return *(float*)array;
+                    return *(Single*)array;
                 case TypeCode.Double:
-                    return *(double*)array;
+                    return *(Double*)array;
                 default:
                     throw new ArgumentException();
             }

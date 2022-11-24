@@ -96,16 +96,16 @@
             }
         }
 
-        public static Int32 Alignment
+        public static MemoryAlignment Alignment
         {
             get
             {
-                return Properties.Settings.Default.Alignment;
+                return (MemoryAlignment)Properties.Settings.Default.Alignment;
             }
 
             set
             {
-                Properties.Settings.Default.Alignment = value;
+                Properties.Settings.Default.Alignment = (int)value;
             }
         }
 
