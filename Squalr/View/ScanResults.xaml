@@ -110,7 +110,7 @@
                     IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Image Source="{Binding Path=PointerItem, Converter={StaticResource ProjectItemToIconConverter}}" />
+                            <Image Source="{Binding Path=ProjectItemView, Converter={StaticResource ProjectItemToIconConverter}}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
