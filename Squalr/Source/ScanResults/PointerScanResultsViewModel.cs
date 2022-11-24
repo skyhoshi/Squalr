@@ -73,7 +73,7 @@
         private PointerScanResultsViewModel() : base("Pointer Scan Results")
         {
             this.ExtractPointerCommand = new RelayCommand<Int32>((levelIndex) => this.ExtractPointer(levelIndex), (levelIndex) => true);
-            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>(), (selectedItems) => true);
+            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectScanResults(selectedItems), (selectedItems) => true);
 
             this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => Task.Run(() => this.ChangeType(type)), (type) => true);
             this.NewPointerScanCommand = new RelayCommand(() => Task.Run(() => this.DiscoveredPointers = null), () => true);
@@ -215,6 +215,15 @@
         public static PointerScanResultsViewModel GetInstance()
         {
             return PointerScanResultsViewModel.pointerScanResultsViewModelInstance.Value;
+        }
+
+        /// <summary>
+        /// Selects the given scan results.
+        /// </summary>
+        /// <param name="selectedItems">The scan results to select.</param>
+        private void SelectScanResults(Object selectedItems)
+        {
+            this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>();
         }
 
         private void ExtractPointer(Int32 levelIndex)

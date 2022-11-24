@@ -264,6 +264,9 @@
         {
             projectItem.Parent = this;
             projectItem.Save();
+
+            // Force load rather than waiting on the directory watcher to avoid timing issues of resolving name conflicts when adding multiple children in quick succession.
+            this.LoadProjectItem(projectItem.FullPath, supressWarnings: true);
         }
 
         /// <summary>
@@ -378,7 +381,10 @@
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Error, "Error loading directory", ex);
+                    if (!supressWarnings)
+                    {
+                        Logger.Log(LogLevel.Error, "Error loading directory", ex);
+                    }
                 }
             }
             else if (File.Exists(projectItemPath))
@@ -402,7 +408,10 @@
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LogLevel.Error, "Error reading project item", ex);
+                    if (!supressWarnings)
+                    {
+                        Logger.Log(LogLevel.Error, "Error reading project item", ex);
+                    }
                 }
             }
 

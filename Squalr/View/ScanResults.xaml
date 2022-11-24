@@ -40,13 +40,24 @@
                 Background="{StaticResource SqualrColorFrame}"
                 BorderBrush="{StaticResource SqualrColorWhite}"
                 Foreground="{StaticResource SqualrColorWhite}">
-                <MenuItem VerticalAlignment="Center" Command="{Binding AddScanResultsCommand}">
+                <MenuItem VerticalAlignment="Center"
+                          Command="{Binding AddScanResultsCommand}"
+                          ToolTip="Add Selected Items to Current Project">
                     <MenuItem.Header>
                         <Image
                             Width="16"
                             Height="16"
-                            Source="{x:Static content:Images.Increased}"
-                            ToolTip="Add Selected Items to Current Project" />
+                            Source="{x:Static content:Images.Increased}" />
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem VerticalAlignment="Center"
+                    Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand}"
+                    ToolTip="New Scan">
+                    <MenuItem.Header>
+                        <Image
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.New}" />
                     </MenuItem.Header>
                 </MenuItem>
             </Menu>

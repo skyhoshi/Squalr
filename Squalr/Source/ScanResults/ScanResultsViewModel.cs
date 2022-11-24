@@ -73,7 +73,7 @@
         {
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
             this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => this.ChangeType(type), (type) => true);
-            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>(), (selectedItems) => true);
+            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectScanResults(selectedItems), (selectedItems) => true);
             this.FirstPageCommand = new RelayCommand(() => Task.Run(() => this.FirstPage()), () => true);
             this.LastPageCommand = new RelayCommand(() => Task.Run(() => this.LastPage()), () => true);
             this.PreviousPageCommand = new RelayCommand(() => Task.Run(() => this.PreviousPage()), () => true);
@@ -470,6 +470,11 @@
         private void NextPage()
         {
             this.CurrentPage = (this.CurrentPage + 1).Clamp(0UL, this.PageCount);
+        }
+
+        private void SelectScanResults(Object selectedItems)
+        {
+            this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>();
         }
 
         /// <summary>
