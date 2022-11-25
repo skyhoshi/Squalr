@@ -77,31 +77,32 @@
         /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.
         /// </summary>
-        public IList<SnapshotRegion> GatherCollectedRegions(Int32 vectorReadBase)
+        public IList<SnapshotRegion> GatherCollectedRegions(Int32 readGroupBase)
         {
-            this.EncodeCurrentResults(vectorReadBase);
+            this.EncodeCurrentResults(readGroupBase);
             return this.ResultRegions;
         }
 
         /// <summary>
         /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
         /// </summary>
-        /// <param name="vectorReadOffset">While performing run length encoding, the VectorReadOffset may have changed, and this can be used to make corrections.</param>
+        /// <param name="readGroupOffset">The base address of the read group.</param>
+        /// <param name="readGroupOffset">The offset into the read group.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EncodeCurrentResults(Int32 vectorReadBase, Int32 vectorReadOffset = 0)
+        public void EncodeCurrentResults(Int32 readGroupBase, Int32 readGroupOffset = 0)
         {
             // Create the final region if we are still encoding
             if (this.IsEncoding)
             {
-                Int32 readgroupOffset = vectorReadBase + vectorReadOffset - this.RunLength * unchecked((Int32)this.Alignment);
-                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)readgroupOffset);
+                Int32 finalReadGroupOffset = readGroupBase + readGroupOffset - this.RunLength * unchecked((Int32)this.Alignment);
+                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)finalReadGroupOffset);
                 UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
 
                 // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
                 // This check catches any potential errors introduced this way.
                 if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
                 {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
+                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, finalReadGroupOffset, this.RunLength));
                 }
 
                 this.RunLength = 0;

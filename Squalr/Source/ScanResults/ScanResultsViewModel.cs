@@ -401,7 +401,6 @@
                 {
                     SnapshotElementIndexer element = snapshot[index, this.ActiveType.Size];
 
-                    String label = element.GetElementLabel() != null ? element.GetElementLabel().ToString() : String.Empty;
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
                     UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
@@ -419,7 +418,7 @@
                     }
 
                     PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, emulatorType: emulatorType, value: currentValue);
-                    newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue, label));
+                    newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue));
                 }
             }
 

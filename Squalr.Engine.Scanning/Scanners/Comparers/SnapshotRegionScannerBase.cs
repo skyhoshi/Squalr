@@ -7,21 +7,19 @@
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotElementComparerBase
+    internal unsafe abstract class SnapshotRegionScannerBase : ISnapshotRegionScanner
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotElementComparerBase" /> class.
+        /// Initializes a new instance of the <see cref="SnapshotRegionScannerBase" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotElementComparerBase(SnapshotRegion region, ScanConstraints constraints)
+        public SnapshotRegionScannerBase(SnapshotRegion region, ScanConstraints constraints)
         {
             this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder(region, constraints);
             this.Region = region;
@@ -263,6 +261,14 @@
         /// Gets or sets the data type being compared.
         /// </summary>
         protected ScannableType DataType { get; set; }
+
+        /// <summary>
+        /// Performs a scan over the given region, returning the discovered regions.
+        /// </summary>
+        /// <param name="region">The region to scan.</param>
+        /// <param name="constraints">The scan constraints.</param>
+        /// <returns>The resulting regions, if any.</returns>
+        public abstract IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints);
     }
     //// End class
 }

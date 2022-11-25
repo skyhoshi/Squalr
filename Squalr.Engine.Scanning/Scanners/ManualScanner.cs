@@ -48,7 +48,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentScanBag regions = new ConcurrentScanBag();
+                            ConcurrentScanBag resultRegions = new ConcurrentScanBag();
 
                             ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
                             options.CancellationToken = cancellationToken;
@@ -66,12 +66,12 @@
                                         return;
                                     }
 
-                                    SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
-                                    IList<SnapshotRegion> results = vectorComparer.ElementCompare();
+                                    ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.CreateScannerInstance(region: region, constraints: constraints);
+                                    IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
 
                                     if (!results.IsNullOrEmpty())
                                     {
-                                        regions.Add(results);
+                                        resultRegions.Add(results);
                                     }
 
                                     // Update progress every N regions
@@ -85,7 +85,7 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(ManualScanner.Name, regions);
+                            result = new Snapshot(ManualScanner.Name, resultRegions);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             result.ComputeElementCount(constraints.ElementType.Size);

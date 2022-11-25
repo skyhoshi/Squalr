@@ -112,6 +112,21 @@
                 return new SnapshotElementIndexer(region: this, elementIndex: index, alignment: alignment);
             }
         }
+
+        /// <summary>
+        /// Gets the enumerator for an element reference within this snapshot region.
+        /// </summary>
+        /// <returns>The enumerator for an element reference within this snapshot region.</returns>
+        public IEnumerator<SnapshotElementIndexer> IterateElements(Int32 elementSize, MemoryAlignment alignment)
+        {
+            Int32 elementCount = this.GetElementCount(elementSize, alignment);
+            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this);
+
+            for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
+            {
+                yield return snapshotElement;
+            }
+        }
     }
     //// End class
 }

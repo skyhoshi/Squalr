@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels
 {
     using Squalr.Engine.Common.Extensions;
-    using Squalr.Engine.Scanning.Scanners.Comparers;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -30,12 +30,12 @@
 
         private const Int32 UnrollSize = 8;
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotElementVectorComparer snapshotElementVectorComparer)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
                 Vector<UInt32> result = Vector<UInt32>.Zero;
-                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotElementVectorComparer.CurrentValues);
+                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
 
                 for (Int32 boundsIndex = 0; boundsIndex < this.LowerBounds.Length; boundsIndex += LinearPointerSearchKernel.UnrollSize)
                 {

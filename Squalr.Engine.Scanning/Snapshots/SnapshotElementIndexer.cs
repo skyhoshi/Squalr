@@ -33,22 +33,6 @@
         }
 
         /// <summary>
-        /// Gets or sets the label associated with this element.
-        /// </summary>
-        public Object ElementLabel
-        {
-            get
-            {
-                return this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-            }
-
-            set
-            {
-                this.Region.ReadGroup.ElementLabels[this.ElementIndex] = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
         private SnapshotRegion Region { get; set; }
@@ -126,26 +110,6 @@
                 default:
                     throw new ArgumentException();
             }
-        }
-
-        /// <summary>
-        /// Gets the label of this element.
-        /// </summary>
-        /// <returns>The label of this element.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Object GetElementLabel()
-        {
-            return this.Region.ReadGroup.ElementLabels == null ? null : this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-        }
-
-        /// <summary>
-        /// Sets the label of this element.
-        /// </summary>
-        /// <param name="newLabel">The new element label.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetElementLabel(Object newLabel)
-        {
-            this.Region.ReadGroup.ElementLabels[this.ElementIndex] = newLabel;
         }
 
         /// <summary>
