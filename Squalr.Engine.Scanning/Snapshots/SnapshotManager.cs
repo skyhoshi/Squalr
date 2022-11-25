@@ -56,7 +56,6 @@
                 if (this.Snapshots.Count == 0 || this.Snapshots.Peek() == null || this.Snapshots.Peek().ElementCount == 0)
                 {
                     Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings, emulatorType);
-                    snapshot.Alignment = ScanSettings.Alignment;
 
                     return snapshot;
                 }
@@ -132,12 +131,26 @@
         {
             lock (this.AccessLock)
             {
+                // Nulling out the snapshot regions seems to make the GC work a little faster
+                foreach (Snapshot next in this.Snapshots)
+                {
+                    next.SetSnapshotRegions(null);
+                }
+
+                foreach (Snapshot next in this.DeletedSnapshots)
+                {
+                    next.SetSnapshotRegions(null);
+                }
+
                 this.Snapshots.Clear();
                 this.DeletedSnapshots.Clear();
                 this.OnSnapshotsUpdatedEvent.Invoke(this);
 
                 // There can be multiple GB of deleted snapshots, so run the garbage collector ASAP for a performance boost.
-                Task.Run(() => GC.Collect());
+                Task.Run(() =>
+                {
+                    GC.Collect();
+                });
             }
         }
 

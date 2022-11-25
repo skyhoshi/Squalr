@@ -16,21 +16,14 @@
         private Object previousValue;
 
         /// <summary>
-        /// The label of the scan result.
-        /// </summary>
-        private String label;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ScanResult" /> class.
         /// </summary>
         /// <param name="projectItem">The inner pointer item.</param>
         /// <param name="previousValue">The previous scan value.</param>
-        /// <param name="label">The label of this result.</param>
-        public ScanResult(ProjectItemView projectItem, Object previousValue, String label)
+        public ScanResult(ProjectItemView projectItem, Object previousValue)
         {
             this.ProjectItemView = projectItem;
             this.PreviousValue = previousValue;
-            this.Label = label;
             
             this.ProjectItemView.PropertyChanged += PointerItemChanged;
         }
@@ -90,24 +83,6 @@
             {
                 this.previousValue = value;
                 this.RaisePropertyChanged(nameof(this.PreviousValue));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the label of the scan result.
-        /// </summary>
-        [Browsable(false)]
-        public String Label
-        {
-            get
-            {
-                return this.label;
-            }
-
-            set
-            {
-                this.label = value;
-                this.RaisePropertyChanged(nameof(this.Label));
             }
         }
 

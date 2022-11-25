@@ -90,7 +90,7 @@
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        Int32 elementCount = snapshotRegion.GetElementCount(PointerSize.ToSize(), currentSnapshot.Alignment);
+                        Int32 elementCount = snapshotRegion.GetElementCount(currentSnapshot.Alignment);
                         SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount), currentSnapshot.Alignment];
                         UInt64 baseAddress = randomElement.GetBaseAddress(PointerSize.ToSize());
                         Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));

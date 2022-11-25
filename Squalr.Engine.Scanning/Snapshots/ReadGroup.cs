@@ -43,16 +43,6 @@
         /// </summary>
         public unsafe Byte[] PreviousValues { get; private set; }
 
-        /// <summary>
-        /// Gets the element labels.
-        /// </summary>
-        public unsafe Object[] ElementLabels { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the data type of the labels of this region.
-        /// </summary>
-        public ScannableType LabelDataType { get; set; }
-
         public IEnumerable<SnapshotRegion> Shard(Int32 shardSize)
         {
             IList<SnapshotRegion> regions = new List<SnapshotRegion>();
@@ -124,15 +114,6 @@
         public void SetPreviousValues(Byte[] newValues)
         {
             this.PreviousValues = newValues;
-        }
-
-        /// <summary>
-        /// Sets the element labels for this snapshot region.
-        /// </summary>
-        /// <param name="newLabels">The new labels to be assigned.</param>
-        public void SetElementLabels(Object[] newLabels)
-        {
-            this.ElementLabels = newLabels;
         }
     }
     //// End class

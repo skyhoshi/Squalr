@@ -97,14 +97,14 @@
                                 // Step 3) Rebase heap onto new previous heap
                                 if (levelIndex > 0)
                                 {
-                                    IVectorSearchKernel heapSearchKernel = SearchKernelFactory.GetSearchKernel(newLevels.Last().HeapPointers, previousPointerBag.MaxOffset, previousPointerBag.PointerSize);
+                                    IVectorPointerSearchKernel heapSearchKernel = PointerSearchKernelFactory.GetSearchKernel(newLevels.Last().HeapPointers, previousPointerBag.MaxOffset, previousPointerBag.PointerSize);
                                     TrackableTask<Snapshot> heapFilterTask = PointerFilter.Filter(pointerScanTask, updatedHeapPointers, heapSearchKernel, previousPointerBag.PointerSize, newLevels.Last().HeapPointers, previousPointerBag.MaxOffset);
 
                                     updatedHeapPointers = heapFilterTask.Result;
                                 }
 
                                 // Step 4) Filter static pointers that still point into the updated heap
-                                IVectorSearchKernel staticSearchKernel = SearchKernelFactory.GetSearchKernel(updatedHeapPointers, previousPointerBag.MaxOffset, previousPointerBag.PointerSize);
+                                IVectorPointerSearchKernel staticSearchKernel = PointerSearchKernelFactory.GetSearchKernel(updatedHeapPointers, previousPointerBag.MaxOffset, previousPointerBag.PointerSize);
                                 TrackableTask<Snapshot> staticFilterTask = PointerFilter.Filter(pointerScanTask, updatedStaticPointers, staticSearchKernel, previousPointerBag.PointerSize, updatedHeapPointers, previousPointerBag.MaxOffset);
 
                                 updatedStaticPointers = staticFilterTask.Result;

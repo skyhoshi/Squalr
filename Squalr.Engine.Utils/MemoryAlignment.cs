@@ -14,6 +14,6 @@
         Alignment4 = 4,
         Alignment8 = 8,
     }
-    //// End class
+    //// End enum
 }
 //// End namespace

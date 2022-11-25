@@ -2,16 +2,17 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.OS;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Linq;
     using System.Numerics;
 
-    internal class EytzingerSearchKernel : IVectorSearchKernel
+    internal class EytzingerPointerSearchKernel : IVectorPointerSearchKernel
     {
-        public EytzingerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public EytzingerPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
@@ -51,11 +52,11 @@
 
         private Vector<UInt32> Two = new Vector<UInt32>(2);
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotElementVectorComparer snapshotElementVectorComparer)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
-                Vector<UInt32> z = Vector.AsVectorUInt32(snapshotElementVectorComparer.CurrentValues);
+                Vector<UInt32> z = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
                 Vector<UInt32> heapRoot = new Vector<UInt32>(this.LowerBounds[0]);
                 Vector<UInt32> P = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(z, heapRoot), this.Two, Vector<UInt32>.One);
                 Int32 l = this.L;

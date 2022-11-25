@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels
 {
     using Squalr.Engine.Common.Extensions;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -9,9 +9,9 @@
     using System.Linq;
     using System.Numerics;
 
-    internal class LinearSearchKernel : IVectorSearchKernel
+    internal class LinearPointerSearchKernel : IVectorPointerSearchKernel
     {
-        public LinearSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public LinearPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
@@ -30,14 +30,14 @@
 
         private const Int32 UnrollSize = 8;
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotElementVectorComparer snapshotElementVectorComparer)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
                 Vector<UInt32> result = Vector<UInt32>.Zero;
-                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotElementVectorComparer.CurrentValues);
+                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
 
-                for (Int32 boundsIndex = 0; boundsIndex < this.LowerBounds.Length; boundsIndex += LinearSearchKernel.UnrollSize)
+                for (Int32 boundsIndex = 0; boundsIndex < this.LowerBounds.Length; boundsIndex += LinearPointerSearchKernel.UnrollSize)
                 {
                     Vector<UInt32> result0 = Vector.BitwiseAnd(Vector.GreaterThanOrEqual(currentValues, new Vector<UInt32>(this.LowerBounds[boundsIndex + 0])),
                         Vector.LessThanOrEqual(currentValues, new Vector<UInt32>(this.UpperBounds[boundsIndex + 0])));
@@ -75,7 +75,7 @@
         {
             IEnumerable<UInt32> lowerBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseAddress.Subtract(this.MaxOffset, wrapAround: false)));
 
-            while (lowerBounds.Count() % LinearSearchKernel.UnrollSize != 0)
+            while (lowerBounds.Count() % LinearPointerSearchKernel.UnrollSize != 0)
             {
                 lowerBounds = lowerBounds.Append<UInt32>(UInt32.MaxValue);
             }
@@ -87,7 +87,7 @@
         {
             IEnumerable<UInt32> upperBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndAddress.Add(this.MaxOffset, wrapAround: false)));
 
-            while (upperBounds.Count() % LinearSearchKernel.UnrollSize != 0)
+            while (upperBounds.Count() % LinearPointerSearchKernel.UnrollSize != 0)
             {
                 upperBounds = upperBounds.Append<UInt32>(UInt32.MinValue);
             }

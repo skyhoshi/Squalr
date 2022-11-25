@@ -3,7 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
@@ -31,7 +31,7 @@
         /// </summary>
         /// <param name="snapshot">The snapshot on which to perfrom the scan.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorSearchKernel searchKernel, PointerSize pointerSize, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
+        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorPointerSearchKernel searchKernel, PointerSize pointerSize, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
         {
             return TrackableTask<Snapshot>
                 .Create(PointerFilter.Name, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
@@ -63,13 +63,13 @@
 
                                 const MemoryAlignment alignment = MemoryAlignment.Alignment4;
                                 ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
-                                SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
+                                SnapshotRegionVectorScanner vectorComparer = new SnapshotRegionVectorScanner(region: region, constraints: constraints);
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 
                                 // SnapshotElementVectorComparer DEBUG_COMPARER = new SnapshotElementVectorComparer(region: region);
                                 // DEBUG_COMPARER.SetCustomCompareAction(DEBUG_KERNEL.GetSearchKernel(DEBUG_COMPARER));
 
-                                IList<SnapshotRegion> results = vectorComparer.Compare();
+                                IList<SnapshotRegion> results = vectorComparer.ScanRegion(region: region, constraints: constraints);
 
                                 // When debugging, these results should be the same as the results above
                                 // IList<SnapshotRegion> DEBUG_RESULTS = vectorComparer.Compare();

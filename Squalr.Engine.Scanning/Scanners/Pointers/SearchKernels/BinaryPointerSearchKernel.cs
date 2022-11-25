@@ -2,7 +2,8 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.OS;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -10,9 +11,9 @@
     using System.Linq;
     using System.Numerics;
 
-    internal class BinarySearchKernel : IVectorSearchKernel
+    internal class BinaryPointerSearchKernel : IVectorPointerSearchKernel
     {
-        public BinarySearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public BinaryPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
@@ -40,12 +41,12 @@
 
         private UInt32 PowerOf2Padding { get; set; }
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotElementVectorComparer snapshotElementVectorComparer)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
                 UInt32 halfIndex = this.PowerOf2Padding >> 1;
-                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotElementVectorComparer.CurrentValues);
+                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
                 Vector<UInt32> discoveredIndicies = Vector.ConditionalSelect(Vector.GreaterThan(currentValues, new Vector<UInt32>(this.UpperBounds[halfIndex])), new Vector<UInt32>(halfIndex), Vector<UInt32>.Zero);
 
                 while (halfIndex > 1)

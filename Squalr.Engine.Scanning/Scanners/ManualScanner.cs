@@ -3,13 +3,12 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static Squalr.Engine.Common.TrackableTask;
@@ -41,6 +40,8 @@
                     {
                         Snapshot result = null;
 
+                        snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+
                         try
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +50,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentScanBag regions = new ConcurrentScanBag();
+                            ConcurrentScanBag resultRegions = new ConcurrentScanBag();
 
                             ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
                             options.CancellationToken = cancellationToken;
@@ -67,12 +68,12 @@
                                         return;
                                     }
 
-                                    SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
-                                    IList<SnapshotRegion> results = vectorComparer.Compare();
+                                    ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.CreateScannerInstance(region: region, constraints: constraints);
+                                    IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
 
                                     if (!results.IsNullOrEmpty())
                                     {
-                                        regions.Add(results);
+                                        resultRegions.Add(results);
                                     }
 
                                     // Update progress every N regions
@@ -86,7 +87,8 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(ManualScanner.Name, regions);
+                            result = new Snapshot(ManualScanner.Name, resultRegions);
+                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             result.ComputeElementCount(constraints.ElementType.Size);

@@ -78,10 +78,9 @@
 
         /// <summary>
         /// Gets the number of elements contained in this snapshot.
-        /// <param name="dataTypeSize">The size of an element.</param>
         /// <param name="alignment">The memory address alignment of each element.</param>
         /// </summary>
-        public Int32 GetElementCount(Int32 dataTypeSize, MemoryAlignment alignment)
+        public Int32 GetElementCount(MemoryAlignment alignment)
         {
             Int32 alignmentValue = unchecked((Int32)alignment);
             Int32 elementCount = this.RegionSize / (alignmentValue <= 0 ? 1 : alignmentValue);
@@ -110,6 +109,21 @@
             get
             {
                 return new SnapshotElementIndexer(region: this, elementIndex: index, alignment: alignment);
+            }
+        }
+
+        /// <summary>
+        /// Gets the enumerator for an element reference within this snapshot region.
+        /// </summary>
+        /// <returns>The enumerator for an element reference within this snapshot region.</returns>
+        public IEnumerator<SnapshotElementIndexer> IterateElements(MemoryAlignment alignment)
+        {
+            Int32 elementCount = this.GetElementCount(alignment);
+            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this, alignment: alignment);
+
+            for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
+            {
+                yield return snapshotElement;
             }
         }
     }

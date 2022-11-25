@@ -67,17 +67,6 @@
         public UInt64 ElementCount { get; set; }
 
         /// <summary>
-        /// Sets the label data type for all read groups.
-        /// </summary>
-        public ScannableType LabelDataType
-        {
-            set
-            {
-                this.ReadGroups.ForEach(readGroup => readGroup.LabelDataType = value);
-            }
-        }
-
-        /// <summary>
         /// Gets the time since the last update was performed on this snapshot.
         /// </summary>
         public DateTime TimeSinceLastUpdate { get; private set; }
@@ -166,13 +155,20 @@
         }
 
         /// <summary>
-        /// Sets the label of every element in this snapshot to the same value.
+        /// Aligns this snapshot to the provided alignment. If the provided alignment is Auto, the alignment will be set based on the provided data type.
         /// </summary>
-        /// <typeparam name="LabelType">The data type of the label.</typeparam>
-        /// <param name="label">The new snapshot label value.</param>
-        public void SetElementLabels<LabelType>(LabelType label) where LabelType : struct, IComparable<LabelType>
+        /// <param name="alignment">The alignment to set.</param>
+        /// <param name="dataType">The datatype to align to if the alignment is set to Auto.</param>
+        public void AlignAndResolveAuto(MemoryAlignment alignment, ScannableType dataType)
         {
-            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((Int32)x.RegionSize)).Cast<Object>().ToArray()));
+            if (dataType is ByteArrayType)
+            {
+                this.Alignment = MemoryAlignment.Alignment1;
+            }
+            else
+            {
+                this.Alignment = alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataType.Size : alignment;
+            }
         }
 
         /// <summary>
@@ -181,8 +177,8 @@
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
         public void SetSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
         {
-            this.ReadGroups = snapshotRegions.Select(x => x.ReadGroup).Distinct();
-            this.SnapshotRegions = snapshotRegions.ToArray();
+            this.ReadGroups = snapshotRegions?.Select(x => x.ReadGroup)?.Distinct();
+            this.SnapshotRegions = snapshotRegions?.ToArray();
             this.TimeSinceLastUpdate = DateTime.Now;
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }
@@ -190,7 +186,6 @@
         /// <summary>
         /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
         /// </summary>
-        /// <param name="elementSize"></param>
         public void ComputeElementCount(Int32 elementSize)
         {
             this.ByteCount = 0;
@@ -199,8 +194,8 @@
             this.SnapshotRegions?.ForEach(region =>
             {
                 region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += region.RegionSize.ToUInt64();
-                this.ElementCount += region.GetElementCount(elementSize, this.Alignment).ToUInt64();
+                this.ByteCount += (region.RegionSize + elementSize - 1).ToUInt64();
+                this.ElementCount += region.GetElementCount(this.Alignment).ToUInt64();
             });
         }
 
@@ -277,7 +272,7 @@
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(elementSize, this.Alignment).ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(this.Alignment).ToUInt64())
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }

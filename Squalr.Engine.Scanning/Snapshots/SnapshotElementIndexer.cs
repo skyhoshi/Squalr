@@ -16,8 +16,9 @@
         /// Initializes a new instance of the <see cref="SnapshotElementIndexer" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="alignment">The memory alignment of the snapshot region being indexed.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, MemoryAlignment alignment = MemoryAlignment.Alignment1)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, MemoryAlignment alignment, Int32 elementIndex = 0)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
@@ -30,22 +31,6 @@
         public UInt64 GetBaseAddress(Int32 dataTypeSize)
         {
             return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * dataTypeSize);
-        }
-
-        /// <summary>
-        /// Gets or sets the label associated with this element.
-        /// </summary>
-        public Object ElementLabel
-        {
-            get
-            {
-                return this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-            }
-
-            set
-            {
-                this.Region.ReadGroup.ElementLabels[this.ElementIndex] = value;
-            }
         }
 
         /// <summary>
@@ -126,26 +111,6 @@
                 default:
                     throw new ArgumentException();
             }
-        }
-
-        /// <summary>
-        /// Gets the label of this element.
-        /// </summary>
-        /// <returns>The label of this element.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Object GetElementLabel()
-        {
-            return this.Region.ReadGroup.ElementLabels == null ? null : this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-        }
-
-        /// <summary>
-        /// Sets the label of this element.
-        /// </summary>
-        /// <param name="newLabel">The new element label.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetElementLabel(Object newLabel)
-        {
-            this.Region.ReadGroup.ElementLabels[this.ElementIndex] = newLabel;
         }
 
         /// <summary>

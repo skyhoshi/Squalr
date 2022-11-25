@@ -1,4 +1,4 @@
-﻿namespace Squalr.Engine.Scanning.Scanners
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.OS;
@@ -7,70 +7,22 @@
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Numerics;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotElementVectorComparer
+    internal unsafe class SnapshotRegionVectorScanner : SnapshotRegionScannerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotElementVectorComparer" /> class.
+        /// Initializes a new instance of the <see cref="SnapshotRegionVectorScanner" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotElementVectorComparer(SnapshotRegion region, ScanConstraints constraints)
+        public SnapshotRegionVectorScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
         {
-            this.Region = region;
-            this.VectorSize = Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
-            this.VectorReadOffset = 0;
-            this.DataType = constraints.ElementType;
-            this.DataTypeSize = constraints.ElementType.Size;
-            this.ResultRegions = new List<SnapshotRegion>();
-
-            if (this.DataType is ByteArrayType)
-            {
-                this.Alignment = MemoryAlignment.Alignment1;
-                this.Compare = this.ElementCompare;
-                // this.Compare = this.DataType is ByteArrayType ? this.ArrayOfBytesCompare : this.ElementCompare;
-            }
-            else
-            {
-                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
-                this.Compare = this.ElementCompare;
-            }
-
             this.SetConstraintFunctions();
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
-        }
-
-        /// <summary>
-        /// Gets or sets the index from which the next vector is read.
-        /// </summary>
-        public Int32 VectorReadOffset { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the alignment offset, which is also used for reading the next vector.
-        /// </summary>
-        public Int32 AlignmentReadOffset { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the index from which the run length encoding is started.
-        /// </summary>
-        public Int32 RunLengthEncodeOffset { get; private set; }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public UInt64 CurrentAddress
-        {
-            get
-            {
-                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
-            }
         }
 
         /// <summary>
@@ -92,28 +44,6 @@
             get
             {
                 return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> CurrentValuesArrayOfBytes
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> PreviousValuesArrayOfBytes
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
             }
         }
 
@@ -226,21 +156,6 @@
         }
 
         /// <summary>
-        /// Iterator for array of bytes vectorized chunks.
-        /// </summary>
-        private Int32 ArrayOfBytesChunkIndex { get; set; }
-
-        /// <summary>
-        /// Temporary storage used to reverse the endianness of scanned values.
-        /// </summary>
-        private Byte[] EndianStorage = new Byte[Vectors.VectorSize];
-
-        /// <summary>
-        /// Gets an action based on the element iterator scan constraint.
-        /// </summary>
-        public Func<IList<SnapshotRegion>> Compare { get; private set; }
-
-        /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
         private Func<Vector<Byte>> VectorCompare { get; set; }
@@ -306,59 +221,9 @@
         private Func<Object, Vector<Byte>> DecreasedByValue { get; set; }
 
         /// <summary>
-        /// Gets a function which determines if this array of bytes has a value equal to the given array of bytes.
+        /// Temporary storage used to reverse the endianness of scanned values.
         /// </summary>
-        private Func<Object, Vector<Byte>, Vector<Byte>> EqualToArrayOfBytes { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this array of bytes has a value not equal to the given array of bytes.
-        /// </summary>
-        private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToArrayOfBytes { get; set; }
-
-        /// <summary>
-        /// Gets or sets the parent snapshot region.
-        /// </summary>
-        private SnapshotRegion Region { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether we are currently encoding a new result region.
-        /// </summary>
-        private Boolean Encoding { get; set; }
-
-        /// <summary>
-        /// Gets or sets the current run length for run length encoded current scan results.
-        /// </summary>
-        private Int32 RunLength { get; set; }
-
-        /// <summary>
-        /// Gets or sets the index of this element.
-        /// </summary>
-        private Int32 VectorReadBase { get; set; }
-
-        /// <summary>
-        /// Gets or sets the SSE vector size on the machine.
-        /// </summary>
-        private Int32 VectorSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the size of the data type being compared.
-        /// </summary>
-        private Int32 DataTypeSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the enforced memory alignment for this scan.
-        /// </summary>
-        private MemoryAlignment Alignment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the data type being compared.
-        /// </summary>
-        private ScannableType DataType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the list of discovered result regions.
-        /// </summary>
-        private IList<SnapshotRegion> ResultRegions { get; set; }
+        protected Byte[] EndianStorage = new Byte[Vectors.VectorSize];
 
         /// <summary>
         /// An alignment mask table for computing temporary run length encoding data during scans.
@@ -385,9 +250,12 @@
         }
 
         /// <summary>
-        /// Performs all vector comparisons, returning the discovered regions.
+        /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
-        public IList<SnapshotRegion> ElementCompare()
+        /// <param name="region">The region to scan.</param>
+        /// <param name="constraints">The scan constraints.</param>
+        /// <returns>The resulting regions, if any.</returns>
+        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
         {
             /*
              * This algorithm works as such:
@@ -402,11 +270,8 @@
             */
 
             Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
-            Int32 elementsPerVector = this.VectorSize / this.DataTypeSize;
-            Int32 incrementSize = this.VectorSize - scanCountPerVector;
             Vector<Byte> runLengthVector;
             Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
-            this.RunLengthEncodeOffset = this.VectorReadOffset;
 
             // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
             this.Region.ResizeForSafeReading(this.VectorSize);
@@ -423,7 +288,7 @@
                     Vector<Byte> scanResults = this.VectorCompare();
 
                     // Store in-progress scan results for this batch
-                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, SnapshotElementVectorComparer.AlignmentMaskTable[alignment]));
+                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, SnapshotRegionVectorScanner.AlignmentMaskTable[alignment]));
 
                     this.AlignmentReadOffset++;
                 }
@@ -431,14 +296,13 @@
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLength += elementsPerVector;
-                    this.Encoding = true;
+                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    this.EncodeCurrentResults();
+                    this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorSize);
                     continue;
                 }
 
@@ -453,107 +317,17 @@
 
                         if (runLengthResult)
                         {
-                            this.RunLength++;
-                            this.Encoding = true;
+                            this.RunLengthEncoder.EncodeBatch(this.DataTypeSize / scanCountPerVector);
                         }
                         else
                         {
-                            this.EncodeCurrentResults(resultIndex + alignmentIndex);
+                            this.RunLengthEncoder.FinalizeCurrentEncode(this.DataTypeSize / scanCountPerVector);
                         }
                     }
                 }
             }
 
-            return this.GatherCollectedRegions();
-        }
-
-        /*
-        /// <summary>
-        /// Performs all vector comparisons, returning the discovered regions.
-        /// </summary>
-        public IList<SnapshotRegion> ArrayOfBytesCompare()
-        {
-            Int32 ByteArraySize = (this.DataType as ByteArrayType)?.Length ?? 0;
-            Byte[] Mask = (this.DataType as ByteArrayType)?.Mask;
-
-            if (ByteArraySize <= 0)
-            {
-                return new List<SnapshotRegion>();
-            }
-
-            // Note that array of bytes must increment by 1 per iteration, unlike data type scans which can increment by vector size
-            for (; this.VectorReadOffset <= this.Region.RegionSize - ByteArraySize; this.VectorReadOffset++)
-            {
-                Vector<Byte> scanResults = this.VectorCompare();
-
-                // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
-                if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.RunLength += this.VectorSize;
-                    this.Encoding = true;
-                    continue;
-                }
-
-                // Optimization: check all vector results false
-                else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.EncodeCurrentResults(0, ByteArraySize);
-                    continue;
-                }
-
-                // Otherwise the vector contains a mixture of true and false
-                for (Int32 index = 0; index < this.VectorSize; index += this.DataTypeSize)
-                {
-                    // Vector result was false
-                    if (scanResults[unchecked(index)] == 0)
-                    {
-                        this.EncodeCurrentResults(index, ByteArraySize);
-                    }
-                    // Vector result was true
-                    else
-                    {
-                        this.RunLength += this.DataTypeSize;
-                        this.Encoding = true;
-                    }
-                }
-            }
-
-            return this.GatherCollectedRegions();
-        }*/
-
-        /// <summary>
-        /// Finalizes any leftover snapshot regions and returns them.
-        /// </summary>
-        public IList<SnapshotRegion> GatherCollectedRegions()
-        {
-            this.EncodeCurrentResults();
-            return this.ResultRegions;
-        }
-
-        /// <summary>
-        /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
-        /// </summary>
-        /// <param name="vectorReadOffset">While performing run length encoding, the VectorReadOffset may have changed, and this can be used to make corrections.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EncodeCurrentResults(Int32 vectorReadOffset = 0)
-        {
-            // Create the final region if we are still encoding
-            if (this.Encoding)
-            {
-                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength * unchecked((Int32)this.Alignment);
-                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)readgroupOffset);
-                UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
-
-                // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
-                // This check catches any potential errors introduced this way.
-                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
-                {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
-                }
-
-                this.RunLength = 0;
-                this.Encoding = false;
-            }
+            return this.RunLengthEncoder.GatherCollectedRegions();
         }
 
         /// <summary>
@@ -815,14 +589,8 @@
                     this.IncreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Add(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
                     this.DecreasedByValue = (value) => Vector.AsVectorByte(Vector.Equals(Vector.AsVectorDouble(this.CurrentValuesBigEndian64), Vector.Subtract(Vector.AsVectorDouble(this.PreviousValuesBigEndian64), new Vector<Double>(unchecked((Double)value)))));
                     break;
-                case ByteArrayType type:
-                    this.Changed = () => new Vector<Byte>(Convert.ToByte(!Vector.EqualsAll(this.CurrentValuesArrayOfBytes, this.PreviousValuesArrayOfBytes)));
-                    this.Unchanged = () => new Vector<Byte>(Convert.ToByte(Vector.EqualsAll(this.CurrentValuesArrayOfBytes, this.PreviousValuesArrayOfBytes)));
-                    this.EqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.Equals(this.CurrentValuesArrayOfBytes, unchecked((Vector<Byte>)value)), mask);
-                    this.NotEqualToArrayOfBytes = (value, mask) => Vector.BitwiseOr(Vector.OnesComplement(Vector.Equals(this.CurrentValuesArrayOfBytes, unchecked((Vector<Byte>)value))), mask);
-                    break;
                 default:
-                    throw new ArgumentException();
+                    throw new ArgumentException("Unsupported data type provided.");
             }
         }
 
@@ -885,144 +653,34 @@
                             throw new ArgumentException("Unkown operation type");
                     }
                 case ScanConstraint scanConstraint:
-                    /*
-                     * Array of bytes scan works as such:
-                     * Chunk the array of bytes and mask (these should be == size) into hardware vector sized byte arrays.
-                     * 
-                     * Iterate over all chunks, comparing these to the corresponding values being scanned.
-                     *   - Vector AND all of the results together for detecting equal/not equal. Early exit if any chunk fails.
-                     *   - Vector OR all of the results together for detecting changed/unchanged
-                    */
-                    if (this.DataType is ByteArrayType)
+                    switch (scanConstraint.Constraint)
                     {
-                        ByteArrayType byteArrayType = this.DataType as ByteArrayType;
-                        Byte[] arrayOfBytes = scanConstraint?.ConstraintValue as Byte[];
-                        Byte[] mask = scanConstraint?.ConstraintArgs as Byte[];
-
-                        if (arrayOfBytes == null || mask == null || arrayOfBytes.Length != mask.Length)
-                        {
-                            throw new ArgumentException("Array of bytes and mask must be provided with all array of byte scans. These should be equal in length.");
-                        }
-
-                        switch (scanConstraint.Constraint)
-                        {
-                            case ScanConstraint.ConstraintType.Unchanged:
-                            case ScanConstraint.ConstraintType.Changed:
-
-                                if (scanConstraint.Constraint == ScanConstraint.ConstraintType.Unchanged)
-                                {
-                                    return this.Unchanged;
-                                }
-                                else
-                                {
-                                    return this.Changed;
-                                }
-                            case ScanConstraint.ConstraintType.Equal:
-                            case ScanConstraint.ConstraintType.NotEqual:
-                                Int32 remainder = arrayOfBytes.Length % this.VectorSize;
-                                Int32 chunkCount = arrayOfBytes.Length / this.VectorSize + (remainder > 0 ? 1 : 0);
-                                Span<Byte> arrayOfByteSpan = new Span<Byte>(arrayOfBytes);
-                                Span<Byte> maskSpan = new Span<Byte>(mask);
-                                Vector<Byte>[] arrayOfByteChunks = new Vector<Byte>[chunkCount];
-                                Vector<Byte>[] maskChunks = new Vector<Byte>[chunkCount];
-
-                                for (Int32 chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
-                                {
-                                    Int32 currentChunkSize = remainder > 0 && chunkIndex == chunkCount - 1 ? remainder : this.VectorSize;
-                                    Span<Byte> arrayOfBytesChunk = arrayOfByteSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
-                                    Span<Byte> maskChunk = maskSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
-
-                                    if (currentChunkSize != this.VectorSize)
-                                    {
-                                        Byte[] arrayOfBytesChunkPadded = Enumerable.Repeat<Byte>(0x00, this.VectorSize).ToArray();
-                                        Byte[] maskChunkPadded = Enumerable.Repeat<Byte>(0xFF, this.VectorSize).ToArray();
-
-                                        arrayOfBytesChunk.CopyTo(arrayOfBytesChunkPadded);
-                                        maskChunk.CopyTo(maskChunkPadded);
-
-                                        arrayOfByteChunks[chunkIndex] = new Vector<Byte>(arrayOfBytesChunkPadded);
-                                        maskChunks[chunkIndex] = new Vector<Byte>(maskChunkPadded);
-                                    }
-                                    else
-                                    {
-                                        arrayOfByteChunks[chunkIndex] = new Vector<Byte>(arrayOfBytesChunk);
-                                        maskChunks[chunkIndex] = new Vector<Byte>(maskChunk);
-                                    }
-                                }
-
-                                if (scanConstraint.Constraint == ScanConstraint.ConstraintType.Equal)
-                                {
-                                    return () =>
-                                    {
-                                        Vector<Byte> result = Vector<Byte>.One;
-
-                                        for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
-                                        {
-                                            result = Vector.BitwiseAnd(result, this.EqualToArrayOfBytes(arrayOfByteChunks[this.ArrayOfBytesChunkIndex], maskChunks[this.ArrayOfBytesChunkIndex]));
-
-                                            if (Vector.EqualsAll(result, Vector<Byte>.Zero))
-                                            {
-                                                break;
-                                            }
-                                        }
-
-                                        return result;
-                                    };
-                                }
-                                else
-                                {
-                                    return () =>
-                                    {
-                                        Vector<Byte> result = Vector<Byte>.One;
-
-                                        for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
-                                        {
-                                            result = Vector.BitwiseAnd(result, this.NotEqualToArrayOfBytes(arrayOfByteChunks[this.ArrayOfBytesChunkIndex], maskChunks[this.ArrayOfBytesChunkIndex]));
-
-                                            if (Vector.EqualsAll(result, Vector<Byte>.Zero))
-                                            {
-                                                break;
-                                            }
-                                        }
-
-                                        return result;
-                                    };
-                                }
-                            default:
-                                throw new Exception("Unsupported constraint type");
-                        }
-                    }
-                    else
-                    {
-                        switch (scanConstraint.Constraint)
-                        {
-                            case ScanConstraint.ConstraintType.Unchanged:
-                                return this.Unchanged;
-                            case ScanConstraint.ConstraintType.Changed:
-                                return this.Changed;
-                            case ScanConstraint.ConstraintType.Increased:
-                                return this.Increased;
-                            case ScanConstraint.ConstraintType.Decreased:
-                                return this.Decreased;
-                            case ScanConstraint.ConstraintType.IncreasedByX:
-                                return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.DecreasedByX:
-                                return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.Equal:
-                                return () => this.EqualToValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.NotEqual:
-                                return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.GreaterThan:
-                                return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.GreaterThanOrEqual:
-                                return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.LessThan:
-                                return () => this.LessThanValue(scanConstraint.ConstraintValue);
-                            case ScanConstraint.ConstraintType.LessThanOrEqual:
-                                return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
-                            default:
-                                throw new Exception("Unsupported constraint type");
-                        }
+                        case ScanConstraint.ConstraintType.Unchanged:
+                            return this.Unchanged;
+                        case ScanConstraint.ConstraintType.Changed:
+                            return this.Changed;
+                        case ScanConstraint.ConstraintType.Increased:
+                            return this.Increased;
+                        case ScanConstraint.ConstraintType.Decreased:
+                            return this.Decreased;
+                        case ScanConstraint.ConstraintType.IncreasedByX:
+                            return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.DecreasedByX:
+                            return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.Equal:
+                            return () => this.EqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.NotEqual:
+                            return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.GreaterThan:
+                            return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.GreaterThanOrEqual:
+                            return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.LessThan:
+                            return () => this.LessThanValue(scanConstraint.ConstraintValue);
+                        case ScanConstraint.ConstraintType.LessThanOrEqual:
+                            return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
+                        default:
+                            throw new Exception("Unsupported constraint type");
                     }
                 default:
                     throw new ArgumentException("Invalid constraint");

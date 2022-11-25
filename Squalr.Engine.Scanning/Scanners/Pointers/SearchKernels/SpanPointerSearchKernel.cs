@@ -2,7 +2,7 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.OS;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -10,9 +10,9 @@
     using System.Linq;
     using System.Numerics;
 
-    internal class SpanSearchKernel : IVectorSearchKernel
+    internal class SpanPointerSearchKernel : IVectorPointerSearchKernel
     {
-        public SpanSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public SpanPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
@@ -40,13 +40,13 @@
 
         private Comparer<UInt32> Comparer;
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotElementVectorComparer snapshotElementVectorComparer)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
                 Span<UInt32> lowerBounds = this.LowerBounds;
                 Span<UInt32> upperBounds = this.UpperBounds;
-                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotElementVectorComparer.CurrentValues);
+                Vector<UInt32> currentValues = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
 
                 for (Int32 index = 0; index < Vectors.VectorSize / sizeof(UInt32); index++)
                 {
