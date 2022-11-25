@@ -43,6 +43,10 @@
                     Foreground="{StaticResource SqualrColorWhite}"
                     Header="Project Settings">
                     <StackPanel>
+                        <WrapPanel>
+                            <CheckBox Padding="0,0,4,0" IsChecked="{Binding SettingsViewModel.AutomaticUpdates, Mode=TwoWay}" />
+                            <TextBlock VerticalAlignment="Center" Text="Automatic Updates" />
+                        </WrapPanel>
                         <TextBlock Text="Project Root:" />
                         <Grid Margin="0,4,0,0" HorizontalAlignment="Left">
                             <Grid.ColumnDefinitions>
@@ -245,6 +249,7 @@
                             </WrapPanel>
                             <Controls:HexDecBox
                                 x:Name="ScanRangeStartHexDecBox"
+                                IsEnabled="{Binding SettingsViewModel.IsNotUserMode, Source={StaticResource ViewModelLocator}}"
                                 Width="196"
                                 Margin="0,4,8,0"
                                 HorizontalAlignment="Left"
@@ -252,6 +257,7 @@
                                 BorderThickness="1" />
                             <Controls:HexDecBox
                                 x:Name="ScanRangeEndHexDecBox"
+                                IsEnabled="{Binding SettingsViewModel.IsNotUserMode, Source={StaticResource ViewModelLocator}}"
                                 Width="196"
                                 Margin="0,4,8,0"
                                 HorizontalAlignment="Left"

@@ -12,8 +12,8 @@
     Title="Value Editor"
     Width="320"
     Height="320"
-    d:DesignHeight="320"
     d:DesignWidth="320"
+    d:DesignHeight="320"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding SelectProjectDialogViewModel, Source={StaticResource ViewModelLocator}}"
@@ -33,7 +33,7 @@
             <shell:MenuItem Command="{Binding DeleteSelectedProjectCommand}" Header="Delete Project" />
         </shell:ContextMenu>
     </shell:Window.Resources>
-    <shell:Grid Background="{StaticResource SqualrColorBlack}">
+    <shell:Grid Background="{StaticResource SqualrColorPanel}">
         <shell:Grid.RowDefinitions>
             <shell:RowDefinition Height="Auto" />
             <shell:RowDefinition Height="Auto" />
@@ -78,7 +78,8 @@
                 <shell:TextBox
                     Grid.Column="1"
                     Margin="4,0,4,0"
-                    Background="{StaticResource SqualrColorBlack}"
+                    Background="{StaticResource SqualrColorGray27}"
+                    BorderBrush="{StaticResource SqualrColorGray40}"
                     Foreground="{StaticResource SqualrColorWhite}"
                     Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
                 <shell:Image
@@ -95,7 +96,7 @@
                 Name="ProjectSelectionDataGrid"
                 behaviors:ScrollToTopBehavior.ScrollToTop="True"
                 AutoGenerateColumns="False"
-                Background="{StaticResource SqualrColorBlack}"
+                Background="{StaticResource SqualrColorPanel}"
                 CanUserAddRows="False"
                 ColumnWidth="*"
                 ContextMenu="{StaticResource RightClickMenu}"
@@ -115,14 +116,14 @@
                 </intr:Interaction.Triggers>
                 <shell:DataGrid.ColumnHeaderStyle>
                     <shell:Style TargetType="{x:Type DataGridColumnHeader}">
-                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorBlack}" />
+                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorPanel}" />
                         <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
                         <shell:Setter Property="HorizontalAlignment" Value="Stretch" />
                     </shell:Style>
                 </shell:DataGrid.ColumnHeaderStyle>
                 <shell:DataGrid.Style>
                     <shell:Style TargetType="{x:Type DataGrid}">
-                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorBlack}" />
+                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorPanel}" />
                         <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
                     </shell:Style>
                 </shell:DataGrid.Style>
@@ -133,9 +134,9 @@
                                 <shell:Setter Property="BorderBrush" Value="{StaticResource SqualrColorBlue}" />
                             </shell:Trigger>
                         </shell:Style.Triggers>
-                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorBlack}" />
+                        <shell:Setter Property="Background" Value="{StaticResource SqualrColorPanel}" />
                         <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
-                        <shell:Setter Property="BorderBrush" Value="{StaticResource SqualrColorBlack}" />
+                        <shell:Setter Property="BorderBrush" Value="{StaticResource SqualrColorPanel}" />
                     </shell:Style>
                 </shell:DataGrid.CellStyle>
                 <shell:DataGrid.Columns>

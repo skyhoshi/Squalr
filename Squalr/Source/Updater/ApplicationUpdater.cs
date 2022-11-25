@@ -1,10 +1,18 @@
 ﻿namespace Squalr.Source.Updater
 {
+    using CSScriptLib;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Source.Tasks;
+    using Squirrel;
+    using Squirrel.Sources;
     using System;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
+    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Class for automatically downloading and applying application updates.
@@ -17,24 +25,60 @@
         private static readonly String GithubRepositoryUrl = "https://github.com/Squalr/Squalr";
 
         /// <summary>
-        /// Fetches and applies updates from the Github repository. The application is not restarted.
+        /// Fetches and applies updates from the Github repository. The application is not restarted. Refer to https://github.com/clowd/Clowd.Squirrel for details.
         /// </summary>
         public static void UpdateApp()
         {
+
+            if (!SqualrSettings.AutomaticUpdates)
+            {
+                Logger.Log(LogLevel.Info, "Automatic updates disabled. Squalr will not check for updates this session.");
+                return;
+            }
+
+            SquirrelAwareApp.HandleEvents(
+                onInitialInstall: ApplicationUpdater.OnAppInstall,
+                onAppUninstall: ApplicationUpdater.OnAppUninstall,
+                onEveryRun: ApplicationUpdater.OnAppRun);
+
             if (!ApplicationUpdater.IsSquirrelInstalled())
             {
-                Logger.Log(LogLevel.Warn, "Updater not found, Squalr will not check for automatic updates.");
+                Logger.Log(LogLevel.Warn, "Updater not found. Automatic updates will not be available.");
                 return;
             }
 
             Task.Run(async () =>
             {
-                /*
                 try
                 {
-                    using (UpdateManager manager = await UpdateManager.GitHubUpdateManager(ApplicationUpdater.GithubRepositoryUrl))
+                    using (UpdateManager manager = new UpdateManager(new GithubSource(ApplicationUpdater.GithubRepositoryUrl, "", false)))
                     {
                         UpdateInfo updates = await manager.CheckForUpdate();
+
+                        TrackableTask<Boolean> checkForUpdatesTask = TrackableTask<Boolean>
+                            .Create("Checking for Updates", out UpdateProgress updateProgress, out CancellationToken cancellationToken)
+                            .With(Task<Boolean>.Run(() =>
+                            {
+                                try
+                                {
+                                    manager.CheckForUpdate(false, (progress) => updateProgress(progress)).Wait();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(LogLevel.Error, "Error checking for application updates.", ex);
+                                    return false;
+                                }
+
+                                return true;
+                            }, cancellationToken));
+
+                        TaskTrackerViewModel.GetInstance().TrackTask(checkForUpdatesTask);
+
+                        if (!checkForUpdatesTask.Result)
+                        {
+                            return;
+                        }
+
                         ReleaseEntry lastVersion = updates?.ReleasesToApply?.OrderBy(x => x.Version).LastOrDefault();
 
                         if (lastVersion == null)
@@ -44,54 +88,6 @@
                         }
 
                         Logger.Log(LogLevel.Info, "New version of Squalr found. Downloading files in background...");
-
-                        TrackableTask<Boolean> downloadTask = TrackableTask<Boolean>
-                            .Create("Downloading Updates", out UpdateProgress updateProgress, out CancellationToken cancellationToken)
-                            .With(Task<Boolean>.Run(() =>
-                            {
-                                try
-                                {
-                                    manager.DownloadReleases(new[] { lastVersion }, (progress) => updateProgress(progress)).Wait();
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(LogLevel.Error, "Error downloading updates.", ex);
-                                    return false;
-                                }
-
-                                return true;
-                            }, cancellationToken));
-
-                        TaskTrackerViewModel.GetInstance().TrackTask(downloadTask);
-
-                        if (!downloadTask.Result)
-                        {
-                            return;
-                        }
-
-                        TrackableTask<Boolean> applyReleasesTask = TrackableTask<Boolean>
-                            .Create("Applying Releases", out updateProgress, out cancellationToken)
-                            .With(Task<Boolean>.Run(() =>
-                            {
-                                try
-                                {
-                                    manager.ApplyReleases(updates, (progress) => updateProgress(progress)).Wait();
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(LogLevel.Error, "Error applying releases.", ex);
-                                    return false;
-                                }
-
-                                return true;
-                            }, cancellationToken));
-
-                        TaskTrackerViewModel.GetInstance().TrackTask(applyReleasesTask);
-
-                        if (!applyReleasesTask.Result)
-                        {
-                            return;
-                        }
 
                         TrackableTask<Boolean> updateTask = TrackableTask<Boolean>
                             .Create("Updating", out updateProgress, out cancellationToken)
@@ -124,7 +120,6 @@
                 {
                     Logger.Log(LogLevel.Error, "Error updating Squalr.", ex);
                 }
-                */
             });
         }
 
@@ -144,9 +139,24 @@
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, "Error determing if app was installed by the installer.", ex);
+                Logger.Log(LogLevel.Error, "Error determining if Squalr was installed by the installer.", ex);
                 return false;
             }
+        }
+
+        private static void OnAppInstall(SemanticVersion version, IAppTools tools)
+        {
+            tools.CreateShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+        }
+
+        private static void OnAppUninstall(SemanticVersion version, IAppTools tools)
+        {
+            tools.RemoveShortcutForThisExe(ShortcutLocation.StartMenu | ShortcutLocation.Desktop);
+        }
+
+        private static void OnAppRun(SemanticVersion version, IAppTools tools, Boolean firstRun)
+        {
+            tools.SetProcessAppUserModelId();
         }
     }
     //// End class

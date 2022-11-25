@@ -21,7 +21,7 @@
                 () => { return new DeleteProjectDialogViewModel(); },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
-        private String confimProjectName;
+        private String confirmDeleteText;
 
         private String projectName;
 
@@ -38,17 +38,17 @@
             return DeleteProjectDialogViewModel.deleteProjectDialogViewModelInstance.Value;
         }
 
-        public String ConfirmProjectName
+        public String ConfirmDeleteText
         {
             get
             {
-                return this.confimProjectName;
+                return this.confirmDeleteText;
             }
 
             set
             {
-                this.confimProjectName = value;
-                this.RaisePropertyChanged(nameof(this.ConfirmProjectName));
+                this.confirmDeleteText = value;
+                this.RaisePropertyChanged(nameof(this.ConfirmDeleteText));
                 this.RaisePropertyChanged(nameof(this.IsConfirmationMatching));
             }
         }
@@ -71,7 +71,7 @@
         {
             get
             {
-                return this.ProjectName == this.ConfirmProjectName;
+                return this.ConfirmDeleteText == "delete";
             }
         }
 
@@ -81,7 +81,7 @@
         /// <param name="projectName">The project name to potentially delete.</param>
         public Boolean ShowDialog(Window owner, String projectName)
         {
-            this.ConfirmProjectName = String.Empty;
+            this.ConfirmDeleteText = String.Empty;
             this.ProjectName = projectName;
 
             DeleteProjectDialog deleteProjectDialog = new DeleteProjectDialog() { Owner = owner };
