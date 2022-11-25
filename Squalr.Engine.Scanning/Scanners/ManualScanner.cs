@@ -3,13 +3,12 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static Squalr.Engine.Common.TrackableTask;
@@ -68,7 +67,7 @@
                                     }
 
                                     SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
-                                    IList<SnapshotRegion> results = vectorComparer.Compare();
+                                    IList<SnapshotRegion> results = vectorComparer.ElementCompare();
 
                                     if (!results.IsNullOrEmpty())
                                     {

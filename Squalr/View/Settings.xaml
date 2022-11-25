@@ -11,7 +11,7 @@
     x:ClassModifier="public"
     DataContext="{Binding SettingsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
-    <TabControl Background="{StaticResource SqualrColorPanel}">
+    <TabControl SelectedIndex="1" Background="{StaticResource SqualrColorPanel}">
         <TabControl.Resources>
             <Style TargetType="{x:Type TabItem}">
                 <Setter Property="BorderThickness" Value="0" />

@@ -181,8 +181,8 @@
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
         public void SetSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
         {
-            this.ReadGroups = snapshotRegions.Select(x => x.ReadGroup).Distinct();
-            this.SnapshotRegions = snapshotRegions.ToArray();
+            this.ReadGroups = snapshotRegions?.Select(x => x.ReadGroup)?.Distinct();
+            this.SnapshotRegions = snapshotRegions?.ToArray();
             this.TimeSinceLastUpdate = DateTime.Now;
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }

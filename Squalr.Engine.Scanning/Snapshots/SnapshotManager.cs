@@ -132,12 +132,26 @@
         {
             lock (this.AccessLock)
             {
+                // Nulling out the snapshot regions seems to make the GC work a little faster
+                foreach (Snapshot next in this.Snapshots)
+                {
+                    next.SetSnapshotRegions(null);
+                }
+
+                foreach (Snapshot next in this.DeletedSnapshots)
+                {
+                    next.SetSnapshotRegions(null);
+                }
+
                 this.Snapshots.Clear();
                 this.DeletedSnapshots.Clear();
                 this.OnSnapshotsUpdatedEvent.Invoke(this);
 
                 // There can be multiple GB of deleted snapshots, so run the garbage collector ASAP for a performance boost.
-                Task.Run(() => GC.Collect());
+                Task.Run(() =>
+                {
+                    GC.Collect();
+                });
             }
         }
 

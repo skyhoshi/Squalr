@@ -3,7 +3,7 @@
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// A class representing an emulator target.
+    /// An enum representing an emulator target.
     /// </summary>
     [DataContract]
     public enum EmulatorType
@@ -12,6 +12,6 @@
         None,
         Dolphin,
     }
-    //// End class
+    //// End enum
 }
 //// End namespace

@@ -4,18 +4,18 @@
     using Squalr.Engine.Scanning.Snapshots;
     using System;
 
-    internal class SearchKernelFactory
+    internal class PointerSearchKernelFactory
     {
-        public static IVectorSearchKernel GetSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public static IVectorPointerSearchKernel GetSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             if (boundsSnapshot.SnapshotRegions.Length < 64)
             {
                 // Linear is fast for small region sizes
-                return new LinearSearchKernel(boundsSnapshot, maxOffset, pointerSize);
+                return new LinearPointerSearchKernel(boundsSnapshot, maxOffset, pointerSize);
             }
             else
             {
-                return new SpanSearchKernel(boundsSnapshot, maxOffset, pointerSize);
+                return new SpanPointerSearchKernel(boundsSnapshot, maxOffset, pointerSize);
             }
         }
     }

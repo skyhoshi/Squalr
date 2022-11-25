@@ -1,244 +1,28 @@
-﻿namespace Squalr.Engine.Scanning.Scanners
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
-    using System.Buffers.Binary;
     using System.Collections.Generic;
     using System.Linq;
     using System.Numerics;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotElementVectorComparer
+    internal unsafe class SnapshotElementVectorComparer : SnapshotElementComparerBase
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotElementVectorComparer" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotElementVectorComparer(SnapshotRegion region, ScanConstraints constraints)
+        public SnapshotElementVectorComparer(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
         {
-            this.Region = region;
-            this.VectorSize = Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
-            this.VectorReadOffset = 0;
-            this.DataType = constraints.ElementType;
-            this.DataTypeSize = constraints.ElementType.Size;
-            this.ResultRegions = new List<SnapshotRegion>();
-
-            if (this.DataType is ByteArrayType)
-            {
-                this.Alignment = MemoryAlignment.Alignment1;
-                this.Compare = this.ElementCompare;
-                // this.Compare = this.DataType is ByteArrayType ? this.ArrayOfBytesCompare : this.ElementCompare;
-            }
-            else
-            {
-                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
-                this.Compare = this.ElementCompare;
-            }
-
             this.SetConstraintFunctions();
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
-
-        /// <summary>
-        /// Gets or sets the index from which the next vector is read.
-        /// </summary>
-        public Int32 VectorReadOffset { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the alignment offset, which is also used for reading the next vector.
-        /// </summary>
-        public Int32 AlignmentReadOffset { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the index from which the run length encoding is started.
-        /// </summary>
-        public Int32 RunLengthEncodeOffset { get; private set; }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public UInt64 CurrentAddress
-        {
-            get
-            {
-                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> CurrentValues
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> PreviousValues
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> CurrentValuesArrayOfBytes
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index.
-        /// </summary>
-        public Vector<Byte> PreviousValuesArrayOfBytes
-        {
-            get
-            {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> CurrentValuesBigEndian16
-        {
-            get
-            {
-                Vector<Int16> result = Vector.AsVectorInt16(this.CurrentValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> PreviousValuesBigEndian16
-        {
-            get
-            {
-                Vector<Int16> result = Vector.AsVectorInt16(this.PreviousValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> CurrentValuesBigEndian32
-        {
-            get
-            {
-                Vector<Int32> result = Vector.AsVectorInt32(this.CurrentValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> PreviousValuesBigEndian32
-        {
-            get
-            {
-                Vector<Int32> result = Vector.AsVectorInt32(this.PreviousValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Gets the current values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> CurrentValuesBigEndian64
-        {
-            get
-            {
-                Vector<Int64> result = Vector.AsVectorInt64(this.CurrentValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous values at the current vector read index in big endian format.
-        /// </summary>
-        public Vector<Byte> PreviousValuesBigEndian64
-        {
-            get
-            {
-                Vector<Int64> result = Vector.AsVectorInt64(this.PreviousValues);
-
-                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
-                {
-                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
-                }
-
-                return new Vector<Byte>(this.EndianStorage);
-            }
-        }
-
-        /// <summary>
-        /// Iterator for array of bytes vectorized chunks.
-        /// </summary>
-        private Int32 ArrayOfBytesChunkIndex { get; set; }
-
-        /// <summary>
-        /// Temporary storage used to reverse the endianness of scanned values.
-        /// </summary>
-        private Byte[] EndianStorage = new Byte[Vectors.VectorSize];
-
-        /// <summary>
-        /// Gets an action based on the element iterator scan constraint.
-        /// </summary>
-        public Func<IList<SnapshotRegion>> Compare { get; private set; }
 
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
@@ -316,51 +100,6 @@
         private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToArrayOfBytes { get; set; }
 
         /// <summary>
-        /// Gets or sets the parent snapshot region.
-        /// </summary>
-        private SnapshotRegion Region { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether we are currently encoding a new result region.
-        /// </summary>
-        private Boolean Encoding { get; set; }
-
-        /// <summary>
-        /// Gets or sets the current run length for run length encoded current scan results.
-        /// </summary>
-        private Int32 RunLength { get; set; }
-
-        /// <summary>
-        /// Gets or sets the index of this element.
-        /// </summary>
-        private Int32 VectorReadBase { get; set; }
-
-        /// <summary>
-        /// Gets or sets the SSE vector size on the machine.
-        /// </summary>
-        private Int32 VectorSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the size of the data type being compared.
-        /// </summary>
-        private Int32 DataTypeSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the enforced memory alignment for this scan.
-        /// </summary>
-        private MemoryAlignment Alignment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the data type being compared.
-        /// </summary>
-        private ScannableType DataType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the list of discovered result regions.
-        /// </summary>
-        private IList<SnapshotRegion> ResultRegions { get; set; }
-
-        /// <summary>
         /// An alignment mask table for computing temporary run length encoding data during scans.
         /// </summary>
         private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
@@ -431,14 +170,14 @@
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLength += elementsPerVector;
-                    this.Encoding = true;
+                    this.RunLengthEncoder.RunLength += elementsPerVector;
+                    this.RunLengthEncoder.IsEncoding = true;
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    this.EncodeCurrentResults();
+                    this.RunLengthEncoder.EncodeCurrentResults(this.VectorReadBase, this.VectorReadOffset);
                     continue;
                 }
 
@@ -453,18 +192,18 @@
 
                         if (runLengthResult)
                         {
-                            this.RunLength++;
-                            this.Encoding = true;
+                            this.RunLengthEncoder.RunLength++;
+                            this.RunLengthEncoder.IsEncoding = true;
                         }
                         else
                         {
-                            this.EncodeCurrentResults(resultIndex + alignmentIndex);
+                            this.RunLengthEncoder.EncodeCurrentResults(this.VectorReadBase, this.VectorReadOffset + resultIndex + alignmentIndex);
                         }
                     }
                 }
             }
 
-            return this.GatherCollectedRegions();
+            return this.RunLengthEncoder.GatherCollectedRegions(this.VectorReadBase);
         }
 
         /*
@@ -520,41 +259,6 @@
 
             return this.GatherCollectedRegions();
         }*/
-
-        /// <summary>
-        /// Finalizes any leftover snapshot regions and returns them.
-        /// </summary>
-        public IList<SnapshotRegion> GatherCollectedRegions()
-        {
-            this.EncodeCurrentResults();
-            return this.ResultRegions;
-        }
-
-        /// <summary>
-        /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
-        /// </summary>
-        /// <param name="vectorReadOffset">While performing run length encoding, the VectorReadOffset may have changed, and this can be used to make corrections.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EncodeCurrentResults(Int32 vectorReadOffset = 0)
-        {
-            // Create the final region if we are still encoding
-            if (this.Encoding)
-            {
-                Int32 readgroupOffset = this.VectorReadBase + this.VectorReadOffset + vectorReadOffset - this.RunLength * unchecked((Int32)this.Alignment);
-                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)readgroupOffset);
-                UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
-
-                // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
-                // This check catches any potential errors introduced this way.
-                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
-                {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, readgroupOffset, this.RunLength));
-                }
-
-                this.RunLength = 0;
-                this.Encoding = false;
-            }
-        }
 
         /// <summary>
         /// Initializes all constraint functions for value comparisons.

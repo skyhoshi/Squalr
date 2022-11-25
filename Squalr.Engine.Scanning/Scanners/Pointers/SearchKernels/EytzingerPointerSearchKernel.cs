@@ -2,16 +2,16 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.OS;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Linq;
     using System.Numerics;
 
-    internal class EytzingerSearchKernel : IVectorSearchKernel
+    internal class EytzingerPointerSearchKernel : IVectorPointerSearchKernel
     {
-        public EytzingerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
+        public EytzingerPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
