@@ -11,17 +11,39 @@
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotRegionVectorAoBScanner : SnapshotRegionScannerBase
+    internal unsafe class SnapshotRegionVectorArrayOfBytesScanner : SnapshotRegionScannerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotRegionVectorAoBScanner" /> class.
+        /// Initializes a new instance of the <see cref="SnapshotRegionVectorArrayOfBytesScanner" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionVectorAoBScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
+        public SnapshotRegionVectorArrayOfBytesScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
         {
             this.SetConstraintFunctions();
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
+        }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index.
+        /// </summary>
+        public Vector<Byte> CurrentValuesArrayOfBytes
+        {
+            get
+            {
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+            }
+        }
+
+        /// <summary>
+        /// Gets the previous values at the current vector read index.
+        /// </summary>
+        public Vector<Byte> PreviousValuesArrayOfBytes
+        {
+            get
+            {
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+            }
         }
 
         /// <summary>
@@ -57,7 +79,6 @@
         /// <returns>The resulting regions, if any.</returns>
         public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
         {
-            /*
             Int32 ByteArraySize = (this.DataType as ByteArrayType)?.Length ?? 0;
             Byte[] Mask = (this.DataType as ByteArrayType)?.Mask;
 
@@ -74,15 +95,14 @@
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLength += this.VectorSize;
-                    this.Encoding = true;
+                    this.RunLengthEncoder.IncrementBatch(this.VectorSize);
                     continue;
                 }
 
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.EncodeCurrentResults(0, ByteArraySize);
+                    this.RunLengthEncoder.FinalizeCurrentEncode(0, ByteArraySize);
                     continue;
                 }
 
@@ -92,21 +112,17 @@
                     // Vector result was false
                     if (scanResults[unchecked(index)] == 0)
                     {
-                        this.EncodeCurrentResults(index, ByteArraySize);
+                        this.RunLengthEncoder.FinalizeCurrentEncode(index, ByteArraySize);
                     }
                     // Vector result was true
                     else
                     {
-                        this.RunLength += this.DataTypeSize;
-                        this.Encoding = true;
+                        this.RunLengthEncoder.IncrementBatch(this.DataTypeSize);
                     }
                 }
             }
 
-            return this.GatherCollectedRegions();
-            */
-
-            throw new NotImplementedException();
+            return this.RunLengthEncoder.GatherCollectedRegions(this.VectorReadBase);
         }
 
         /// <summary>
@@ -187,7 +203,7 @@
                      *   - Vector AND all of the results together for detecting equal/not equal. Early exit if any chunk fails.
                      *   - Vector OR all of the results together for detecting changed/unchanged
                     */
-            ByteArrayType byteArrayType = this.DataType as ByteArrayType;
+                    ByteArrayType byteArrayType = this.DataType as ByteArrayType;
                     Byte[] arrayOfBytes = scanConstraint?.ConstraintValue as Byte[];
                     Byte[] mask = scanConstraint?.ConstraintArgs as Byte[];
 

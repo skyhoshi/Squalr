@@ -21,7 +21,7 @@
             switch(constraints?.ElementType)
             {
                 case ByteArrayType:
-                    return new SnapshotRegionVectorAoBScanner(region, constraints);
+                    return new SnapshotRegionVectorArrayOfBytesScanner(region, constraints);
                 default:
                     return new SnapshotRegionVectorScanner(region, constraints);
             }

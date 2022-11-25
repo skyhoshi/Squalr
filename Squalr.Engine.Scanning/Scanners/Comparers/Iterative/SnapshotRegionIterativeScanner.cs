@@ -7,7 +7,6 @@
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -180,13 +179,11 @@
         {
             if (this.ElementCompare())
             {
-
-                this.RunLengthEncoder.RunLength++;
-                this.RunLengthEncoder.IsEncoding = true;
+                this.RunLengthEncoder.Increment();
             }
             else
             {
-                this.RunLengthEncoder.EncodeCurrentResults(0, 0);
+                this.RunLengthEncoder.FinalizeCurrentEncode(0, 0);
             }
 
             throw new NotImplementedException();
@@ -405,7 +402,6 @@
                     this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) <= (UInt32)value; };
                     this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) + (UInt32)value); };
                     this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) - (UInt32)value); };
-
                     break;
                 case ScannableType type when type == ScannableType.UInt64:
                     this.Changed = () => { return *(UInt64*)this.CurrentValuePointer != *(UInt64*)this.PreviousValuePointer; };

@@ -1,9 +1,11 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
+    using System.Buffers.Binary;
     using System.Collections.Generic;
     using System.Numerics;
 
@@ -21,6 +23,136 @@
         {
             this.SetConstraintFunctions();
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
+        }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index.
+        /// </summary>
+        public Vector<Byte> CurrentValues
+        {
+            get
+            {
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+            }
+        }
+
+        /// <summary>
+        /// Gets the previous values at the current vector read index.
+        /// </summary>
+        public Vector<Byte> PreviousValues
+        {
+            get
+            {
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+            }
+        }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> CurrentValuesBigEndian16
+        {
+            get
+            {
+                Vector<Int16> result = Vector.AsVectorInt16(this.CurrentValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
+        }
+
+        /// <summary>
+        /// Gets the previous values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> PreviousValuesBigEndian16
+        {
+            get
+            {
+                Vector<Int16> result = Vector.AsVectorInt16(this.PreviousValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int16); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int16));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
+        }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> CurrentValuesBigEndian32
+        {
+            get
+            {
+                Vector<Int32> result = Vector.AsVectorInt32(this.CurrentValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
+        }
+
+        /// <summary>
+        /// Gets the previous values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> PreviousValuesBigEndian32
+        {
+            get
+            {
+                Vector<Int32> result = Vector.AsVectorInt32(this.PreviousValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int32); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int32));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
+        }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> CurrentValuesBigEndian64
+        {
+            get
+            {
+                Vector<Int64> result = Vector.AsVectorInt64(this.CurrentValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
+        }
+
+        /// <summary>
+        /// Gets the previous values at the current vector read index in big endian format.
+        /// </summary>
+        public Vector<Byte> PreviousValuesBigEndian64
+        {
+            get
+            {
+                Vector<Int64> result = Vector.AsVectorInt64(this.PreviousValues);
+
+                for (Int32 index = 0; index < Vectors.VectorSize / sizeof(Int64); index++)
+                {
+                    BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(result[index])).CopyTo(this.EndianStorage, index * sizeof(Int64));
+                }
+
+                return new Vector<Byte>(this.EndianStorage);
+            }
         }
 
         /// <summary>
@@ -87,6 +219,11 @@
         /// Gets a function which determines if the element has decreased it's value by the given value.
         /// </summary>
         private Func<Object, Vector<Byte>> DecreasedByValue { get; set; }
+
+        /// <summary>
+        /// Temporary storage used to reverse the endianness of scanned values.
+        /// </summary>
+        protected Byte[] EndianStorage = new Byte[Vectors.VectorSize];
 
         /// <summary>
         /// An alignment mask table for computing temporary run length encoding data during scans.
@@ -162,14 +299,13 @@
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLengthEncoder.RunLength += elementsPerVector;
-                    this.RunLengthEncoder.IsEncoding = true;
+                    this.RunLengthEncoder.IncrementBatch(elementsPerVector);
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.EncodeCurrentResults(this.VectorReadBase, this.VectorReadOffset);
+                    this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorReadBase, this.VectorReadOffset);
                     continue;
                 }
 
@@ -184,12 +320,11 @@
 
                         if (runLengthResult)
                         {
-                            this.RunLengthEncoder.RunLength++;
-                            this.RunLengthEncoder.IsEncoding = true;
+                            this.RunLengthEncoder.Increment();
                         }
                         else
                         {
-                            this.RunLengthEncoder.EncodeCurrentResults(this.VectorReadBase, this.VectorReadOffset + resultIndex + alignmentIndex);
+                            this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorReadBase, this.VectorReadOffset + resultIndex + alignmentIndex);
                         }
                     }
                 }

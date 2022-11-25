@@ -37,50 +37,64 @@
         /// <summary>
         /// Gets or sets the index from which the run length encoding is started.
         /// </summary>
-        public Int32 RunLengthEncodeOffset { get; protected set; }
+        private Int32 RunLengthEncodeOffset { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether we are currently encoding a new result region.
         /// </summary>
-        public Boolean IsEncoding { get; set; }
+        private Boolean IsEncoding { get; set; }
 
         /// <summary>
         /// Gets or sets the current run length for run length encoded current scan results.
         /// </summary>
-        public Int32 RunLength { get; set; }
+        private Int32 RunLength { get; set; }
 
         /// <summary>
         /// Gets or sets the size of the data type being compared.
         /// </summary>
-        protected Int32 DataTypeSize { get; set; }
+        private Int32 DataTypeSize { get; set; }
 
         /// <summary>
         /// Gets or sets the data type being compared.
         /// </summary>
-        protected ScannableType DataType { get; set; }
+        private ScannableType DataType { get; set; }
 
         /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
-        protected SnapshotRegion Region { get; set; }
+        private SnapshotRegion Region { get; set; }
 
         /// <summary>
         /// Gets or sets the list of discovered result regions.
         /// </summary>
-        protected IList<SnapshotRegion> ResultRegions { get; set; }
+        private IList<SnapshotRegion> ResultRegions { get; set; }
 
         /// <summary>
         /// Gets or sets the enforced memory alignment for this scan.
         /// </summary>
-        protected MemoryAlignment Alignment { get; set; }
+        private MemoryAlignment Alignment { get; set; }
 
         /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.
         /// </summary>
         public IList<SnapshotRegion> GatherCollectedRegions(Int32 readGroupBase)
         {
-            this.EncodeCurrentResults(readGroupBase);
+            this.FinalizeCurrentEncode(readGroupBase);
             return this.ResultRegions;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void IncrementBatch(Int32 elementCount)
+        {
+            this.RunLength += elementCount;
+            this.IsEncoding = true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Increment()
+        {
+            this.RunLength++;
+            this.IsEncoding = true;
         }
 
         /// <summary>
@@ -89,7 +103,7 @@
         /// <param name="readGroupOffset">The base address of the read group.</param>
         /// <param name="readGroupOffset">The offset into the read group.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EncodeCurrentResults(Int32 readGroupBase, Int32 readGroupOffset = 0)
+        public void FinalizeCurrentEncode(Int32 readGroupBase, Int32 readGroupOffset = 0)
         {
             // Create the final region if we are still encoding
             if (this.IsEncoding)
