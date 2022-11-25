@@ -1,65 +1,36 @@
 ﻿namespace Squalr.Engine.Projects
 {
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Processes;
+    using Squalr.Engine.Projects.Items;
     using System;
     using System.IO;
 
-    public class Project
+    /// <summary>
+    /// Defines a Squalr project. This is the root directory that contains all other project items.
+    /// </summary>
+    public class Project : DirectoryItem
     {
-        public Project(String projectFilePath)
+        /// <summary>
+        /// Creates a new project from the given path or project name. If given as a project name, Squalr will use the user settings to decide where to place the folder.
+        /// </summary>
+        /// <param name="projectFilePathOrName">The project path, or the project name.</param>
+        public Project(ProcessSession processSession, String projectFilePathOrName) : base(processSession, Project.ToDirectory(projectFilePathOrName), null)
         {
-            this.WatchFileSystem(projectFilePath);
         }
 
-        private FileSystemWatcher FileSystemWatcher { get; set; }
-
-        public static Project Create(String projectFilePath)
+        /// <summary>
+        /// Converts a project name into a project path, if necessary.
+        /// </summary>
+        /// <param name="projectFilePathOrName">The project path, or the project name.</param>
+        /// <returns></returns>
+        private static String ToDirectory(String projectFilePathOrName)
         {
-            try
+            if (!Path.IsPathRooted(projectFilePathOrName))
             {
-                Directory.CreateDirectory(projectFilePath);
-                return new Project(projectFilePath);
+                projectFilePathOrName = Path.Combine(ProjectSettings.ProjectRoot, projectFilePathOrName);
             }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Error, "Error creating project", ex);
-                return null;
-            }
-        }
 
-        public void Rename(String newProjectName)
-        {
-
-        }
-
-        private void WatchFileSystem(String projectRootPath)
-        {
-            this.FileSystemWatcher = new FileSystemWatcher
-            {
-                Path = projectRootPath,
-                Filter = "*.*",
-                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
-                EnableRaisingEvents = true,
-            };
-
-            this.FileSystemWatcher.Changed += new FileSystemEventHandler(this.OnFileSystemChanged);
-        }
-
-        private void OnFileSystemChanged(Object source, FileSystemEventArgs args)
-        {
-            switch (args.ChangeType)
-            {
-                case WatcherChangeTypes.Changed:
-                    break;
-                case WatcherChangeTypes.Created:
-                    break;
-                case WatcherChangeTypes.Deleted:
-                    break;
-                case WatcherChangeTypes.Renamed:
-                    break;
-                default:
-                    break;
-            }
+            return projectFilePathOrName;
         }
     }
     //// End class

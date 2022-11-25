@@ -8,8 +8,8 @@
     x:Name="SqualrDeleteProjectDialog"
     Width="320"
     Height="144"
-    d:DesignHeight="320"
-    d:DesignWidth="144"
+    d:DesignWidth="320"
+    d:DesignHeight="144"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding DeleteProjectDialogViewModel, Source={StaticResource ViewModelLocator}}"
@@ -20,7 +20,7 @@
         <shell:WindowChrome CaptionHeight="{Binding ActualHeight, ElementName=titlebar}" />
     </shell:WindowChrome.WindowChrome>
 
-    <shell:Grid Background="{StaticResource SqualrColorBlack}">
+    <shell:Grid Background="{StaticResource SqualrColorPanel}">
         <shell:Grid.RowDefinitions>
             <shell:RowDefinition Height="Auto" />
             <shell:RowDefinition Height="Auto" />
@@ -46,24 +46,14 @@
                 <shell:StackPanel Orientation="Horizontal">
                     <shell:TextBlock
                         Margin="0,0,0,4"
-                        Background="{StaticResource SqualrColorBlack}"
                         Foreground="{StaticResource SqualrColorWhite}"
-                        Text="Enter '" />
-                    <shell:TextBlock
-                        Margin="0,0,0,4"
-                        Background="{StaticResource SqualrColorBlack}"
-                        Foreground="{StaticResource SqualrColorWhite}"
-                        Text="{Binding ProjectName}" />
-                    <shell:TextBlock
-                        Margin="0,0,0,4"
-                        Background="{StaticResource SqualrColorBlack}"
-                        Foreground="{StaticResource SqualrColorWhite}"
-                        Text="' to delete this project." />
+                        Text="Enter 'delete' to delete this project." />
                 </shell:StackPanel>
                 <shell:TextBox
-                    Background="{StaticResource SqualrColorBlack}"
+                    Background="{StaticResource SqualrColorGray27}"
+                    BorderBrush="{StaticResource SqualrColorGray40}"
                     Foreground="{StaticResource SqualrColorWhite}"
-                    Text="{Binding ConfirmProjectName, UpdateSourceTrigger=PropertyChanged}" />
+                    Text="{Binding ConfirmDeleteText, UpdateSourceTrigger=PropertyChanged}" />
             </shell:StackPanel>
         </shell:Grid>
         <shell:Grid Grid.Row="2" Margin="8">

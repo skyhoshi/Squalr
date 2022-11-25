@@ -1,8 +1,9 @@
 ﻿namespace Squalr.Properties
 {
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.Projects.Properties;
-    using Squalr.Engine.Scanning.Properties;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Projects;
+    using Squalr.Engine.Scanning;
     using Squalr.Source.Docking;
     using System;
     using System.ComponentModel;
@@ -12,7 +13,7 @@
     /// <summary>
     /// View model for the Settings.
     /// </summary>
-    internal class SettingsViewModel : ToolViewModel
+    public class SettingsViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="SettingsViewModel"/> class.
@@ -26,8 +27,8 @@
         /// </summary>
         private SettingsViewModel() : base("Settings")
         {
-            ProjectSettings.Default.PropertyChanged += ProjectSettingsPropertyChanged;
-            ScanSettings.Default.PropertyChanged += ScanSettingsPropertyChanged;
+            // ProjectSettings.PropertyChanged += ProjectSettingsPropertyChanged;
+            //  ScanSettings.PropertyChanged += ScanSettingsPropertyChanged;
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
 
@@ -38,7 +39,7 @@
         {
             get
             {
-                String savedPath = ProjectSettings.Default.ProjectRoot;
+                String savedPath = ProjectSettings.ProjectRoot;
 
                 if (!Directory.Exists(savedPath))
                 {
@@ -46,7 +47,7 @@
                     this.ProjectRoot = savedPath;
                 }
 
-                return ProjectSettings.Default.ProjectRoot;
+                return ProjectSettings.ProjectRoot;
             }
 
             set
@@ -63,8 +64,25 @@
                     Logger.Log(LogLevel.Error, "Unable to set project root", ex);
                 }
 
-                ProjectSettings.Default.ProjectRoot = value;
+                ProjectSettings.ProjectRoot = value;
                 this.RaisePropertyChanged(nameof(this.ProjectRoot));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Squalr should perform automatic updates.
+        /// </summary>
+        public Boolean AutomaticUpdates
+        {
+            get
+            {
+                return SqualrSettings.AutomaticUpdates;
+            }
+
+            set
+            {
+                SqualrSettings.AutomaticUpdates = value;
+                this.RaisePropertyChanged(nameof(this.AutomaticUpdates));
             }
         }
 
@@ -75,12 +93,12 @@
         {
             get
             {
-                return ScanSettings.Default.RequiredWrite;
+                return ScanSettings.RequiredWrite;
             }
 
             set
             {
-                ScanSettings.Default.RequiredWrite = value;
+                ScanSettings.RequiredWrite = value;
                 this.RaisePropertyChanged(nameof(this.RequiredProtectionWrite));
             }
         }
@@ -92,12 +110,12 @@
         {
             get
             {
-                return ScanSettings.Default.RequiredExecute;
+                return ScanSettings.RequiredExecute;
             }
 
             set
             {
-                ScanSettings.Default.RequiredExecute = value;
+                ScanSettings.RequiredExecute = value;
                 this.RaisePropertyChanged(nameof(this.RequiredProtectionExecute));
             }
         }
@@ -109,12 +127,12 @@
         {
             get
             {
-                return ScanSettings.Default.RequiredCopyOnWrite;
+                return ScanSettings.RequiredCopyOnWrite;
             }
 
             set
             {
-                ScanSettings.Default.RequiredCopyOnWrite = value;
+                ScanSettings.RequiredCopyOnWrite = value;
                 this.RaisePropertyChanged(nameof(this.RequiredProtectionCopyOnWrite));
             }
         }
@@ -126,12 +144,12 @@
         {
             get
             {
-                return ScanSettings.Default.ExcludedWrite;
+                return ScanSettings.ExcludedWrite;
             }
 
             set
             {
-                ScanSettings.Default.ExcludedWrite = value;
+                ScanSettings.ExcludedWrite = value;
                 this.RaisePropertyChanged(nameof(this.ExcludedProtectionWrite));
             }
         }
@@ -143,12 +161,12 @@
         {
             get
             {
-                return ScanSettings.Default.ExcludedExecute;
+                return ScanSettings.ExcludedExecute;
             }
 
             set
             {
-                ScanSettings.Default.ExcludedExecute = value;
+                ScanSettings.ExcludedExecute = value;
                 this.RaisePropertyChanged(nameof(this.ExcludedProtectionExecute));
             }
         }
@@ -160,12 +178,12 @@
         {
             get
             {
-                return ScanSettings.Default.ExcludedCopyOnWrite;
+                return ScanSettings.ExcludedCopyOnWrite;
             }
 
             set
             {
-                ScanSettings.Default.ExcludedCopyOnWrite = value;
+                ScanSettings.ExcludedCopyOnWrite = value;
                 this.RaisePropertyChanged(nameof(this.ExcludedProtectionCopyOnWrite));
             }
         }
@@ -177,12 +195,12 @@
         {
             get
             {
-                return ScanSettings.Default.MemoryTypeNone;
+                return ScanSettings.MemoryTypeNone;
             }
 
             set
             {
-                ScanSettings.Default.MemoryTypeNone = value;
+                ScanSettings.MemoryTypeNone = value;
                 this.RaisePropertyChanged(nameof(this.MemoryTypeNone));
             }
         }
@@ -194,12 +212,12 @@
         {
             get
             {
-                return ScanSettings.Default.MemoryTypePrivate;
+                return ScanSettings.MemoryTypePrivate;
             }
 
             set
             {
-                ScanSettings.Default.MemoryTypePrivate = value;
+                ScanSettings.MemoryTypePrivate = value;
                 this.RaisePropertyChanged(nameof(this.MemoryTypePrivate));
             }
         }
@@ -211,12 +229,12 @@
         {
             get
             {
-                return ScanSettings.Default.MemoryTypeMapped;
+                return ScanSettings.MemoryTypeMapped;
             }
 
             set
             {
-                ScanSettings.Default.MemoryTypeMapped = value;
+                ScanSettings.MemoryTypeMapped = value;
                 this.RaisePropertyChanged(nameof(this.MemoryTypeMapped));
             }
         }
@@ -228,12 +246,12 @@
         {
             get
             {
-                return ScanSettings.Default.MemoryTypeImage;
+                return ScanSettings.MemoryTypeImage;
             }
 
             set
             {
-                ScanSettings.Default.MemoryTypeImage = value;
+                ScanSettings.MemoryTypeImage = value;
                 this.RaisePropertyChanged(nameof(this.MemoryTypeImage));
             }
         }
@@ -245,12 +263,12 @@
         {
             get
             {
-                return ScanSettings.Default.IsUserMode;
+                return ScanSettings.IsUserMode;
             }
 
             set
             {
-                ScanSettings.Default.IsUserMode = value;
+                ScanSettings.IsUserMode = value;
                 this.RaisePropertyChanged(nameof(this.IsUserMode));
                 this.RaisePropertyChanged(nameof(this.IsNotUserMode));
             }
@@ -263,14 +281,139 @@
         {
             get
             {
-                return !ScanSettings.Default.IsUserMode;
+                return !ScanSettings.IsUserMode;
             }
 
             set
             {
-                ScanSettings.Default.IsUserMode = !value;
+                ScanSettings.IsUserMode = !value;
                 this.RaisePropertyChanged(nameof(this.IsUserMode));
                 this.RaisePropertyChanged(nameof(this.IsNotUserMode));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment1
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment1;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment1;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment2
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment2;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment2;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 1.
+        /// </summary>
+        public Boolean IsAlignment4
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment4;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment4;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is 8.
+        /// </summary>
+        public Boolean IsAlignment8
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Alignment8;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Alignment8;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the current alignment is automatic (matches data type).
+        /// </summary>
+        public Boolean IsAlignmentAuto
+        {
+            get
+            {
+                return ScanSettings.Alignment == MemoryAlignment.Auto;
+            }
+
+            set
+            {
+                if (value)
+                {
+                    ScanSettings.Alignment = MemoryAlignment.Auto;
+                }
+
+                this.RaisePropertyChanged(nameof(this.IsAlignment1));
+                this.RaisePropertyChanged(nameof(this.IsAlignment2));
+                this.RaisePropertyChanged(nameof(this.IsAlignment4));
+                this.RaisePropertyChanged(nameof(this.IsAlignment8));
+                this.RaisePropertyChanged(nameof(this.IsAlignmentAuto));
             }
         }
 
@@ -281,12 +424,12 @@
         {
             get
             {
-                return ScanSettings.Default.FreezeInterval;
+                return ScanSettings.FreezeInterval;
             }
 
             set
             {
-                ScanSettings.Default.FreezeInterval = value;
+                ScanSettings.FreezeInterval = value;
                 this.RaisePropertyChanged(nameof(this.FreezeInterval));
             }
         }
@@ -298,12 +441,14 @@
         {
             get
             {
-                return ScanSettings.Default.RescanInterval;
+                // TODO
+                return 100;
             }
 
             set
             {
-                ScanSettings.Default.RescanInterval = value;
+                // TODO
+
                 this.RaisePropertyChanged(nameof(this.RescanInterval));
             }
         }
@@ -315,12 +460,12 @@
         {
             get
             {
-                return ScanSettings.Default.ResultReadInterval;
+                return ScanSettings.ResultReadInterval;
             }
 
             set
             {
-                ScanSettings.Default.ResultReadInterval = value;
+                ScanSettings.ResultReadInterval = value;
                 this.RaisePropertyChanged(nameof(this.ResultReadInterval));
             }
         }
@@ -332,46 +477,29 @@
         {
             get
             {
-                return ScanSettings.Default.TableReadInterval;
+                return ScanSettings.TableReadInterval;
             }
 
             set
             {
-                ScanSettings.Default.TableReadInterval = value;
+                ScanSettings.TableReadInterval = value;
                 this.RaisePropertyChanged(nameof(this.TableReadInterval));
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a the allowed period of time for a given input to register as correlated with memory changes.
-        /// </summary>
-        public Int32 InputCorrelatorTimeOutInterval
-        {
-            get
-            {
-                return ScanSettings.Default.InputCorrelatorTimeOutInterval;
-            }
-
-            set
-            {
-                ScanSettings.Default.InputCorrelatorTimeOutInterval = value;
-                this.RaisePropertyChanged(nameof(this.InputCorrelatorTimeOutInterval));
             }
         }
 
         /// <summary>
         /// Gets or sets the virtual memory alignment required in scans.
         /// </summary>
-        public Int32 Alignment
+        public MemoryAlignment Alignment
         {
             get
             {
-                return ScanSettings.Default.Alignment;
+                return ScanSettings.Alignment;
             }
 
             set
             {
-                ScanSettings.Default.Alignment = value;
+                ScanSettings.Alignment = value;
                 this.RaisePropertyChanged(nameof(this.Alignment));
             }
         }
@@ -383,12 +511,12 @@
         {
             get
             {
-                return ScanSettings.Default.StartAddress;
+                return ScanSettings.StartAddress;
             }
 
             set
             {
-                ScanSettings.Default.StartAddress = value;
+                ScanSettings.StartAddress = value;
                 this.RaisePropertyChanged(nameof(this.StartAddress));
             }
         }
@@ -400,13 +528,70 @@
         {
             get
             {
-                return ScanSettings.Default.EndAddress;
+                return ScanSettings.EndAddress;
             }
 
             set
             {
-                ScanSettings.Default.EndAddress = value;
+                ScanSettings.EndAddress = value;
                 this.RaisePropertyChanged(nameof(this.EndAddress));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not emulators are automatically detected.
+        /// </summary>
+        public Boolean IsEmulatorTypeAuto
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.Auto;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.Auto;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not emulators are disabled.
+        /// </summary>
+        public Boolean IsEmulatorTypeNone
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.None;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.None;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the target process is a Dolphin emulator.
+        /// </summary>
+        public Boolean IsEmulatorTypeDolphin
+        {
+            get
+            {
+                return ScanSettings.EmulatorType == EmulatorType.Dolphin;
+            }
+
+            set
+            {
+                ScanSettings.EmulatorType = EmulatorType.Dolphin;
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
+                this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
             }
         }
 
@@ -421,12 +606,12 @@
 
         private void ProjectSettingsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-            ProjectSettings.Default.Save();
+           //  ProjectSettings.Save();
         }
 
         private void ScanSettingsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-            ScanSettings.Default.Save();
+            //  ScanSettings.Save();
         }
     }
     //// End class

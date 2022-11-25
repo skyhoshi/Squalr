@@ -7,14 +7,19 @@
     x:Name="SqualrPropertyViewer"
     d:DesignHeight="256"
     d:DesignWidth="256"
+    x:ClassModifier="public"
     DataContext="{Binding PropertyViewerViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
+    <x:Code>
+        <![CDATA[ public PropertyViewer() { InitializeComponent(); }]]>
+    </x:Code>
     <Grid Background="{StaticResource SqualrColorPanel}">
         <Grid.RowDefinitions>
             <RowDefinition />
         </Grid.RowDefinitions>
+
         <Border>
-            <Grid x:Name="propertyViewer" />
+            <ContentControl Content="{Binding PropertyViewerViewModel.WindowsFormsHost, Source={StaticResource ViewModelLocator}}" />
         </Border>
     </Grid>
 </UserControl>

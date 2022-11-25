@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.2</LangVersion>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>2.3.1</Version>
     <Description>Squalr engine component for assemblers and disassemblers. Currently, this supports x86 and x64 processors.</Description>
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Squalr.Engine\Squalr.Engine.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Utils\Squalr.Engine.Common.csproj" />
   </ItemGroup>
 
 </Project>

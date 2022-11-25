@@ -1,9 +1,8 @@
 ﻿namespace Squalr.Source.ProjectExplorer.Dialogs
 {
     using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.CommandWpf;
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.Utils.Extensions;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
     using System;
@@ -15,7 +14,7 @@
     using System.Windows;
     using System.Windows.Input;
 
-    internal class SelectProjectDialogViewModel : ViewModelBase
+    public class SelectProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="SelectProjectDialogViewModel" /> class.
@@ -203,7 +202,7 @@
             {
                 String projectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, this.SelectedProject);
 
-                if (!projectPath.IsNullOrEmpty())
+                if (!String.IsNullOrEmpty(projectPath))
                 {
                     projectPathCallback?.Invoke(projectPath);
                 }
@@ -239,7 +238,7 @@
 
         private void DeleteProject(String project)
         {
-            if (project.IsNullOrEmpty())
+            if (String.IsNullOrEmpty(project))
             {
                 Logger.Log(LogLevel.Warn, "No project was selected to delete.");
                 return;

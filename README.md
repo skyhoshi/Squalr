@@ -8,7 +8,7 @@ Join us on our [Discord Channel](https://discord.gg/Pq2msTx)
 
 **Squalr** is performant Memory Editing software that allows users to create and share cheats in their windows desktop games. This includes memory scanning, pointers, x86/x64 assembly injection, and so on.
 
-How does Squalr achieve fast memory scans in .NET? Multi-threading combined with single-core parallelism via SIMD instructions. See this article: [SIMD in .NET](https://instil.co/2016/03/21/parallelism-on-a-single-core-simd-with-c/). To take advantage of these gains, your CPU needs to have support for SSE, AVX, or AVX-512.
+Squalr achieves fast scans through multi-threading combined with SIMD instructions. See this article: [SIMD in .NET](https://instil.co/2016/03/21/parallelism-on-a-single-core-simd-with-c/). To take advantage of these gains, your CPU needs to have support for SSE, AVX, or AVX-512.
 
 ![SqualrGUI](Documentation/Squalr.png)
 

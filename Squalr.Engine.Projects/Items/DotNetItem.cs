@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using Squalr.Engine.Memory;
+    using Squalr.Engine.Processes;
     using System;
     using System.Runtime.Serialization;
 
@@ -15,11 +16,11 @@
         [DataMember]
         private String identifier;
 
-        public DotNetItem()
+        public DotNetItem(ProcessSession processSession) : base(processSession)
         {
         }
 
-        public DotNetItem(String name, Type type, String identifier) : base(type, name)
+        public DotNetItem(ProcessSession processSession, String name, Type type, String identifier) : base(processSession, type, name)
         {
             this.Identifier = identifier;
         }

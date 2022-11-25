@@ -1,9 +1,8 @@
 ﻿namespace Squalr.Source.Main
 {
-    using GalaSoft.MvvmLight.CommandWpf;
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.OS;
-    using Squalr.Source.ChangeLog;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
     using Squalr.Source.Updater;
@@ -16,7 +15,7 @@
     /// <summary>
     /// Main view model.
     /// </summary>
-    internal class MainViewModel : WindowHostViewModel
+    public class MainViewModel : WindowHostViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="MainViewModel" /> class
@@ -35,17 +34,14 @@
 
             ApplicationUpdater.UpdateApp();
 
-            Squalr.Engine.Projects.Compiler.Compile(true);
-
             if (Vectors.HasVectorSupport)
             {
-                Logger.Log(LogLevel.Info, "Hardware acceleration enabled");
-                Logger.Log(LogLevel.Info, "Vector size: " + Vector<Byte>.Count);
+                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count + ")");
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
-
-            this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
+            
+            // this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
         }
 
         /// <summary>

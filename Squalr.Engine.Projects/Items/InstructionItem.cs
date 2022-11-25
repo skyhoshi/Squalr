@@ -1,8 +1,8 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Utils;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Processes;
     using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
@@ -48,11 +48,12 @@
         [DataMember]
         private Byte[] followingBytes;
 
-        public InstructionItem() : this(0, null, null, null)
+        public InstructionItem(ProcessSession processSession) : this(processSession, 0, null, null, null)
         {
         }
 
-        public InstructionItem(UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes) : base(DataType.ByteArray, "New Instruction")
+        public InstructionItem(ProcessSession processSession, UInt64 BaseAddress, String moduleName, String instruction, Byte[] instructionBytes)
+            : base(processSession, ScannableType.NullByteArray, "New Instruction")
         {
             this.ModuleOffset = BaseAddress;
             this.ModuleName = moduleName;
@@ -161,7 +162,7 @@
         /// <summary>
         /// Gets or sets a value indicating whether the value at this address should be displayed as hex.
         /// </summary>
-        public override DataType DataType
+        public override ScannableType DataType
         {
             get
             {

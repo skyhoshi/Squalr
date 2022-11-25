@@ -1,11 +1,13 @@
 ﻿namespace Squalr.Source.ProjectExplorer
 {
-    using GalaSoft.MvvmLight.CommandWpf;
-    using Squalr.Engine.Logging;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.DataStructures;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
-    using Squalr.Engine.Utils;
-    using Squalr.Engine.Utils.DataStructures;
     using Squalr.Properties;
+    using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
@@ -22,7 +24,7 @@
     using System.Windows.Forms;
     using System.Windows.Input;
 
-    internal class ProjectExplorerViewModel : ToolViewModel
+    public class ProjectExplorerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="ProjectExplorerViewModel" /> class.
@@ -34,9 +36,14 @@
         private FullyObservableCollection<DirectoryItemView> projectRoot;
 
         /// <summary>
-        /// The selected project item.
+        /// The primary selected project item.
         /// </summary>
         private ProjectItemView selectedProjectItem;
+
+        /// <summary>
+        /// The selected project items.
+        /// </summary>
+        private List<ProjectItemView> selectedProjectItems;
 
         private ProjectExplorerViewModel() : base("Project Explorer")
         {
@@ -44,13 +51,20 @@
             this.SelectProjectCommand = new RelayCommand(() => this.SelectProject());
             this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
             this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
+            this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
+            this.AddNewFolderItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(DirectoryItem)), () => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
+            this.AddNewDolphinAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem), emulatorType: EmulatorType.Dolphin), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
             this.AddNewInstructionItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(InstructionItem)), () => true);
             this.OpenFileExplorerCommand = new RelayCommand<ProjectItemView>((projectItem) => this.OpenFileExplorer(projectItem), (projectItem) => true);
+            this.CopySelectionCommand = new RelayCommand(() => this.CopySelection(), () => true);
+            this.CutSelectionCommand = new RelayCommand(() => this.CutSelection(), () => true);
+            this.PasteSelectionCommand = new RelayCommand(() => this.PasteSelection(), () => true);
+            this.DeleteSelectionCommand = new RelayCommand(() => this.DeleteSelection(), () => true);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
-            this.Update();
+            this.RunUpdateLoop();
         }
 
         /// <summary>
@@ -78,9 +92,19 @@
         public ICommand SelectProjectItemCommand { get; private set; }
 
         /// <summary>
+        /// Gets the command to add a new folder.
+        /// </summary>
+        public ICommand AddNewFolderItemCommand { get; private set; }
+
+        /// <summary>
         /// Gets the command to add a new address.
         /// </summary>
         public ICommand AddNewAddressItemCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to add a new Dolphin emulator address.
+        /// </summary>
+        public ICommand AddNewDolphinAddressItemCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to add a new instruction.
@@ -157,7 +181,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the selected project items.
+        /// Gets or sets the selected project item.
         /// </summary>
         public ProjectItemView SelectedProjectItem
         {
@@ -170,7 +194,23 @@
             {
                 this.selectedProjectItem = value;
                 this.RaisePropertyChanged(nameof(this.SelectedProjectItem));
-                PropertyViewerViewModel.GetInstance().SetTargetObjects(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the selected project item.
+        /// </summary>
+        public List<ProjectItemView> SelectedProjectItems
+        {
+            get
+            {
+                return this.selectedProjectItems;
+            }
+
+            set
+            {
+                this.selectedProjectItems = value;
+                this.RaisePropertyChanged(nameof(this.SelectedProjectItems));
             }
         }
 
@@ -182,10 +222,12 @@
             }
         }
 
+        private List<ProjectItemView> ClipBoard { get; set; }
+
         /// <summary>
         /// Runs the update loop, updating all scan results.
         /// </summary>
-        public void Update()
+        public void RunUpdateLoop()
         {
             Task.Run(() =>
             {
@@ -195,6 +237,7 @@
 
                     projectRoot?.Update();
 
+                    // TODO: Probably get this from user settings and clamp it
                     Thread.Sleep(50);
                 }
             });
@@ -216,6 +259,8 @@
                         if (Directory.Exists(folderBrowserDialog.SelectedPath))
                         {
                             SettingsViewModel.GetInstance().ProjectRoot = folderBrowserDialog.SelectedPath;
+                            SessionManager.Project = null;
+                            this.ProjectRoot = null;
                         }
                     }
                     else
@@ -227,7 +272,6 @@
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Unable to open project", ex);
-                return;
             }
         }
 
@@ -261,8 +305,10 @@
                 throw new Exception("Folder not found");
             }
 
+            SessionManager.Project = new Project(SessionManager.Session, projectPath);
+
             // Create project root folder (initialize expanded for better UX)
-            DirectoryItemView projectRootFolder = new DirectoryItemView(new DirectoryItem(projectPath))
+            DirectoryItemView projectRootFolder = new DirectoryItemView(SessionManager.Project)
             {
                 IsExpanded = true
             };
@@ -290,7 +336,7 @@
         /// <summary>
         /// Adds a new address to the project items.
         /// </summary>
-        private void AddNewProjectItem(Type projectItemType)
+        private void AddNewProjectItem(Type projectItemType, EmulatorType emulatorType = EmulatorType.None)
         {
             this.CreateProjectIfNone();
 
@@ -298,14 +344,18 @@
 
             switch (projectItemType)
             {
+                case Type _ when projectItemType == typeof(DirectoryItem):
+                    // Create directories slightly differently. Just create the directory on disk via this call, then it should get picked up.
+                    DirectoryItem.CreateNewDirectory(directoryItemView?.ProjectItem as DirectoryItem);
+                    break;
                 case Type _ when projectItemType == typeof(PointerItem):
-                    directoryItemView?.AddChild(new PointerItem());
+                    directoryItemView?.AddChild(new PointerItem(SessionManager.Session, emulatorType: emulatorType));
                     break;
                 case Type _ when projectItemType == typeof(ScriptItem):
-                    directoryItemView?.AddChild(new ScriptItem());
+                    directoryItemView?.AddChild(new ScriptItem(SessionManager.Session));
                     break;
                 case Type _ when projectItemType == typeof(InstructionItem):
-                    directoryItemView?.AddChild(new InstructionItem());
+                    directoryItemView?.AddChild(new InstructionItem(SessionManager.Session));
                     break;
                 default:
                     Logger.Log(LogLevel.Error, "Unknown project item type - " + projectItemType.ToString());
@@ -375,20 +425,18 @@
         /// </summary>
         private void ToggleSelectionActivation()
         {
-            /*
             if (this.SelectedProjectItems == null)
             {
                 return;
             }
 
-            foreach (ProjectItem projectItem in this.SelectedProjectItems)
+            foreach (ProjectItemView projectItem in this.SelectedProjectItems)
             {
                 if (projectItem != null)
                 {
                     projectItem.IsActivated = !projectItem.IsActivated;
                 }
             }
-            */
         }
 
         /// <summary>
@@ -396,8 +444,7 @@
         /// </summary>
         private void DeleteSelection(Boolean promptUser = true)
         {
-            /*
-            if (this.SelectedProjectItems.IsNullOrEmpty())
+            if (this.SelectedProjectItems == null)
             {
                 return;
             }
@@ -417,13 +464,15 @@
                 }
             }
 
-            foreach (ProjectItem projectItem in this.SelectedProjectItems.ToArray())
+            foreach (ProjectItemView projectItemView in this.SelectedProjectItems.ToArray())
             {
-                this.ProjectItems.Remove(projectItem);
+                if (projectItemView != null)
+                {
+                    projectItemView?.ProjectItem?.Parent?.DeleteChild(projectItemView?.ProjectItem);
+                }
             }
 
             this.SelectedProjectItems = null;
-            */
         }
 
         /// <summary>
@@ -431,7 +480,7 @@
         /// </summary>
         private void CopySelection()
         {
-            // this.ClipBoard = this.SelectedProjectItems?.SoftClone();
+            this.ClipBoard = this.SelectedProjectItems?.ToList();
         }
 
         /// <summary>
@@ -439,12 +488,29 @@
         /// </summary>
         private void PasteSelection()
         {
-            // if (this.ClipBoard == null || this.ClipBoard.Count() <= 0)
-            // {
-            //     return;
-            // }
+            if (this.ClipBoard == null || this.ClipBoard.Count() <= 0)
+            {
+                 return;
+            }
 
-            // ProjectExplorerViewModel.GetInstance().AddNewProjectItems(true, this.ClipBoard);
+            DirectoryItemView directoryItemView = this.SelectedProjectItem as DirectoryItemView ?? this.ProjectRoot.FirstOrDefault();
+
+            if (directoryItemView != null)
+            {
+                foreach (ProjectItemView next in this.ClipBoard)
+                {
+                    if (next?.ProjectItem is DirectoryItem)
+                    {
+                        // Directories require special treatment here. Rather than attempting to clone all contents, we simply copy the folder and changes will be picked up.
+                        DirectoryItem directoryItem = next.ProjectItem as DirectoryItem;
+                        directoryItem.Clone(directoryItemView?.ProjectItem as DirectoryItem);
+                    }
+                    else
+                    {
+                        directoryItemView.AddChild(next?.ProjectItem?.Clone(true));
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -452,19 +518,19 @@
         /// </summary>
         private void CutSelection()
         {
-            // this.ClipBoard = this.SelectedProjectItems?.SoftClone();
-            // this.DeleteSelection(promptUser: false);
+            this.ClipBoard = this.SelectedProjectItems?.ToList();
+            this.DeleteSelection(promptUser: false);
         }
 
         private void OpenFileExplorer(ProjectItemView projectItemView)
         {
-            String directory = (projectItemView.ProjectItem is DirectoryItem ? projectItemView.ProjectItem.FullPath : Path.GetDirectoryName(projectItemView.ProjectItem.FullPath));
+            String directory = projectItemView.ProjectItem is DirectoryItem ? projectItemView.ProjectItem.FullPath : Path.GetDirectoryName(projectItemView.ProjectItem.FullPath);
 
             if (Directory.Exists(directory))
             {
                 try
                 {
-                    Process.Start(directory);
+                    Process.Start("explorer.exe", @directory);
                 }
                 catch (Exception ex)
                 {

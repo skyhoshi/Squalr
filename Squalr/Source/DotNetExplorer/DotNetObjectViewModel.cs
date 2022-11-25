@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Source.Engine.AddressResolver.DotNet
 {
+    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Memory.Clr;
-    using Squalr.Engine.Utils.DataStructures;
     using Squalr.Source.Controls;
     using Squalr.Source.PropertyViewer;
     using System.Linq;
@@ -10,7 +10,7 @@
     /// <summary>
     /// View model for an individual .Net object.
     /// </summary>
-    internal class DotNetObjectViewModel : TreeViewItemViewModel
+    public class DotNetObjectViewModel : TreeViewItemViewModel
     {
         /// <summary>
         /// The .Net object model.

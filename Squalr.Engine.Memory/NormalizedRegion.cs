@@ -1,7 +1,8 @@
 ﻿namespace Squalr.Engine.Memory
 {
-    using Logging;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -17,18 +18,12 @@
         private Int32 regionSize;
 
         /// <summary>
-        /// The memory alignment of this region.
-        /// </summary>
-        private Int32 alignment;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="NormalizedRegion" /> class.
         /// </summary>
         /// <param name="baseAddress">The base address of the region.</param>
         /// <param name="regionSize">The size of the region.</param>
         public NormalizedRegion(UInt64 baseAddress, Int32 regionSize)
         {
-            this.Alignment = 1;
             this.BaseAddress = baseAddress;
             this.RegionSize = regionSize;
         }
@@ -55,18 +50,6 @@
         }
 
         /// <summary>
-        /// Gets the number of elements contained by this region.
-        /// </summary>
-        /// <returns>The number of elements contained by this region.</returns>
-        public Int32 ElementCount
-        {
-            get
-            {
-                return this.RegionSize / this.Alignment;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the end address of the region.
         /// </summary>
         public UInt64 EndAddress
@@ -83,32 +66,26 @@
         }
 
         /// <summary>
-        /// Gets or sets the memory alignment, typically aligned with external process pointer size.
+        /// Updates the base address of this region to match the provided alignment.
         /// </summary>
-        public Int32 Alignment
+        /// <param name="alignment">The base address alignment.</param>
+        public void Align(MemoryAlignment alignment)
         {
-            get
+            // The enum values are the same as the integer values
+            Int32 alignmentValue = unchecked((Int32)alignment);
+
+            if (alignmentValue <= 0 || this.BaseAddress.Mod(alignmentValue) == 0)
             {
-                return this.alignment;
+                return;
             }
 
-            set
+            // Enforce alignment constraint on base address
+            unchecked
             {
-                this.alignment = value.Clamp(1, Int32.MaxValue);
-
-                if (this.BaseAddress.Mod(this.alignment) == 0)
-                {
-                    return;
-                }
-
-                // Enforce alignment constraint on base address
-                unchecked
-                {
-                    UInt64 endAddress = this.EndAddress;
-                    this.BaseAddress = this.BaseAddress.Subtract(this.BaseAddress.Mod(this.alignment), wrapAround: false);
-                    this.BaseAddress = this.BaseAddress.Add(this.alignment);
-                    this.EndAddress = endAddress;
-                }
+                UInt64 endAddress = this.EndAddress;
+                this.BaseAddress = this.BaseAddress.Subtract(this.BaseAddress.Mod(alignmentValue), wrapAround: false);
+                this.BaseAddress = this.BaseAddress.Add(alignmentValue);
+                this.EndAddress = endAddress;
             }
         }
 

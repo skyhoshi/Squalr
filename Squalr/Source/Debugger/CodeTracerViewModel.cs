@@ -1,10 +1,9 @@
 ﻿namespace Squalr.Source.Debugger
 {
-    using GalaSoft.MvvmLight.CommandWpf;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Debuggers;
     using Squalr.Engine.Projects.Items;
-    using Squalr.Engine.Utils;
-    using Squalr.Engine.Utils.DataStructures;
     using Squalr.Source.Docking;
     using Squalr.Source.ProjectExplorer;
     using Squalr.Source.ProjectExplorer.ProjectItems;
@@ -19,7 +18,7 @@
     /// <summary>
     /// View model for the Code Tracer.
     /// </summary>
-    internal class CodeTracerViewModel : ToolViewModel
+    public class CodeTracerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="CodeTracerViewModel" /> class.
@@ -157,7 +156,7 @@
         /// <param name="codeTraceResult">The code trace result to add to the project explorer.</param>
         private void AddCodeTraceResult(CodeTraceResult codeTraceResult)
         {
-            InstructionItem instructionItem = new InstructionItem(codeTraceResult.Address, "", "nop", new Byte[] { 0x90 });
+            InstructionItem instructionItem = new InstructionItem(SessionManager.Session, codeTraceResult.Address, "", "nop", new Byte[] { 0x90 });
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(instructionItem);
         }
@@ -174,7 +173,7 @@
             }
 
             IEnumerable<InstructionItem> projectItems = codeTraceResults.Select(
-                codeTraceEvent => new InstructionItem(codeTraceEvent.Address, "", "nop", new Byte[] { 0x90 }));
+                codeTraceEvent => new InstructionItem(SessionManager.Session, codeTraceEvent.Address, "", "nop", new Byte[] { 0x90 }));
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }
@@ -190,11 +189,15 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
-                BreakpointSize size = Debugger.Default.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
+                throw new NotImplementedException();
+                /*
+                BreakpointSize size = Debugger.Instance.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
                 this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatWrites(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
+                */
             }
         }
+
 
         private void FindWhatReads(ProjectItemView projectItemView)
         {
@@ -207,9 +210,12 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
+                throw new NotImplementedException();
+                /*
                 BreakpointSize size = Debugger.Default.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
                 this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatReads(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
+                */
             }
         }
 
@@ -224,9 +230,12 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
+                throw new NotImplementedException();
+                /*
                 BreakpointSize size = Debugger.Default.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
                 this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatAccesses(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
+                */
             }
         }
 

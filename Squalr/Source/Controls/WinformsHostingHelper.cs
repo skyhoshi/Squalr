@@ -1,13 +1,14 @@
 ﻿namespace Squalr.Source.Controls
 {
-    using System.Windows.Forms;
-    using System.Windows.Forms.Integration;
+    // using System.Windows.Forms;
+    // using System.Windows.Forms.Integration;
 
     /// <summary>
     /// Helper class for embedded windows forms controls in WPF.
     /// </summary>
     public static class WinformsHostingHelper
     {
+        /*
         /// <summary>
         /// Creates a windows form hosting object for a winforms control.
         /// </summary>
@@ -19,6 +20,7 @@
             host.Child = control;
             return host;
         }
+        */
     }
     //// End class
 }

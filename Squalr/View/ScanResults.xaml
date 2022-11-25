@@ -6,17 +6,40 @@
     xmlns:content="clr-namespace:Squalr.Content"
     xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:intr="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:intr="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="SqualrScanResults"
     d:DesignHeight="256"
     d:DesignWidth="512"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding ScanResultsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>
         <![CDATA[ public ScanResults() { InitializeComponent(); }]]>
     </x:Code>
+    <UserControl.Resources>
+        <ContextMenu
+            x:Key="ScanResultsRightClickMenu"
+            Background="{StaticResource SqualrColorGray27}"
+            BorderBrush="{StaticResource SqualrColorWhite}"
+            Foreground="{StaticResource SqualrColorWhite}">
+            <MenuItem
+                Command="{Binding ScanResultsViewModel.AddScanResultsCommand, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Margin="0 0 4 0"
+                            Width="16"
+                            Height="16"/>
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Add Selected Items" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.Resources>
     <Grid Background="{StaticResource SqualrColorPanel}">
         <Grid.Resources>
             <converters:UInt64ToAddressConverter x:Key="IntPtrToAddressConverter" />
@@ -40,13 +63,24 @@
                 Background="{StaticResource SqualrColorFrame}"
                 BorderBrush="{StaticResource SqualrColorWhite}"
                 Foreground="{StaticResource SqualrColorWhite}">
-                <MenuItem VerticalAlignment="Center" Command="{Binding AddScanResultsCommand}">
+                <MenuItem VerticalAlignment="Center"
+                          Command="{Binding AddScanResultsCommand}"
+                          ToolTip="Add Selected Items to Current Project">
                     <MenuItem.Header>
                         <Image
                             Width="16"
                             Height="16"
-                            Source="{x:Static content:Images.Increased}"
-                            ToolTip="Add Selected Items" />
+                            Source="{x:Static content:Images.Increased}" />
+                    </MenuItem.Header>
+                </MenuItem>
+                <MenuItem VerticalAlignment="Center"
+                    Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand}"
+                    ToolTip="New Scan">
+                    <MenuItem.Header>
+                        <Image
+                            Width="16"
+                            Height="16"
+                            Source="{x:Static content:Images.New}" />
                     </MenuItem.Header>
                 </MenuItem>
             </Menu>
@@ -75,6 +109,11 @@
                     <intr:InvokeCommandAction Command="{Binding AddScanResultCommand}" CommandParameter="{Binding ElementName=ScanResultsDataGrid, Path=SelectedItem}" />
                 </intr:EventTrigger>
             </intr:Interaction.Triggers>
+            <DataGrid.ItemContainerStyle>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="ContextMenu" Value="{StaticResource ScanResultsRightClickMenu}" />
+                </Style>
+            </DataGrid.ItemContainerStyle>
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="{x:Type DataGridColumnHeader}">
                     <Setter Property="Background" Value="{StaticResource SqualrColorPanel}" />
@@ -110,7 +149,7 @@
                     IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Image Source="{Binding Path=PointerItem, Converter={StaticResource ProjectItemToIconConverter}}" />
+                            <Image Source="{Binding Path=ProjectItemView, Converter={StaticResource ProjectItemToIconConverter}}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -145,19 +184,11 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn
-                    Width="Auto"
                     Header="Previous Value"
                     IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Margin="4,0,4,0" Text="{Binding Path=PreviousValue}" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Label" IsReadOnly="True">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Margin="4,0,4,0" Text="{Binding Path=Label}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

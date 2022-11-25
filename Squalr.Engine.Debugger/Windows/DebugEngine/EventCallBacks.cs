@@ -1,7 +1,8 @@
 ﻿namespace Squalr.Engine.Debuggers.Windows.DebugEngine
 {
     using Microsoft.Diagnostics.Runtime.Interop;
-    using Squalr.Engine.OS;
+    using Squalr.Engine.Memory;
+    using Squalr.Engine.Processes;
     using System;
     using System.Linq;
     using System.Runtime.InteropServices;
@@ -119,7 +120,9 @@
             CodeTraceInfo codeTraceInfo = new CodeTraceInfo();
 
             String[] registers;
-            Boolean isProcess32Bit = Processes.Default.IsOpenedProcess32Bit();
+            throw new NotImplementedException();
+            /*
+            Boolean isProcess32Bit = false;// ProcessQuery.Instance.IsProcessWindowed();
 
             if (isProcess32Bit)
             {
@@ -157,7 +160,8 @@
             address = this.CorrectAddress(address);
 
             // Disassemble instruction
-            Byte[] bytes = Memory.Reader.Default.ReadBytes(address, 15, out _);
+            Byte[] bytes = null; // MemoryReader.Instance.ReadBytes(address, 15, out _);
+            throw new NotImplementedException();
             codeTraceInfo.Instruction = Engine.Architecture.Disassembler.Default.Disassemble(bytes, isProcess32Bit, address).FirstOrDefault();
 
             // Invoke callbacks
@@ -167,6 +171,7 @@
 
             // Output.Output.Log(Output.LogLevel.Debug, "Breakpoint Hit: " + codeTraceInfo.Address);
             return (Int32)DEBUG_STATUS.BREAK;
+            */
         }
 
         public Int32 Exception([In] ref EXCEPTION_RECORD64 Exception, [In] uint FirstChance)

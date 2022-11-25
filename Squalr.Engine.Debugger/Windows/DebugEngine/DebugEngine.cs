@@ -1,8 +1,7 @@
 ﻿namespace Squalr.Engine.Debuggers.Windows.DebugEngine
 {
     using Microsoft.Diagnostics.Runtime.Interop;
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.OS;
+    using Squalr.Engine.Common.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -11,7 +10,7 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    internal class DebugEngine : IDebugger, IProcessObserver
+    internal class DebugEngine : IDebugger
     {
         private CancellationTokenSource readCancellationToken;
 
@@ -19,8 +18,9 @@
 
         private CancellationTokenSource accessCancellationToken;
 
-        public DebugEngine()
+        public DebugEngine(Process targetProcess)
         {
+            this.TargetProcess = targetProcess;
             this.DebugRequestCallback = null;
             this.EventCallBacks = new EventCallBacks();
             this.OutputCallBacks = new OutputCallBacks();
@@ -30,8 +30,6 @@
             this.readCancellationToken = null;
             this.writeCancellationToken = null;
             this.accessCancellationToken = null;
-
-            Processes.Default.Subscribe(this);
         }
 
         /// <summary>
@@ -76,7 +74,7 @@
             }
         }
 
-        private Process ExternalProcess { get; set; }
+        private Process TargetProcess { get; set; }
 
         private EventCallBacks EventCallBacks { get; set; }
 
@@ -89,16 +87,6 @@
         private Boolean Interrupt { get; set; }
 
         private ConcurrentDictionary<CancellationTokenSource, IDebugBreakpoint2> BreakPoints { get; set; }
-
-        public void Update(Process process)
-        {
-            if (process == null)
-            {
-                return;
-            }
-
-            this.ExternalProcess = process;
-        }
 
         public CancellationTokenSource FindWhatReads(UInt64 address, BreakpointSize size, MemoryAccessCallback callback)
         {
@@ -157,6 +145,44 @@
             return this.accessCancellationToken;
         }
 
+        public void PauseExecution()
+        {
+            this.BeginInterrupt();
+        }
+
+        public void ResumeExecution()
+        {
+            this.EndInterrupt();
+        }
+
+        public void WriteRegister(UInt32 registerId, UInt64 value)
+        {
+            DEBUG_VALUE inValue = new DEBUG_VALUE
+            {
+                I64 = value
+            };
+            
+            Registers.SetValue(registerId, inValue);
+        }
+
+        public UInt64 ReadRegister(UInt32 registerId)
+        {
+            DEBUG_VALUE outValue;
+
+            Registers.GetValue(registerId, out outValue);
+            return outValue.I64;
+        }
+
+        public void WriteInstructionPointer(UInt64 value)
+        {
+
+        }
+
+        public UInt64 ReadInstructionPointer()
+        {
+            return 0;
+        }
+
         public void Attach()
         {
             // Exit if already attached, or debug request fails
@@ -178,7 +204,7 @@
                     this.Client.SetOutputCallbacksWide(this.OutputCallBacks);
                     this.Client.SetEventCallbacksWide(this.EventCallBacks);
 
-                    this.Client.AttachProcess(0, unchecked((UInt32)this.ExternalProcess.Id), DEBUG_ATTACH.DEFAULT);
+                    this.Client.AttachProcess(0, unchecked((UInt32)this.TargetProcess.Id), DEBUG_ATTACH.DEFAULT);
                     this.Control.WaitForEvent(DEBUG_WAIT.DEFAULT, 0);
 
                     List<DEBUG_EXCEPTION_FILTER_PARAMETERS> exceptionFilters = new List<DEBUG_EXCEPTION_FILTER_PARAMETERS>();

@@ -1,10 +1,9 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
-    using Squalr.Engine.DataTypes;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Memory;
-    using Squalr.Engine.OS;
-    using Squalr.Engine.Utils;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Processes;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -40,10 +39,13 @@
         [DataMember]
         protected IEnumerable<Int32> pointerOffsets;
 
+        [DataMember]
+        EmulatorType emulatorType;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public PointerItem() : this(0, DataType.Int32, "New Address")
+        public PointerItem(ProcessSession processSession) : this(processSession, 0, ScannableType.Int32, "New Address")
         {
         }
 
@@ -53,25 +55,28 @@
         /// <param name="baseAddress">The base address. This will be added as an offset from the resolved base identifier.</param>
         /// <param name="dataType">The data type of the value at this address.</param>
         /// <param name="description">The description of this address.</param>
-        /// <param name="resolveType">The identifier type for this address item.</param>
         /// <param name="moduleName">The identifier for the base address of this object.</param>
         /// <param name="pointerOffsets">The pointer offsets of this address item.</param>
+        /// <param name="emulatorType">The emulator type of this address item.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public PointerItem(
-            UInt64 baseAddress,
-            Type dataType,
+            ProcessSession processSession,
+            UInt64 baseAddress = 0,
+            Type dataType = null,
             String description = "New Address",
             String moduleName = null,
             IEnumerable<Int32> pointerOffsets = null,
+            EmulatorType emulatorType = EmulatorType.None,
             Boolean isValueHex = false,
             Object value = null)
-            : base(dataType, description, isValueHex, value)
+            : base(processSession, dataType ?? ScannableType.Int32, description, isValueHex, value)
         {
             // Bypass setters to avoid running setter code
             this.moduleOffset = baseAddress;
             this.moduleName = moduleName;
             this.pointerOffsets = pointerOffsets;
+            this.emulatorType = emulatorType;
         }
 
         /// <summary>
@@ -131,7 +136,7 @@
 
             set
             {
-                if (this.pointerOffsets != null && this.pointerOffsets.SequenceEqual(value))
+                if (value != null && this.pointerOffsets != null && this.pointerOffsets.SequenceEqual(value))
                 {
                     return;
                 }
@@ -140,6 +145,23 @@
                 this.RaisePropertyChanged(nameof(this.PointerOffsets));
                 this.RaisePropertyChanged(nameof(this.IsPointer));
                 this.RaisePropertyChanged(nameof(this.AddressSpecifier));
+                this.Save();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the emulator type of this address.
+        /// </summary>
+        public virtual EmulatorType EmulatorType
+        {
+            get
+            {
+                return this.emulatorType;
+            }
+
+            set
+            {
+                this.emulatorType = value;
                 this.Save();
             }
         }
@@ -160,7 +182,7 @@
                     }
                     else
                     {
-                        return this.ModuleName + "-" + Conversions.ParsePrimitiveAsHexString(DataType.UInt64, this.ModuleOffset, signHex: true).TrimStart('-');
+                        return this.ModuleName + "-" + Conversions.ParsePrimitiveAsHexString(ScannableType.UInt64, this.ModuleOffset, signHex: true).TrimStart('-');
                     }
                 }
                 else if (this.IsPointer)
@@ -212,8 +234,60 @@
         /// <returns>The base address of this object.</returns>
         protected override UInt64 ResolveAddress()
         {
-            UInt64 pointer = Query.Default.ResolveModule(this.ModuleName);
-            Boolean successReading = true;
+            switch(this.emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    return ResolveDolphinEmulatorAddress();
+                case EmulatorType.None:
+                default:
+                    return this.ResolveStandardAddress();
+            }
+        }
+
+        /// <summary>
+        /// Resolves the address of an address, pointer, or managed object.
+        /// </summary>
+        /// <returns>The base address of this object.</returns>
+        protected UInt64 ResolveDolphinEmulatorAddress()
+        {
+            UInt64 pointer = MemoryQueryer.Instance.EmulatorAddressToRealAddress(processSession?.OpenedProcess, this.moduleOffset, EmulatorType.Dolphin);
+
+            if (this.PointerOffsets == null || this.PointerOffsets.Count() == 0)
+            {
+                return pointer;
+            }
+
+            foreach (Int32 offset in this.PointerOffsets)
+            {
+                bool successReading = false;
+
+                if (processSession?.OpenedProcess?.Is32Bit() ?? false)
+                {
+                    pointer = MemoryReader.Instance.Read<Int32>(processSession?.OpenedProcess, pointer, out successReading).ToUInt64();
+                }
+                else
+                {
+                    pointer = MemoryReader.Instance.Read<UInt64>(processSession?.OpenedProcess, pointer, out successReading);
+                }
+
+                if (pointer == 0 || !successReading)
+                {
+                    return 0;
+                }
+
+                pointer = pointer.Add(offset);
+            }
+
+            return pointer;
+        }
+
+        /// <summary>
+        /// Resolves the address of an address, pointer, or managed object.
+        /// </summary>
+        /// <returns>The base address of this object.</returns>
+        protected UInt64 ResolveStandardAddress()
+        {
+            UInt64 pointer = MemoryQueryer.Instance.ResolveModule(processSession?.OpenedProcess, this.ModuleName);
 
             pointer = pointer.Add(this.ModuleOffset);
 
@@ -224,19 +298,20 @@
 
             foreach (Int32 offset in this.PointerOffsets)
             {
-                if (Processes.Default.IsOpenedProcess32Bit())
+                bool successReading = false;
+
+                if (processSession?.OpenedProcess?.Is32Bit() ?? false)
                 {
-                    pointer = Reader.Default.Read<Int32>(pointer, out successReading).ToUInt64();
+                    pointer = MemoryReader.Instance.Read<Int32>(processSession?.OpenedProcess, pointer, out successReading).ToUInt64();
                 }
                 else
                 {
-                    pointer = Reader.Default.Read<UInt64>(pointer, out successReading);
+                    pointer = MemoryReader.Instance.Read<UInt64>(processSession?.OpenedProcess, pointer, out successReading);
                 }
 
                 if (pointer == 0 || !successReading)
                 {
-                    pointer = 0;
-                    break;
+                    return 0;
                 }
 
                 pointer = pointer.Add(offset);

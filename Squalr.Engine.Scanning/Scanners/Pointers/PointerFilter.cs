@@ -1,16 +1,20 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers
 {
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
+    using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
-    using Squalr.Engine.Utils.Extensions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.TrackableTask;
+    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Validates a snapshot of pointers.
@@ -27,7 +31,7 @@
         /// </summary>
         /// <param name="snapshot">The snapshot on which to perfrom the scan.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorSearchKernel searchKernel, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
+        public static TrackableTask<Snapshot> Filter(TrackableTask parentTask, Snapshot snapshot, IVectorPointerSearchKernel searchKernel, PointerSize pointerSize, Snapshot DEBUG, UInt32 RADIUS_DEBUG)
         {
             return TrackableTask<Snapshot>
                 .Create(PointerFilter.Name, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
@@ -52,18 +56,20 @@
                                 // Check for canceled scan
                                 parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                                if (!region.ReadGroup.CanCompare(hasRelativeConstraint: false))
+                                if (!region.ReadGroup.CanCompare(null))
                                 {
                                     return;
                                 }
 
-                                SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region);
+                                const MemoryAlignment alignment = MemoryAlignment.Alignment4;
+                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
+                                SnapshotRegionVectorScanner vectorComparer = new SnapshotRegionVectorScanner(region: region, constraints: constraints);
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 
                                 // SnapshotElementVectorComparer DEBUG_COMPARER = new SnapshotElementVectorComparer(region: region);
                                 // DEBUG_COMPARER.SetCustomCompareAction(DEBUG_KERNEL.GetSearchKernel(DEBUG_COMPARER));
 
-                                IList<SnapshotRegion> results = vectorComparer.Compare();
+                                IList<SnapshotRegion> results = vectorComparer.ScanRegion(region: region, constraints: constraints);
 
                                 // When debugging, these results should be the same as the results above
                                 // IList<SnapshotRegion> DEBUG_RESULTS = vectorComparer.Compare();

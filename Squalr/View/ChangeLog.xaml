@@ -11,7 +11,7 @@
     Height="320"
     d:DesignHeight="320"
     d:DesignWidth="320"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding ChangeLogViewModel, Source={StaticResource ViewModelLocator}}"

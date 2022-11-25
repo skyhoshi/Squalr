@@ -1,7 +1,17 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.Emit;
+    using Microsoft.CodeAnalysis.Scripting;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
+    using Squalr.Engine.Scripting;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.IO;
+    using System.Reflection;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -32,7 +42,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ScriptItem" /> class.
         /// </summary>
-        public ScriptItem() : this("New Script", null)
+        public ScriptItem(ProcessSession processSession) : this(processSession, "New Script", null)
         {
         }
 
@@ -42,7 +52,7 @@
         /// <param name="description">The description of the project item.</param>
         /// <param name="script">The raw script text.</param>
         /// <param name="compiled">Whether or not this script is compiled.</param>
-        public ScriptItem(String description, String script) : base(description)
+        public ScriptItem(ProcessSession processSession, String description, String script) : base(processSession, description)
         {
             // Initialize script and bypass setters
             this.script = script;
@@ -80,6 +90,17 @@
         public new void OnDeserialized(StreamingContext streamingContext)
         {
             base.OnDeserialized(streamingContext);
+        }
+
+        protected override void OnActivationChanged()
+        {
+            if (this.IsActivated)
+            {
+                // Assembly assembly = Compiler.Compile(this.FullPath, this.Script, false);
+                // Scripting.Script script = Scripting.Script.FromAssembly(assembly);
+
+                // script.IsActivated = true;
+            }
         }
     }
     //// End class

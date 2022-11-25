@@ -1,13 +1,13 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
-    using Squalr.Engine.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
 
     /// <summary>
     /// Class to define a constraint for certain types of scans.
     /// </summary>
-    public class ScanConstraint : ConstraintNode, INotifyPropertyChanged
+    public class ScanConstraint : Constraint, INotifyPropertyChanged
     {
         /// <summary>
         /// The constraint type.
@@ -18,6 +18,11 @@
         /// The value associated with this constraint, if applicable.
         /// </summary>
         private Object constraintValue;
+
+        /// <summary>
+        /// The args associated with this constraint, if applicable.
+        /// </summary>
+        private Object constraintArgs;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraint" /> class.
@@ -32,12 +37,12 @@
         /// Initializes a new instance of the <see cref="ScanConstraint" /> class.
         /// </summary>
         /// <param name="valueConstraint">The constraint type.</param>
-        /// <param name="addressValue">The value associated with this constraint.</param>
-        public ScanConstraint(ConstraintType valueConstraint, Object addressValue = null, DataType elementType = null)
+        /// <param name="value">The value associated with this constraint.</param>
+        public ScanConstraint(ConstraintType valueConstraint, Object value = null, Object args = null)
         {
             this.Constraint = valueConstraint;
-            this.ConstraintValue = addressValue;
-            this.SetElementType(elementType);
+            this.ConstraintValue = value;
+            this.ConstraintArgs = args;
         }
 
         /// <summary>
@@ -72,7 +77,7 @@
         {
             get
             {
-                if (ScanConstraint.IsValuedConstraint(this.Constraint))
+                if (this.IsValuedConstraint())
                 {
                     return this.constraintValue;
                 }
@@ -86,6 +91,30 @@
             {
                 this.constraintValue = value;
                 this.RaisePropertyChanged(nameof(this.ConstraintValue));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets any optional arguements provided with the constraint, if applicable.
+        /// </summary>
+        public Object ConstraintArgs
+        {
+            get
+            {
+                if (this.IsValuedConstraint())
+                {
+                    return this.constraintArgs;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            set
+            {
+                this.constraintArgs = value;
+                this.RaisePropertyChanged(nameof(this.ConstraintArgs));
             }
         }
 
@@ -128,19 +157,48 @@
             }
         }
 
-        public override void SetElementType(Type elementType)
+        public override void SetElementType(ScannableType elementType)
         {
-            base.SetElementType(elementType);
-
             if (this.ConstraintValue == null)
             {
                 return;
             }
 
+            Type targetType = elementType.Type;
+
+            // If we're scanning for big endian types, we can just store the normal value. The engine will take care of this later.
+            switch (elementType)
+            {
+                case ScannableType type when type == ScannableType.Int16BE:
+                    targetType = ScannableType.Int16.Type;
+                    break;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    targetType = ScannableType.Int32.Type;
+                    break;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    targetType = ScannableType.Int64.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    targetType = ScannableType.UInt16.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    targetType = ScannableType.UInt32.Type;
+                    break;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    targetType = ScannableType.UInt64.Type;
+                    break;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    targetType = ScannableType.Single.Type;
+                    break;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    targetType = ScannableType.Double.Type;
+                    break;
+            }
+
             try
             {
                 // Attempt to cast the value to the new type.
-                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, elementType);
+                this.ConstraintValue = Convert.ChangeType(this.ConstraintValue, targetType);
             }
             catch
             {
@@ -150,12 +208,7 @@
 
         public override Boolean IsValid()
         {
-            if (!base.IsValid())
-            {
-                return false;
-            }
-
-            if (!ScanConstraint.IsValuedConstraint(this.Constraint))
+            if (!this.IsValuedConstraint())
             {
                 return true;
             }
@@ -167,9 +220,9 @@
         /// Clones this scan constraint.
         /// </summary>
         /// <returns>The cloned scan constraint.</returns>
-        public ScanConstraint Clone()
+        public override Constraint Clone()
         {
-            return new ScanConstraint(this.Constraint, this.ConstraintValue, this.ElementType);
+            return new ScanConstraint(this.Constraint, this.ConstraintValue, this.ConstraintArgs);
         }
 
         /// <summary>
@@ -184,14 +237,14 @@
                 return true;
             }
 
-            if (ScanConstraint.IsRelativeConstraint(this.Constraint) && ScanConstraint.IsRelativeConstraint(other.Constraint))
+            if (this.IsRelativeConstraint() && other.IsRelativeConstraint())
             {
                 return true;
             }
 
-            if (ScanConstraint.IsValuedConstraint(this.Constraint) && ScanConstraint.IsValuedConstraint(other.Constraint))
+            if (this.IsValuedConstraint() && other.IsValuedConstraint())
             {
-                if (!ScanConstraint.IsRelativeConstraint(this.Constraint) && !ScanConstraint.IsRelativeConstraint(other.Constraint))
+                if (!this.IsRelativeConstraint() && !other.IsRelativeConstraint())
                 {
                     if ((this.Constraint == ConstraintType.LessThan || this.Constraint == ConstraintType.LessThanOrEqual || this.Constraint == ConstraintType.NotEqual) &&
                         (other.Constraint == ConstraintType.GreaterThan || other.Constraint == ConstraintType.GreaterThanOrEqual || other.Constraint == ConstraintType.NotEqual))
@@ -226,9 +279,9 @@
         /// Gets a value indicating whether this constraint is a relative comparison constraint, requiring previous values.
         /// </summary>
         /// <returns>True if the constraint is a relative value constraint.</returns>
-        public static Boolean IsRelativeConstraint(ScanConstraint.ConstraintType constraint)
+        public Boolean IsRelativeConstraint()
         {
-            switch (constraint)
+            switch (this.Constraint)
             {
                 case ConstraintType.Changed:
                 case ConstraintType.Unchanged:
@@ -253,9 +306,9 @@
         /// Gets a value indicating whether this constraint requires a value.
         /// </summary>
         /// <returns>True if the constraint requires a value.</returns>
-        public static Boolean IsValuedConstraint(ScanConstraint.ConstraintType constraint)
+        public Boolean IsValuedConstraint()
         {
-            switch (constraint)
+            switch (this.Constraint)
             {
                 case ConstraintType.Equal:
                 case ConstraintType.NotEqual:

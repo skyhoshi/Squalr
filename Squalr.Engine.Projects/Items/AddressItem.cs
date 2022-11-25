@@ -1,9 +1,9 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
-    using Squalr.Engine.Utils;
+    using Squalr.Engine.Processes;
     using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
@@ -24,7 +24,7 @@
         /// </summary>
         [Browsable(false)]
         [DataMember]
-        protected DataType dataType;
+        protected ScannableType dataType;
 
         /// <summary>
         /// The value at this address.
@@ -48,28 +48,28 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        public AddressItem() : this(DataType.Int32, "New Address")
+        public AddressItem(ProcessSession processSession) : this(processSession, ScannableType.Int32, "New Address")
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        /// <param name="baseAddress">The base address. This will be added as an offset from the resolved base identifier.</param>
+        /// <param name="processSession">The process session used to resolve addresses and values.</param>
         /// <param name="dataType">The data type of the value at this address.</param>
         /// <param name="description">The description of this address.</param>
-        /// <param name="baseIdentifier">The identifier for the base address of this object.</param>
-        /// <param name="offsets">The pointer offsets of this address item.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
         /// <param name="value">The value at this address. If none provided, it will be figured out later. Used here to allow immediate view updates upon creation.</param>
         public AddressItem(
-            DataType dataType,
+            ProcessSession processSession,
+            ScannableType dataType,
             String description = "New Address",
             Boolean isValueHex = false,
             Object value = null)
-            : base(description)
+            : base(processSession, description)
         {
             // Bypass setters to avoid running setter code
+            this.processSession = processSession;
             this.dataType = dataType;
             this.isValueHex = isValueHex;
 
@@ -86,7 +86,7 @@
         /// <summary>
         /// Gets or sets the data type of the value at this address.
         /// </summary>
-        public virtual DataType DataType
+        public virtual ScannableType DataType
         {
             get
             {
@@ -202,6 +202,15 @@
             }
         }
 
+        public override ProjectItem Clone(bool rename)
+        {
+            ProjectItem clone = base.Clone(rename);
+
+            (clone as AddressItem).processSession = this.processSession;
+
+            return clone;
+        }
+
         /// <summary>
         /// Gets the extension for this project item.
         /// </summary>
@@ -232,7 +241,7 @@
                 Object previousValue = this.AddressValue;
 
                 // Otherwise we read as normal (bypass assigning setter and set value directly to avoid a write-back to memory)
-                this.addressValue = Reader.Default.Read(this.DataType, this.CalculatedAddress, out _);
+                this.addressValue = MemoryReader.Instance.Read(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, out _);
 
                 if (!(this.AddressValue?.Equals(previousValue) ?? false))
                 {
@@ -259,7 +268,7 @@
                 return;
             }
 
-            Writer.Default.Write(this.DataType, this.CalculatedAddress, newValue);
+            MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
         }
     }
     //// End class

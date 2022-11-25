@@ -1,6 +1,8 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers
 {
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -9,7 +11,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.TrackableTask;
+    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Scans for pointers in the target process.
@@ -30,7 +32,7 @@
         /// <param name="alignment">The pointer scan alignment.</param>
         /// <param name="taskIdentifier">The unique identifier to prevent duplicate tasks.</param>
         /// <returns>Atrackable task that returns the scan results.</returns>
-        public static TrackableTask<PointerBag> Scan(UInt64 newAddress, Int32 alignment, PointerBag oldPointerBag, String taskIdentifier = null)
+        public static TrackableTask<PointerBag> Scan(Process process, UInt64 newAddress, Int32 alignment, PointerBag oldPointerBag, String taskIdentifier = null)
         {
             try
             {
@@ -46,11 +48,11 @@
                         stopwatch.Start();
 
                         // Step 1) Create a snapshot of the new target address
-                        Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(new ReadGroup(newAddress, oldPointerBag.PointerSize.ToSize(), oldPointerBag.PointerSize.ToDataType(), alignment), 0, oldPointerBag.PointerSize.ToSize()) });
+                        Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(new ReadGroup(newAddress, oldPointerBag.PointerSize.ToSize()), 0, oldPointerBag.PointerSize.ToSize()) });
 
                         // Step 2) Collect heap pointers
-                        Snapshot heapPointers = SnapshotManager.GetSnapshot(Snapshot.SnapshotRetrievalMode.FromHeaps, oldPointerBag.PointerSize.ToDataType());
-                        TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(heapPointers);
+                        Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);
+                        TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(process, heapPointers);
                         heapPointers = heapValueCollector.Result;
 
                         // Step 3) Rebuild levels
@@ -73,7 +75,7 @@
 
                         // Step 4) Perform a rebase from the old static addresses onto the new heaps
                         PointerBag newPointerBag = new PointerBag(levels, oldPointerBag.MaxOffset, oldPointerBag.PointerSize);
-                        TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(newPointerBag, readMemory: true, performUnchangedScan: true);
+                        TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(process, newPointerBag, readMemory: true, performUnchangedScan: true);
                         PointerBag rebasedPointerBag = pointerRebaseTask.Result;
 
                         stopwatch.Stop();

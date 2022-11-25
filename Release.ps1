@@ -1,3 +1,4 @@
+<#
 [Environment]::CurrentDirectory = Get-Location -PSProvider FileSystem
 
 # Parse assembly info from the project
@@ -18,6 +19,8 @@ $compiledNugetFile = "SqualrCompiled.nuspec"
 $compiledNugetFilePath = "./$compiledNugetFile"
 $package = "Squalr.$version.nupkg"
 $squirrel= "packages/squirrel.windows.1.8.0/tools/Squirrel.exe"
+$cert = [Environment]::GetEnvironmentVariables("User")["SQUALR_CODE_SIGN_CERT"]
+$pass = [Environment]::GetEnvironmentVariables("User")["SQUALR_CODE_SIGN_PASS"]
 
 # Delete old releases
 Remove-Item $releasesRoot -Force -Recurse -ErrorAction Ignore
@@ -37,11 +40,23 @@ Copy-Item -Path $sourceRoot -Recurse -Destination $destinationRoot -Container -F
 
 # Build nuget package
 Invoke-Expression "nuget pack $($compiledNugetFile) -Properties Configuration=Release"
+#>
 
-# Releasify with Squirrel
-$args = "--releasify $package -n /a /f SqualrCert.pfx /fd sha256 /tr http://timestamp.digicert.com /td sha256"
-Start-Process "$squirrel" -ArgumentList $args -Wait
+# Build Release
+dotnet publish -c Release -o ".\publish" 
+
+# Find Squirrel.exe path and add an alias
+Set-Alias Squirrel ($env:USERPROFILE + "\.nuget\packages\clowd.squirrel\2.9.42\tools\Squirrel.exe");
+
+# Download currently live version
+Squirrel http-down --url "https://github.com/Squalr/Squalr"
+
+$xml = [Xml] (Get-Content .\Squalr\Squalr.csproj)
+$version = [Version] $xml.Project.PropertyGroup.AssemblyVersion
+
+# build new version and delta updates.
+Squirrel pack --framework net7 --packId "Squalr" --packVersion "$version" --packAuthors "Squalr, Inc." --packDir ".\publish" --icon "Squalr/AppIcon.ico" # --splashImage "install.gif"`
 
 # Remove temporary files
-Remove-Item $compiledNugetFile -Force -ErrorAction Ignore
-Remove-Item $package -Force -ErrorAction Ignore
+# Remove-Item $compiledNugetFile -Force -ErrorAction Ignore
+# Remove-Item $package -Force -ErrorAction Ignore

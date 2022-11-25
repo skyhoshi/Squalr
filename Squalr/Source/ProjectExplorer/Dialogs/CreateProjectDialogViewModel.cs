@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Source.ProjectExplorer.Dialogs
 {
     using GalaSoft.MvvmLight;
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
     using System;
@@ -12,7 +12,7 @@
     /// <summary>
     /// The view model for the project create dialog.
     /// </summary>
-    internal class CreateProjectDialogViewModel : ViewModelBase
+    public class CreateProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="CreateProjectDialogViewModel" /> class.

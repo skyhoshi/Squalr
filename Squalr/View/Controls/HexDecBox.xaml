@@ -68,7 +68,7 @@
         x:Name="InnerTextBox"
         VerticalAlignment="Center"
         Background="{StaticResource SqualrColorGray27}"
-        BorderBrush="{StaticResource SqualrColorWhite}"
+        BorderBrush="{StaticResource SqualrColorGray40}"
         ContextMenu="{StaticResource HexDecBoxRightClickMenu}"
         Foreground="{Binding Self, Converter={StaticResource HexDecBoxColorConverter}}"
         Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />

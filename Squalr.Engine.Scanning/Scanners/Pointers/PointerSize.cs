@@ -1,8 +1,8 @@
-﻿using Squalr.Engine.DataTypes;
-using System;
-
-namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
+﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
 {
+    using Squalr.Engine.Common;
+    using System;
+
     public static class PointerSizeExtensions
     {
         public static Int32 ToSize(this PointerSize pointerSize)
@@ -18,14 +18,14 @@ namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
             }
         }
 
-        public static DataType ToDataType(this PointerSize pointerSize)
+        public static ScannableType ToDataType(this PointerSize pointerSize)
         {
             switch (pointerSize)
             {
                 case PointerSize.Byte4:
-                    return DataType.UInt32;
+                    return ScannableType.UInt32;
                 case PointerSize.Byte8:
-                    return DataType.UInt64;
+                    return ScannableType.UInt64;
                 default:
                     throw new ArgumentException("Unknown pointer size");
             }

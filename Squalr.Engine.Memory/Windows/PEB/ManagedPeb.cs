@@ -1,9 +1,9 @@
 ﻿namespace Squalr.Engine.Memory.Windows.PEB
 {
-    using Squalr.Engine.OS;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using static Squalr.Engine.Memory.Windows.Native.Enumerations;
     using static Squalr.Engine.Memory.Windows.Native.NativeMethods;
@@ -25,6 +25,11 @@
             this.Address = this.FindPebs(this.Handle).First().ToUInt64();
         }
 
+        /// <summary>
+        /// Gets or sets a reference to the target process.
+        /// </summary>
+        public Process TargetProcess { get; set; }
+
         private IntPtr Handle { get; set; }
 
         private UInt64 Address { get; set; }
@@ -44,7 +49,7 @@
             Int32 queryStatus = NtQueryInformationProcess(processHandle, ProcessInformationClass.ProcessBasicInformation, ref processBasicInformation, processBasicInformation.Size, out sizeInfoReturned);
             pebs.Add(processBasicInformation.PebBaseAddress);
 
-            if (Processes.Default.IsSelf64Bit() && Processes.Default.IsOpenedProcess32Bit())
+            // if (Process.Default.IsSelf64Bit() && Processes.Default.IsOpenedProcess32Bit())
             {
                 // When a 32 bit process runs on a 64 bit OS (also known as a WoW64 process), two PEB blocks are loaded.
                 // Apparently the only solution is to navigate the TEB to find the PEB. So TODO: Port this code to C#:
@@ -96,12 +101,13 @@
             return pebs;
         }
 
+        /*
         public Byte InheritedAddressSpace
         {
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<Byte>(this.Address.Add(PebStructure32.InheritedAddressSpace), out success);
+                return MemoryReaderFactory.Windows.Read<Byte>(this.Address.Add(PebStructure32.InheritedAddressSpace), out success);
             }
         }
 
@@ -110,7 +116,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<Boolean>(this.Address.Add(PebStructure32.BeingDebugged), out success);
+                return MemoryReaderFactory.Windows.Read<Boolean>(this.Address.Add(PebStructure32.BeingDebugged), out success);
             }
         }
 
@@ -119,7 +125,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ProcessHeap), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ProcessHeap), out success).ToIntPtr();
             }
         }
 
@@ -128,7 +134,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ReadOnlySharedMemoryBase), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ReadOnlySharedMemoryBase), out success).ToIntPtr();
             }
         }
 
@@ -137,7 +143,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapSegmentReserve), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapSegmentReserve), out success).ToIntPtr();
             }
         }
 
@@ -146,7 +152,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapSegmentCommit), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapSegmentCommit), out success).ToIntPtr();
             }
         }
 
@@ -155,7 +161,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapDeCommitTotalFreeThreshold), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapDeCommitTotalFreeThreshold), out success).ToIntPtr();
             }
         }
 
@@ -164,7 +170,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapDeCommitFreeBlockThreshold), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.HeapDeCommitFreeBlockThreshold), out success).ToIntPtr();
             }
         }
 
@@ -173,7 +179,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ProcessHeaps), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.ProcessHeaps), out success).ToIntPtr();
             }
         }
 
@@ -182,7 +188,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.MinimumStackCommit), out success).ToIntPtr();
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.MinimumStackCommit), out success).ToIntPtr();
             }
         }
 
@@ -191,7 +197,7 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<UInt32>(this.Address.Add(PebStructure32.NumberOfHeaps), out success);
+                return MemoryReaderFactory.Windows.Read<UInt32>(this.Address.Add(PebStructure32.NumberOfHeaps), out success);
             }
         }
 
@@ -200,9 +206,10 @@
             get
             {
                 Boolean success;
-                return Reader.Windows.Read<Int32>(this.Address.Add(PebStructure32.MaximumNumberOfHeaps), out success);
+                return MemoryReaderFactory.Windows.Read<Int32>(this.Address.Add(PebStructure32.MaximumNumberOfHeaps), out success);
             }
         }
+        */
     }
     //// End class
 }

@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Source.ProjectExplorer.Dialogs
 {
     using GalaSoft.MvvmLight;
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
     using Squalr.Properties;
     using Squalr.View.Dialogs;
@@ -13,7 +13,7 @@
     /// <summary>
     /// The view model for the project renaming dialog.
     /// </summary>
-    internal class RenameProjectDialogViewModel : ViewModelBase
+    public class RenameProjectDialogViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="RenameProjectDialogViewModel" /> class.
@@ -120,9 +120,10 @@
                 {
                     String projectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, projectName);
                     String newProjectPath = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, this.NewProjectName);
-                    ProjectManager.RenameProject(projectPath, newProjectPath);
 
-                    return true;
+                    Project project = new Project(SessionManager.Session, projectPath);
+
+                    return project.Rename(newProjectPath);
                 }
                 catch (Exception ex)
                 {

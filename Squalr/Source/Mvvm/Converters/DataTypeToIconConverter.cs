@@ -1,13 +1,13 @@
 ﻿namespace Squalr.Source.Mvvm.Converters
 {
     using Squalr.Content;
-    using Squalr.Engine.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Globalization;
     using System.Windows.Data;
 
     /// <summary>
-    /// Converts DataTypes to an icon format readily usable by the view.
+    /// Converts ScannableTypes to an icon format readily usable by the view.
     /// </summary>
     public class DataTypeToIconConverter : IValueConverter
     {
@@ -28,36 +28,48 @@
 
             if (value is Type)
             {
-                value = new DataType(value as Type);
+                value = new ScannableType(value as Type);
             }
 
             switch (value)
             {
-                case DataType type when type == DataType.Byte:
+                case ScannableType type when type == ScannableType.Byte:
                     return Images.PurpleBlocks1;
-                case DataType type when type == DataType.Char:
+                case ScannableType type when type == ScannableType.Char:
                     return Images.PurpleBlocks1;
-                case DataType type when type == DataType.SByte:
+                case ScannableType type when type == ScannableType.SByte:
                     return Images.BlueBlocks1;
-                case DataType type when type == DataType.Int16:
+                case ScannableType typeBE when typeBE == ScannableType.Int16BE:
+                case ScannableType type when type == ScannableType.Int16:
                     return Images.BlueBlocks2;
-                case DataType type when type == DataType.Int32:
+                case ScannableType typeBE when typeBE == ScannableType.Int32BE:
+                case ScannableType type when type == ScannableType.Int32:
                     return Images.BlueBlocks4;
-                case DataType type when type == DataType.Int64:
+                case ScannableType typeBE when typeBE == ScannableType.Int64BE:
+                case ScannableType type when type == ScannableType.Int64:
                     return Images.BlueBlocks8;
-                case DataType type when type == DataType.UInt16:
+                case ScannableType typeBE when typeBE == ScannableType.UInt16BE:
+                case ScannableType type when type == ScannableType.UInt16:
                     return Images.PurpleBlocks2;
-                case DataType type when type == DataType.UInt32:
+                case ScannableType typeBE when typeBE == ScannableType.UInt32BE:
+                case ScannableType type when type == ScannableType.UInt32:
                     return Images.PurpleBlocks4;
-                case DataType type when type == DataType.UInt64:
+                case ScannableType typeBE when typeBE == ScannableType.UInt64BE:
+                case ScannableType type when type == ScannableType.UInt64:
                     return Images.PurpleBlocks8;
-                case DataType type when type == DataType.Single:
+                case ScannableType typeBE when typeBE == ScannableType.SingleBE:
+                case ScannableType type when type == ScannableType.Single:
                     return Images.OrangeBlocks4;
-                case DataType type when type == DataType.Double:
+                case ScannableType typeBE when typeBE == ScannableType.DoubleBE:
+                case ScannableType type when type == ScannableType.Double:
                     return Images.OrangeBlocks8;
-                case DataType type when type == DataType.IntPtr:
+                case ByteArrayType _:
+                    return Images.BlueBlocksArray;
+                case ScannableType type when type == ScannableType.String:
+                    return Images.LetterS;
+                case ScannableType type when type == ScannableType.IntPtr:
                     return !Environment.Is64BitProcess ? Images.BlueBlocks4 : Images.BlueBlocks8;
-                case DataType type when type == DataType.UIntPtr:
+                case ScannableType type when type == ScannableType.UIntPtr:
                     return !Environment.Is64BitProcess ? Images.PurpleBlocks4 : Images.PurpleBlocks8;
                 default:
                     return null;

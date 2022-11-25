@@ -1,20 +1,17 @@
 ﻿namespace Squalr.View
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Utils;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Source.Controls;
-    using Squalr.Source.Results;
     using Squalr.Source.Scanning;
     using System;
     using System.ComponentModel;
-    using System.Threading.Tasks;
     using System.Windows.Controls;
 
     /// <summary>
     /// Interaction logic for PointerScanner.xaml.
     /// </summary>
-    internal partial class PointerScanner : UserControl, IResultDataTypeObserver
+    public partial class PointerScanner : UserControl
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualScanner"/> class.
@@ -26,24 +23,22 @@
             this.PointerScanAddressHexDecBoxViewModel = this.PointerScanAddressHexDecBox.DataContext as HexDecBoxViewModel;
             this.PointerScanAddressHexDecBoxViewModel.PropertyChanged += PointerScanAddressHexDecBoxViewModelPropertyChanged;
             this.PointerScanAddressHexDecBoxViewModel.IsHex = true;
-            this.PointerScanAddressHexDecBoxViewModel.DataType = DataType.UInt64;
+            this.PointerScanAddressHexDecBoxViewModel.DataType = ScannableType.UInt64;
 
             this.PointerRetargetAddressHexDecBoxViewModel = this.PointerRetargetAddressHexDecBox.DataContext as HexDecBoxViewModel;
             this.PointerRetargetAddressHexDecBoxViewModel.PropertyChanged += PointerRetargetAddressHexDecBoxViewModelPropertyChanged;
             this.PointerRetargetAddressHexDecBoxViewModel.IsHex = true;
-            this.PointerRetargetAddressHexDecBoxViewModel.DataType = DataType.Int32;
+            this.PointerRetargetAddressHexDecBoxViewModel.DataType = ScannableType.Int32;
 
             this.DepthHexDecBoxViewModel = this.DepthHexDecBox.DataContext as HexDecBoxViewModel;
             this.DepthHexDecBoxViewModel.PropertyChanged += DepthHexDecBoxViewModelPropertyChanged;
-            this.DepthHexDecBoxViewModel.DataType = DataType.Int32;
+            this.DepthHexDecBoxViewModel.DataType = ScannableType.Int32;
             this.DepthHexDecBoxViewModel.SetValue(PointerScannerViewModel.DefaultPointerScanDepth);
 
             this.PointerRadiusHexDecBoxViewModel = this.PointerRadiusHexDecBox.DataContext as HexDecBoxViewModel;
             this.PointerRadiusHexDecBoxViewModel.PropertyChanged += PointerRadiusHexDecBoxViewModelPropertyChanged;
-            this.PointerRadiusHexDecBoxViewModel.DataType = DataType.Int32;
+            this.PointerRadiusHexDecBoxViewModel.DataType = ScannableType.Int32;
             this.PointerRadiusHexDecBoxViewModel.SetValue(PointerScannerViewModel.DefaultPointerScanRadius);
-
-            Task.Run(() => PointerScanResultsViewModel.GetInstance().Subscribe(this));
         }
 
         private void PointerScanAddressHexDecBoxViewModelPropertyChanged(Object sender, PropertyChangedEventArgs args)
@@ -81,7 +76,7 @@
             if (args.PropertyName == nameof(HexDecBoxViewModel.Text))
             {
                 Object value = this.DepthHexDecBoxViewModel.GetValue();
-                Int32 realValue = value == null ? 0 : (Int32)Conversions.ParsePrimitiveStringAsPrimitive(DataType.Int32, value.ToString());
+                Int32 realValue = value == null ? 0 : (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, value.ToString());
 
                 if (this.DepthHexDecBoxViewModel.IsValid)
                 {
@@ -97,7 +92,7 @@
             if (args.PropertyName == nameof(HexDecBoxViewModel.Text))
             {
                 Object value = this.PointerRadiusHexDecBoxViewModel.GetValue();
-                this.PointerScannerViewModel.SetPointerRadiusCommand.Execute(value == null ? 0 : Conversions.ParsePrimitiveStringAsPrimitive(DataType.Int32, value.ToString()));
+                this.PointerScannerViewModel.SetPointerRadiusCommand.Execute(value == null ? 0 : Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, value.ToString()));
             }
         }
 
@@ -136,7 +131,7 @@
         /// Updates the active type.
         /// </summary>
         /// <param name="activeType">The new active type.</param>
-        public void Update(DataType activeType)
+        public void Update(ScannableType activeType)
         {
             this.PointerRetargetAddressHexDecBoxViewModel.DataType = activeType;
         }

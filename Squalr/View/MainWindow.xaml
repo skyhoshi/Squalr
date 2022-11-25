@@ -3,29 +3,29 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:Controls="clr-namespace:Squalr.View.Controls"
-    xmlns:avalonDock="clr-namespace:Squalr.Theme;assembly=Squalr.Theme"
+    xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
     xmlns:content="clr-namespace:Squalr.Content"
     xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters"
     xmlns:coreView="clr-namespace:Squalr.View"
     xmlns:docking="clr-namespace:Squalr.Source.Docking"
-    xmlns:intr="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-    xmlns:layout="clr-namespace:Squalr.Theme.Layout;assembly=Squalr.Theme"
-    xmlns:layoutControls="clr-namespace:Squalr.Theme.Controls;assembly=Squalr.Theme"
+    xmlns:intr="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:layout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+    xmlns:layoutControls="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
     xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:theme="clr-namespace:Squalr.Theme.Themes;assembly=Squalr.Theme"
-    xmlns:types="clr-namespace:Squalr.Engine.DataTypes;assembly=Squalr.Engine"
+    xmlns:types="clr-namespace:Squalr.Engine.Common;assembly=Squalr.Engine.Common"
     xmlns:view="clr-namespace:Squalr.View"
     x:Name="SqualrWindow"
     Title="Squalr"
     Width="1280"
     Height="840"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     AllowsTransparency="False"
     DataContext="{Binding MainViewModel, Source={StaticResource ViewModelLocator}}"
     WindowStyle="None">
     <shell:Window.Resources>
         <converters:ConstraintToIconConverter x:Key="ConstraintToIconConverter" />
         <converters:IconConverter x:Key="IconConverter" />
+        <converters:ProcessNameConverter x:Key="ProcessNameConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter
             x:Key="BooleanToHiddenConverter"
@@ -155,14 +155,17 @@
                         <shell:MenuItem
                             BorderThickness="0"
                             Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}"
+                            Style="{Binding .}"
                             Header="Select Project"
-                            Style="{Binding}" />
+                             />
+                        <shell:Separator />
                         <shell:MenuItem
                             BorderThickness="0"
                             Command="{Binding MainViewModel.CloseCommand}"
                             CommandParameter="{Binding ElementName=SqualrWindow}"
-                            Header="Exit"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                            Header="Exit Squalr"
+                             />
                     </shell:MenuItem>
 
                     <!--  Edit Header  -->
@@ -171,7 +174,8 @@
                             Header="Settings"
                             IsCheckable="True"
                             IsChecked="{Binding SettingsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                     </shell:MenuItem>
 
                     <!--  Layout Header  -->
@@ -179,8 +183,8 @@
                         <shell:MenuItem
                             Command="{Binding MainViewModel.ResetLayoutCommand}"
                             CommandParameter="{Binding ., ElementName=dockManager}"
-                            Header="Reset Layout"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                            Header="Reset Layout"/>
                     </shell:MenuItem>
 
                     <!--  Windows Header  -->
@@ -189,42 +193,55 @@
                             Header="Process Selector"
                             IsCheckable="True"
                             IsChecked="{Binding ProcessSelectorViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"/>
                         <shell:MenuItem
                             Header="Project Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding ProjectExplorerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Property Viewer"
                             IsCheckable="True"
                             IsChecked="{Binding PropertyViewerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Output"
                             IsCheckable="True"
                             IsChecked="{Binding OutputViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
+                        <shell:MenuItem
+                            Header="Memory Viewer"
+                            IsCheckable="True"
+                            IsChecked="{Binding MemoryViewerViewModel.IsVisible, Mode=TwoWay}"
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding ScanResultsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Pointer Scan Results"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScanResultsViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Snapshot Manager"
                             IsCheckable="True"
                             IsChecked="{Binding SnapshotManagerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header=".Net Explorer"
                             IsCheckable="True"
                             IsChecked="{Binding DotNetExplorerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                     </shell:MenuItem>
 
                     <!--  Scans Header  -->
@@ -233,25 +250,15 @@
                             Header="Change Counter"
                             IsCheckable="True"
                             IsChecked="{Binding ChangeCounterViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}"
-                            Visibility="Collapsed" />
-                        <shell:MenuItem
-                            Header="Input Correlator"
-                            IsCheckable="True"
-                            IsChecked="{Binding InputCorrelatorViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
-                        <shell:MenuItem
-                            Header="Label Thresholder"
-                            IsCheckable="True"
-                            IsChecked="{Binding LabelThresholderViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}"
+                            Style="{Binding .}"
                             Visibility="Collapsed" />
                         <shell:Separator />
                         <shell:MenuItem
                             Header="Pointer Scanner"
                             IsCheckable="True"
                             IsChecked="{Binding PointerScannerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                     </shell:MenuItem>
 
                     <!--  Debugger  -->
@@ -260,12 +267,14 @@
                             Header="Disassembly"
                             IsCheckable="True"
                             IsChecked="{Binding DisassemblyViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                         <shell:MenuItem
                             Header="Code Tracer"
                             IsCheckable="True"
                             IsChecked="{Binding CodeTracerViewModel.IsVisible, Mode=TwoWay}"
-                            Style="{Binding}" />
+                            Style="{Binding .}"
+                             />
                     </shell:MenuItem>
                 </shell:Menu>
             </shell:Grid>
@@ -285,7 +294,7 @@
                         </shell:MenuItem.Header>
                     </shell:MenuItem>
                     <shell:Separator Style="{DynamicResource VerticalSeparator}" />
-                    <shell:MenuItem Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}" ToolTip="Select Project">
+                    <shell:MenuItem Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}" ToolTip="Open Project Folder...">
                         <shell:MenuItem.Header>
                             <shell:Image
                                 Width="16"
@@ -313,11 +322,11 @@
                                     Width="16"
                                     Height="16"
                                     Margin="0,0,6,0"
-                                    Source="{Binding Path=Icon, Converter={StaticResource IconConverter}}" />
+                                    Source="{Binding Path=., Converter={StaticResource IconConverter}}" />
                                 <shell:TextBlock
                                     Grid.Column="1"
                                     Foreground="{StaticResource SqualrColorWhite}"
-                                    Text="{Binding Path=ProcessName}" />
+                                    Text="{Binding Path=., Converter={StaticResource ProcessNameConverter}}" />
                             </shell:Grid>
                         </shell:DataTemplate>
                     </shell:ComboBox.ItemTemplate>
@@ -359,7 +368,7 @@
                                                 Padding="4,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Foreground="{StaticResource SqualrColorWhite}"
-                                                Text="{Binding ActiveTypeName}" />
+                                                Text="{Binding ScanResultsViewModel.ActiveTypeName, Source={StaticResource ViewModelLocator}}" />
                                             <shell:Grid
                                                 x:Name="ArrowGlyph"
                                                 Grid.Column="1"
@@ -374,196 +383,444 @@
                                             </shell:Grid>
                                         </shell:StackPanel>
                                     </shell:MenuItem.Header>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.SByte}"
-                                        Style="{Binding}"
-                                        ToolTip="1 Byte Signed Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Byte}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="0"
+                                            ToolTip="1 Byte Unsigned Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
                                                     Width="16"
                                                     Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.SByte}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
-                                                    Padding="4,0,0,0"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="SByte" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Int16}"
-                                        Style="{Binding}"
-                                        ToolTip="2 Byte Signed Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
-                                                    Width="16"
-                                                    Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int16}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
-                                                    Padding="4,0,0,0"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="Int16" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Int32}"
-                                        Style="{Binding}"
-                                        ToolTip="4 Byte Signed Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
-                                                    Width="16"
-                                                    Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int32}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
-                                                    Padding="4,0,0,0"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="Int32" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Int64}"
-                                        Style="{Binding}"
-                                        ToolTip="8 Byte Signed Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
-                                                    Width="16"
-                                                    Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int64}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
-                                                    Padding="4,0,0,0"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="Int64" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Byte}"
-                                        Style="{Binding}"
-                                        ToolTip="1 Byte Unsigned Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
-                                                    Width="16"
-                                                    Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Byte}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Byte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
                                                     Padding="4,0,0,0"
                                                     Background="Transparent"
                                                     Foreground="{StaticResource SqualrColorWhite}"
                                                     Text="Byte" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.UInt16}"
-                                        Style="{Binding}"
-                                        ToolTip="2 Byte Unsigned Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.SByte}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="0"
+                                            ToolTip="1 Byte Signed Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.SByte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="SByte" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int16}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="1"
+                                            ToolTip="2 Byte Signed Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
                                                     Width="16"
                                                     Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt16}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int16" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int16BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="1"
+                                            ToolTip="2 Byte Signed Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int16BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int16 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int32}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="2"
+                                            ToolTip="4 Byte Signed Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int32" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int32BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="2"
+                                            ToolTip="4 Byte Signed Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int32BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int32 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int64}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="3"
+                                            ToolTip="8 Byte Signed Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int64" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Int64BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="3"
+                                            ToolTip="8 Byte Signed Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int64BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int64 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt16}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="5"
+                                            ToolTip="2 Byte Unsigned Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
                                                     Padding="4,0,0,0"
                                                     Background="Transparent"
                                                     Foreground="{StaticResource SqualrColorWhite}"
                                                     Text="UInt16" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.UInt32}"
-                                        Style="{Binding}"
-                                        ToolTip="4 Byte Unsigned Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt16BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="5"
+                                            ToolTip="2 Byte Unsigned Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
                                                     Width="16"
                                                     Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt32}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt16BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="UInt16 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt32}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="6"
+                                            ToolTip="4 Byte Unsigned Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
                                                     Padding="4,0,0,0"
                                                     Background="Transparent"
                                                     Foreground="{StaticResource SqualrColorWhite}"
                                                     Text="UInt32" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.UInt64}"
-                                        Style="{Binding}"
-                                        ToolTip="8 Byte Unsigned Integer">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt32BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="6"
+                                            ToolTip="4 Byte Unsigned Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
                                                     Width="16"
                                                     Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt64}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt32BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="UInt32 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt64}"
+                                            Style="{Binding .}"
+                                            Grid.Column="0"
+                                            Grid.Row="7"
+                                            ToolTip="8 Byte Unsigned Integer">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
                                                     Padding="4,0,0,0"
                                                     Background="Transparent"
                                                     Foreground="{StaticResource SqualrColorWhite}"
                                                     Text="UInt64" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Single}"
-                                        Style="{Binding}"
-                                        ToolTip="Single Precision Floating Point Value">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.UInt64BE}"
+                                            Style="{Binding .}"
+                                            Grid.Column="1"
+                                            Grid.Row="7"
+                                            ToolTip="8 Byte Unsigned Integer (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
                                                     Width="16"
                                                     Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Single}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
+                                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt64BE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
                                                     Padding="4,0,0,0"
                                                     Background="Transparent"
                                                     Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="Single" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
-                                    <shell:MenuItem
-                                        Command="{Binding ChangeTypeCommand}"
-                                        CommandParameter="{x:Static types:DataType.Double}"
-                                        Style="{Binding}"
-                                        ToolTip="Double Precision Floating Point Value">
-                                        <shell:MenuItem.Header>
-                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
-                                                <shell:Image
-                                                    Width="16"
-                                                    Height="16"
-                                                    Source="{Binding ConverterParameter={x:Static types:DataType.Double}, Converter={StaticResource DataTypeToIconConverter}}" />
-                                                <shell:TextBlock
-                                                    Padding="4,0,0,0"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource SqualrColorWhite}"
-                                                    Text="Double" />
-                                            </shell:WrapPanel>
-                                        </shell:MenuItem.Header>
-                                    </shell:MenuItem>
+                                                    Text="UInt64 (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Single}"
+                                            Style="{Binding .}"
+                                            Grid.Row="8"
+                                            ToolTip="Single Precision Floating Point Value">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.Single}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="Single" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.SingleBE}"
+                                            Style="{Binding .}"
+                                            Grid.Row="8"
+                                            Grid.Column="1"
+                                            ToolTip="Single Precision Floating Point Value (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.SingleBE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="Single (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.Double}"
+                                            Style="{Binding .}"
+                                            Grid.Row="9"
+                                            ToolTip="Double Precision Floating Point Value">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.Double}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="Double" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.DoubleBE}"
+                                            Style="{Binding .}"
+                                            Grid.Row="9"
+                                            Grid.Column="1"
+                                            ToolTip="Double Precision Floating Point Value (Big Endian)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.DoubleBE}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="Double (BE)" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.NullByteArray}"
+                                            Style="{Binding .}"
+                                            Grid.Row="10"
+                                            Grid.Column="0"
+                                            ToolTip="Array of bytes. Use x or * for wildcard bytes.">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.NullByteArray}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="Byte[ ]" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                        <shell:MenuItem
+                                            Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                            CommandParameter="{x:Static types:ScannableType.String}"
+                                            Style="{Binding .}"
+                                            Grid.Row="10"
+                                            Grid.Column="1"
+                                            ToolTip="Text in supported encodings (ASCII, UTF-8)">
+                                            <shell:MenuItem.Header>
+                                                <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                    <shell:Image
+                                                        Width="16"
+                                                        Height="16"
+                                                        Source="{Binding ConverterParameter={x:Static types:ScannableType.String}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                    <shell:TextBlock
+                                                        Padding="4,0,0,0"
+                                                        Background="Transparent"
+                                                        Foreground="{StaticResource SqualrColorWhite}"
+                                                        Text="String" />
+                                                </shell:WrapPanel>
+                                            </shell:MenuItem.Header>
+                                        </shell:MenuItem>
+                                    </Grid>
                                 </shell:MenuItem>
                                 <shell:Separator Style="{DynamicResource VerticalSeparator}" />
                                 <shell:MenuItem Command="{Binding ValueCollectorViewModel.CollectValuesCommand, Source={StaticResource ViewModelLocator}}" ToolTip="Collect Values">
@@ -604,7 +861,7 @@
                                     </shell:MenuItem.Header>
                                     <shell:MenuItem
                                         Command="{Binding SelectChangedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Changed Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -621,7 +878,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectUnchangedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Unchanged Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -638,7 +895,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectIncreasedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Increased Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -655,7 +912,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectDecreasedCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Decreased Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -672,7 +929,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -689,7 +946,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectNotEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Not Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -706,7 +963,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectIncreasedByXCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Increased by Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -723,7 +980,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectDecreasedByXCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Decreased by Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -740,7 +997,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectGreaterThanCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Greater Than Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -757,7 +1014,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectGreaterThanOrEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Greater Than or Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -774,7 +1031,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectLessThanCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Less Than Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -791,7 +1048,7 @@
                                     </shell:MenuItem>
                                     <shell:MenuItem
                                         Command="{Binding SelectLessThanOrEqualCommand}"
-                                        Style="{Binding}"
+                                        
                                         ToolTip="Less Than or Equal to Value">
                                         <shell:MenuItem.Header>
                                             <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
@@ -823,15 +1080,15 @@
                                     Background="{StaticResource SqualrColorGray27}"
                                     BorderBrush="{StaticResource SqualrColorGray35}" />
                                 <shell:Border.InputBindings>
-                                    <shell:KeyBinding Command="{Binding StartScanCommand}" Gesture="Enter" />
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
                                 </shell:Border.InputBindings>
                             </shell:Border>
                             <shell:MenuItem
-                                Command="{Binding StartScanCommand}"
-                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
+                                Focusable="False"
+                                Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}"
                                 ToolTip="Start Scan">
                                 <shell:MenuItem.InputBindings>
-                                    <shell:KeyBinding Command="{Binding StartScanCommand}" Gesture="Enter" />
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
                                 </shell:MenuItem.InputBindings>
                                 <shell:MenuItem.Header>
                                     <shell:Image
@@ -845,17 +1102,13 @@
                 </shell:Grid>
             </shell:WrapPanel>
 
-            <!--  Docking Panel AnchorablesSource="{Binding Tools}"  -->
+            <!--  Docking Panel  -->
             <avalonDock:DockingManager
                 x:Name="dockManager"
                 Grid.Row="3"
                 AnchorablesSource="{Binding DockingViewModel.Tools, Source={StaticResource ViewModelLocator}}"
-                Background="{StaticResource SqualrColorFrame}">
-                <!--  Theme  -->
-                <avalonDock:DockingManager.ThemeBase>
-                    <theme:DarkTheme />
-                </avalonDock:DockingManager.ThemeBase>
-
+                Background="{StaticResource SqualrColorFrame}"
+			    Theme="{Binding DockingViewModel.SelectedTheme.Item2, Source={StaticResource ViewModelLocator}}">
                 <!--  All Dockable Windows  -->
                 <avalonDock:DockingManager.LayoutItemTemplateSelector>
                     <view:ViewTemplateSelector>
@@ -877,18 +1130,6 @@
                                 <view:ChangeCounter />
                             </shell:DataTemplate>
                         </view:ViewTemplateSelector.ChangeCounterViewTemplate>
-                        <!--  Input Correlator  -->
-                        <view:ViewTemplateSelector.InputCorrelatorViewTemplate>
-                            <shell:DataTemplate>
-                                <view:InputCorrelator />
-                            </shell:DataTemplate>
-                        </view:ViewTemplateSelector.InputCorrelatorViewTemplate>
-                        <!--  Label Thresholder  -->
-                        <view:ViewTemplateSelector.LabelThresholderViewTemplate>
-                            <shell:DataTemplate>
-                                <view:LabelThresholder />
-                            </shell:DataTemplate>
-                        </view:ViewTemplateSelector.LabelThresholderViewTemplate>
                         <!--  Pointer Scanner  -->
                         <view:ViewTemplateSelector.PointerScannerViewTemplate>
                             <shell:DataTemplate>
@@ -901,6 +1142,12 @@
                                 <view:SnapshotManager />
                             </shell:DataTemplate>
                         </view:ViewTemplateSelector.SnapshotManagerViewTemplate>
+                        <!--  Memory Viewer  -->
+                        <view:ViewTemplateSelector.MemoryViewerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:MemoryViewer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.MemoryViewerViewTemplate>
                         <!--  Scan Results  -->
                         <view:ViewTemplateSelector.ScanResultsViewTemplate>
                             <shell:DataTemplate>
@@ -974,6 +1221,9 @@
                         </docking:PanesStyleSelector.ToolStyle>
                     </docking:PanesStyleSelector>
                 </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                <avalonDock:DockingManager.LayoutUpdateStrategy>
+                    <coreView:LayoutInitializer />
+                </avalonDock:DockingManager.LayoutUpdateStrategy>
 
                 <!--  Layout Style  -->
                 <layout:LayoutRoot>

@@ -1,11 +1,11 @@
 ﻿namespace Squalr.Source.Docking
 {
     using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.CommandWpf;
+    using GalaSoft.MvvmLight.Command;
     using System;
     using System.Windows;
     using System.Windows.Input;
-    using Squalr.Theme;
+    using AvalonDock;
 
     /// <summary>
     /// The view model for a window that hosts docked windows.

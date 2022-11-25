@@ -1,8 +1,9 @@
 ﻿namespace Squalr.Source.Scanning
 {
-    using GalaSoft.MvvmLight.CommandWpf;
+    using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
+    using Squalr.View;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,7 @@
     /// <summary>
     /// View model for the Change Counter.
     /// </summary>
-    internal class ChangeCounterViewModel : ToolViewModel
+    public class ChangeCounterViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="ChangeCounterViewModel" /> class.
@@ -27,7 +28,7 @@
         {
             this.StartScanCommand = new RelayCommand(() => Task.Run(() => this.StartScan()), () => true);
             this.StopScanCommand = new RelayCommand(() => Task.Run(() => this.StopScan()), () => true);
-            this.ChangeCounterScan = new ChangeCounter(this.ScanCountUpdated);
+            this.ChangeCounterScan = null; // new ChangeCounter(this.ScanCountUpdated);
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
         }
@@ -40,7 +41,8 @@
         {
             get
             {
-                return this.ChangeCounterScan.ScanCount;
+                throw new NotImplementedException();
+               //// return this.ChangeCounterScan.ScanCount;
             }
         }
 
@@ -67,7 +69,8 @@
 
         private void StopScan()
         {
-            this.ChangeCounterScan.Stop();
+            throw new NotImplementedException();
+            ////this.ChangeCounterScan.Stop();
         }
     }
     //// End class

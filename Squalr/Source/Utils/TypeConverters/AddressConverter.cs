@@ -1,10 +1,10 @@
 ﻿namespace Squalr.Source.Utils.TypeConverters
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Utils;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
     using System.Globalization;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Address type converter for use in the property viewer.
@@ -21,9 +21,9 @@
         /// <returns>The converted value.</returns>
         public override Object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, Object value, Type destinationType)
         {
-            if (SyntaxChecker.CanParseValue(DataType.UInt64, value?.ToString()))
+            if (SyntaxChecker.CanParseValue(ScannableType.UInt64, value?.ToString()))
             {
-                return Conversions.ToHex(Conversions.ParsePrimitiveStringAsPrimitive(DataType.UInt64, value?.ToString()), formatAsAddress: true, includePrefix: false);
+                return Conversions.ToHex(Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.UInt64, value?.ToString()), formatAsAddress: true, includePrefix: false);
             }
 
             return base.ConvertTo(context, culture, value, destinationType);
@@ -38,12 +38,15 @@
         /// <returns>The converted value.</returns>
         public override Object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
         {
-            if (SyntaxChecker.CanParseAddress(value?.ToString()))
+            String valueAsStr = value?.ToString() ?? String.Empty;
+            valueAsStr = Regex.Replace(valueAsStr, @"\s+", "");
+
+            if (SyntaxChecker.CanParseAddress(valueAsStr))
             {
-                return Conversions.AddressToValue(value?.ToString());
+                return Conversions.AddressToValue(valueAsStr);
             }
 
-            return base.ConvertFrom(context, culture, value);
+            return null;
         }
 
         /// <summary>
@@ -54,7 +57,7 @@
         /// <returns>True if this converter can convert to the given type.</returns>
         public override Boolean CanConvertTo(ITypeDescriptorContext context, Type sourceType)
         {
-            return sourceType == DataType.IntPtr || sourceType == DataType.UInt64;
+            return sourceType == ScannableType.IntPtr || sourceType == ScannableType.UInt64;
         }
 
         /// <summary>

@@ -1,12 +1,14 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.TrackableTask;
+    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Collect values for a given snapshot. The values are assigned to a new snapshot.
@@ -18,7 +20,7 @@
         /// </summary>
         private const String Name = "Value Collector";
 
-        public static TrackableTask<Snapshot> CollectValues(Snapshot snapshot, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, bool withLogging = true)
         {
             try
             {
@@ -30,6 +32,11 @@
                         {
                             Int32 processedRegions = 0;
 
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Info, "Reading values from memory...");
+                            }
+
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
@@ -38,43 +45,64 @@
 
                             // Read memory to get current values for each region
                             Parallel.ForEach(
-                                    snapshot.OptimizedReadGroups,
-                                    options,
-                                    (readGroup) =>
+                                snapshot.OptimizedReadGroups,
+                                options,
+                                (readGroup) =>
+                                {
+                                    // Check for canceled scan
+                                    cancellationToken.ThrowIfCancellationRequested();
+
+                                    // Read the memory for this region
+                                    readGroup.ReadAllMemory(process);
+
+                                    // Update progress every N regions
+                                    if (Interlocked.Increment(ref processedRegions) % 32 == 0)
                                     {
-                                        // Check for canceled scan
-                                        cancellationToken.ThrowIfCancellationRequested();
+                                        updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
+                                    }
+                                });
 
-                                        // Read the memory for this region
-                                        readGroup.ReadAllMemory();
-
-                                        // Update progress every N regions
-                                        if (Interlocked.Increment(ref processedRegions) % 32 == 0)
-                                        {
-                                            updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
-                                        }
-                                    });
-
+                            // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
+
                             stopwatch.Stop();
-                            Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
-                            return snapshot;
+                            snapshot.ComputeElementCount(ScannableType.Byte.Size);
+
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
+                                Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                            }
+
+                                return snapshot;
                         }
                         catch (OperationCanceledException ex)
                         {
-                            Logger.Log(LogLevel.Warn, "Scan canceled", ex);
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Warn, "Scan canceled", ex);
+                            }
+
                             return null;
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error, "Error performing scan", ex);
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Error, "Error performing scan", ex);
+                            }
+
                             return null;
                         }
                     }, cancellationToken));
             }
             catch (TaskConflictException ex)
             {
-                Logger.Log(LogLevel.Warn, "Unable to start scan. Scan is already queued.");
+                if (withLogging)
+                {
+                    Logger.Log(LogLevel.Warn, "Unable to start scan. Scan is already queued.");
+                }
+
                 throw ex;
             }
         }

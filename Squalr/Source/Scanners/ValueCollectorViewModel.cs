@@ -1,12 +1,11 @@
 ﻿namespace Squalr.Source.Scanning
 {
     using GalaSoft.MvvmLight;
-    using GalaSoft.MvvmLight.CommandWpf;
-    using Squalr.Engine;
-    using Squalr.Engine.DataTypes;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Snapshots;
-    using Squalr.Source.Results;
+    using Squalr.Source.ScanResults;
     using Squalr.Source.Tasks;
     using System;
     using System.Threading;
@@ -16,7 +15,7 @@
     /// <summary>
     /// Collect values for the current snapshot, or a new one if none exists. The values are then assigned to a new snapshot.
     /// </summary>
-    internal class ValueCollectorViewModel : ViewModelBase
+    public class ValueCollectorViewModel : ViewModelBase
     {
         /// <summary>
         /// Singleton instance of the <see cref="ValueCollectorViewModel" /> class.
@@ -52,14 +51,14 @@
         /// </summary>
         private void CollectValues()
         {
-            DataType dataType = ScanResultsViewModel.GetInstance().ActiveType;
-
             TrackableTask<Snapshot> valueCollectTask = ValueCollector.CollectValues(
-                SnapshotManager.GetSnapshot(Snapshot.SnapshotRetrievalMode.FromActiveSnapshotOrPrefilter, dataType),
-                TrackableTask.UniversalIdentifier);
+                SessionManager.Session?.OpenedProcess,
+                SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
+                TrackableTask.UniversalIdentifier
+            );
 
             TaskTrackerViewModel.GetInstance().TrackTask(valueCollectTask);
-            SnapshotManager.SaveSnapshot(valueCollectTask.Result);
+            SessionManager.Session.SnapshotManager.SaveSnapshot(valueCollectTask.Result);
         }
     }
     //// End class

@@ -1,10 +1,11 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
     using SharpDX.DirectInput;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Input.HotKeys;
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.Projects.Properties;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Processes;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
@@ -41,13 +42,6 @@
         protected String description;
 
         /// <summary>
-        /// The unique identifier of this project item.
-        /// </summary>
-        [Browsable(false)]
-        [DataMember]
-        protected Guid guid;
-
-        /// <summary>
         /// The hotkey associated with this project item.
         /// </summary>
         [Browsable(false)]
@@ -59,10 +53,15 @@
         [Browsable(false)]
         protected Boolean isActivated;
 
+        [Browsable(false)]
+        protected ProcessSession processSession;
+
+        private DirectoryItem parent;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
         /// </summary>
-        internal ProjectItem() : this( String.Empty)
+        internal ProjectItem(ProcessSession processSession) : this(processSession, String.Empty)
         {
         }
 
@@ -70,17 +69,16 @@
         /// Initializes a new instance of the <see cref="ProjectItem" /> class.
         /// </summary>
         /// <param name="name">The name of the project item.</param>
-        internal ProjectItem(String name)
+        internal ProjectItem(ProcessSession processSession, String name)
         {
             // Bypass setters/getters to avoid triggering any view updates in constructor
+            this.processSession = processSession;
             this.name = name ?? String.Empty;
             this.isActivated = false;
-            this.guid = Guid.NewGuid();
             this.ActivationLock = new Object();
-            this.IsFileAssociated = false;
         }
 
-        public static ProjectItem FromFile(String filePath, DirectoryItem parent)
+        public static ProjectItem FromFile(ProcessSession processSession, String filePath, DirectoryItem parent)
         {
             try
             {
@@ -89,11 +87,16 @@
                     throw new Exception("File does not exist: " + filePath);
                 }
 
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
+                    if (fileStream.Length == 0)
+                    {
+                        return null;
+                    }
+
                     Type type = null;
 
-                    switch ((new FileInfo(filePath).Extension).ToLower())
+                    switch (new FileInfo(filePath).Extension.ToLower())
                     {
                         case ScriptItem.Extension:
                             type = typeof(ScriptItem);
@@ -117,9 +120,11 @@
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(type);
 
                     ProjectItem projectItem = serializer.ReadObject(fileStream) as ProjectItem;
+
+                    // Bypass setters to avoid triggering write-back to disk
                     projectItem.name = Path.GetFileNameWithoutExtension(filePath);
-                    projectItem.Parent = parent;
-                    projectItem.IsFileAssociated = true;
+                    projectItem.parent = parent;
+                    projectItem.processSession = processSession;
 
                     return projectItem;
                 }
@@ -138,19 +143,41 @@
         {
             try
             {
-                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write))
+                using (FileStream fileStream = new FileStream(this.FullPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
                 {
                     DataContractJsonSerializer serializer = new DataContractJsonSerializer(this.GetType());
                     serializer.WriteObject(fileStream, this);
-
-                    this.IsFileAssociated = true;
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Error saving file", ex);
-                throw ex;
             }
+        }
+
+        private void Rename(String newName)
+        {
+            if (!this.HasAssociatedFileOrFolder || this.Name.Equals(newName, StringComparison.OrdinalIgnoreCase))
+            {
+                this.name = newName;
+                return;
+            }
+
+            newName = this.MakeNameUnique(newName);
+            String newPath = this.GetFilePathForName(newName);
+
+            // Attempt to move the existing associated file if possible
+            try
+            {
+                File.Move(this.FullPath, newPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error moving existing project file during rename. The old file may still exist.", ex);
+            }
+
+            this.name = newName;
+            this.Save();
         }
 
         /// <summary>
@@ -159,12 +186,43 @@
         public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
-        /// Gets or sets the parent of this project item.
+        /// Gets or sets the parent of this project item. This is also used to determine if this project item exists on disk.
         /// </summary>
-        public DirectoryItem Parent { get; set; }
+        public DirectoryItem Parent
+        {
+            get
+            {
+                return parent;
+            }
+
+            set
+            {
+                this.parent = value;
+
+                // Bypass normal setter to avoid calling rename logic
+                this.name = this.MakeNameUnique(this.Name);
+                this.RaisePropertyChanged(nameof(this.Name));
+            }
+        }
 
         /// <summary>
-        /// Gets or sets the description for this object.
+        /// A view that has been mapped onto this item. This is an abstraction violation, but a useful optimization.
+        /// </summary>
+        public Object MappedView { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether this project item is represented on disk.
+        /// </summary>
+        public Boolean HasAssociatedFileOrFolder
+        {
+            get
+            {
+                return this.Parent != null || this as DirectoryItem != null;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the file name for this project item.
         /// </summary>
         public virtual String Name
         {
@@ -175,14 +233,13 @@
 
             set
             {
-                if (this.Name == value || !this.Name.IsValidFileName())
+                if (this.Name == value)
                 {
                     return;
                 }
 
-                this.name = this.ResolvePotentialNameConflict(this.Name, value);
+                this.Rename(value);
                 this.RaisePropertyChanged(nameof(this.Name));
-                this.Save();
             }
         }
 
@@ -229,30 +286,6 @@
                 this.hotkey = value;
                 this.HotKey?.SetCallBackFunction(() => this.IsActivated = !this.IsActivated);
                 this.RaisePropertyChanged(nameof(this.HotKey));
-                this.Save();
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the unique identifier of this project item.
-        /// </summary>
-        [Browsable(false)]
-        public Guid Guid
-        {
-            get
-            {
-                return this.guid;
-            }
-
-            set
-            {
-                if (this.guid == value)
-                {
-                    return;
-                }
-
-                this.guid = value;
-                this.RaisePropertyChanged(nameof(this.Guid));
                 this.Save();
             }
         }
@@ -328,7 +361,7 @@
         {
             get
             {
-                return this.GetFilePathForName(this.Name);
+                return this.HasAssociatedFileOrFolder ? this.GetFilePathForName(this.Name) : this.Name;
             }
         }
 
@@ -339,11 +372,6 @@
         {
             return String.Empty;
         }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether a file on disk is associated with this project item.
-        /// </summary>
-        private Boolean IsFileAssociated { get; set; }
 
         /// <summary>
         /// Gets or sets a lock for activating project items.
@@ -357,11 +385,6 @@
         [OnDeserialized]
         public void OnDeserialized(StreamingContext streamingContext)
         {
-            if (this.Guid == null || this.Guid == Guid.Empty)
-            {
-                this.guid = Guid.NewGuid();
-            }
-
             this.ActivationLock = new Object();
         }
 
@@ -376,22 +399,26 @@
         /// Clones the project item.
         /// </summary>
         /// <returns>The clone of the project item.</returns>
-        public virtual ProjectItem Clone()
+        public virtual ProjectItem Clone(bool rename)
         {
-            Byte[] serializedProjectItem;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ProjectItem));
-
-            // Serialize this project item
-            using (MemoryStream memoryStream = new MemoryStream())
+            // Serialize this project item to a byte array
+            using (MemoryStream serializeMemoryStream = new MemoryStream())
             {
-                serializer.WriteObject(memoryStream, this);
-                serializedProjectItem = memoryStream.ToArray();
-            }
+                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ProjectItem));
+                serializer.WriteObject(serializeMemoryStream, this);
 
-            // Deserialize this project item to clone it
-            using (MemoryStream memoryStream = new MemoryStream(serializedProjectItem))
-            {
-                return serializer.ReadObject(memoryStream) as ProjectItem;
+                // Deserialize the array to clone the item
+                using (MemoryStream deserializeMemoryStream = new MemoryStream(serializeMemoryStream.ToArray()))
+                {
+                    ProjectItem result = serializer.ReadObject(deserializeMemoryStream) as ProjectItem;
+
+                    if (rename)
+                    {
+                        result.Name = this.MakeNameUnique(this.Name);
+                    }
+
+                    return result;
+                }
             }
         }
 
@@ -409,14 +436,6 @@
         public void Dispose()
         {
             this.HotKey?.Dispose();
-        }
-
-        /// <summary>
-        /// Randomizes the guid of this project item.
-        /// </summary>
-        public void ResetGuid()
-        {
-            this.Guid = Guid.NewGuid();
         }
 
         /// <summary>
@@ -495,49 +514,49 @@
         /// <summary>
         /// Resolves the name conflict for this unassociated project item.
         /// </summary>
-        /// <returns></returns>
-        private String ResolvePotentialNameConflict(String previousName, String newName)
+        /// <returns>The resolved name, which appends a number at the end of the name to ensure uniqueness.</returns>
+        private String MakeNameUnique(String newName)
         {
-            if (this.IsFileAssociated && previousName == newName)
+            if (this.Parent == null || this.Parent.ChildItems == null || !this.HasAssociatedFileOrFolder)
             {
                 return newName;
             }
 
-            String previousFilePath = this.GetFilePathForName(previousName);
             String newFilePath = this.GetFilePathForName(newName);
 
-            if (File.Exists(newFilePath))
+            try
             {
-                try
+                if (this.Parent.ChildItems.Any(childItem => childItem.Value?.Name?.Equals(newName, StringComparison.OrdinalIgnoreCase) ?? false))
                 {
-                    String[] neighboringFiles = Directory.GetFiles(Path.GetDirectoryName(newFilePath));
+                    // Find all files that match the pattern of {newfilename #}, and extract the numbers
+                    IEnumerable<String> numberedSuffixStrings = this.Parent.ChildItems
+                        .Where(childItem => childItem.Value?.Name?.StartsWith(newName, StringComparison.OrdinalIgnoreCase) ?? false)
+                        .Select(childItem => childItem.Value.Name.Substring(newName.Length).Trim());
+                    IEnumerable<Int32> neighboringNumberedFiles = numberedSuffixStrings
+                        .Where(childSuffix => SyntaxChecker.CanParseValue(ScannableType.Int32, childSuffix))
+                        .Select(childSuffix => (Int32)Conversions.ParsePrimitiveStringAsPrimitive(ScannableType.Int32, childSuffix));
 
-                    for (Int32 appendedNumber = 0; appendedNumber < Int32.MaxValue; appendedNumber++)
-                    {
-                        String suffix = (appendedNumber == 0 ? String.Empty : " " + appendedNumber.ToString());
-                        String resolvedName = Path.Combine(ProjectSettings.Default.ProjectRoot, newName + suffix);
+                    Int32 neighboringNumberedFileCount = neighboringNumberedFiles.Count();
+                    IEnumerable<Int32> missingNumbersInSequence = Enumerable.Range(1, neighboringNumberedFileCount).Except(neighboringNumberedFiles);
 
-                        if (neighboringFiles.Contains(resolvedName))
-                        {
-                            continue;
-                        }
+                    // Find the first gap in the numbers. If no gap, just take the next number in the sequence
+                    Int32 numberToAppend = missingNumbersInSequence.IsNullOrEmpty() ? neighboringNumberedFileCount + 1 : missingNumbersInSequence.First();
+                    String suffix = numberToAppend == 0 ? String.Empty : " " + numberToAppend.ToString();
 
-                        // Rename name to resolved name
-                        newName = resolvedName;
-                    }
+                    newName = newName + suffix;
                 }
-                catch (Exception ex)
-                {
-                    Logger.Log(LogLevel.Error, "Error resolving conflicting project name.", ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error resolving conflicting project name.", ex);
             }
 
             return newName;
         }
 
-        private String GetFilePathForName(String fileName)
+        String GetFilePathForName(String name)
         {
-            return Path.Combine((this.Parent?.FullPath ?? ProjectSettings.Default.ProjectRoot), this.Name + this.GetExtension());
+            return Path.Combine(this.Parent?.FullPath ?? ProjectSettings.ProjectRoot, name + this.GetExtension());
         }
     }
     //// End class

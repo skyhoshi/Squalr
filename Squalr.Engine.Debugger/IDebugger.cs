@@ -23,6 +23,18 @@
 
         CancellationTokenSource FindWhatAccesses(UInt64 address, BreakpointSize size, MemoryAccessCallback callback);
 
+        void PauseExecution();
+
+        void ResumeExecution();
+
+        void WriteRegister(UInt32 registerId, UInt64 value);
+
+        UInt64 ReadRegister(UInt32 registerId);
+
+        void WriteInstructionPointer(UInt64 value);
+
+        UInt64 ReadInstructionPointer();
+
         Boolean IsAttached { get; }
 
         /// <summary>

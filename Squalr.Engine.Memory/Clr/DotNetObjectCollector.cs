@@ -1,10 +1,8 @@
 ﻿namespace Squalr.Engine.Memory.Clr
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.OS;
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Reflection;
     using System.Threading;
 
@@ -107,8 +105,9 @@
         {
             ////  this.UpdateInterval = DotNetObjectCollector.PollingTime;
 
+            /*
             Process process = Processes.Default.GetOpenedProcess();
-            /*IProxyService proxyService = proxyCommunicator.GetProxyService(Squalr.Engine.Engine.GetInstance().Processes.IsOpenedProcess32Bit());
+            IProxyService proxyService = proxyCommunicator.GetProxyService(Squalr.Engine.Engine.GetInstance().Processes.IsOpenedProcess32Bit());
 
             if (proxyService == null)
             {
@@ -253,9 +252,9 @@
                 case TypeCode.Boolean:
                     return typeof(Boolean);
                 case TypeCode.Byte:
-                    return DataType.Byte;
+                    return ScannableType.Byte;
                 case TypeCode.Char:
-                    return DataType.Char;
+                    return ScannableType.Char;
                 case TypeCode.DateTime:
                     return typeof(DateTime);
                 case TypeCode.DBNull:
@@ -263,27 +262,27 @@
                 case TypeCode.Decimal:
                     return typeof(Decimal);
                 case TypeCode.Double:
-                    return DataType.Double;
+                    return ScannableType.Double;
                 case TypeCode.Int16:
-                    return DataType.Int16;
+                    return ScannableType.Int16;
                 case TypeCode.Int32:
-                    return DataType.Int32;
+                    return ScannableType.Int32;
                 case TypeCode.Int64:
-                    return DataType.Int64;
+                    return ScannableType.Int64;
                 case TypeCode.Object:
                     return typeof(Object);
                 case TypeCode.SByte:
-                    return DataType.SByte;
+                    return ScannableType.SByte;
                 case TypeCode.Single:
-                    return DataType.Single;
+                    return ScannableType.Single;
                 case TypeCode.String:
-                    return DataType.String;
+                    return ScannableType.String;
                 case TypeCode.UInt16:
-                    return DataType.UInt16;
+                    return ScannableType.UInt16;
                 case TypeCode.UInt32:
-                    return DataType.UInt32;
+                    return ScannableType.UInt32;
                 case TypeCode.UInt64:
-                    return DataType.UInt64;
+                    return ScannableType.UInt64;
                 default:
                     break;
             }

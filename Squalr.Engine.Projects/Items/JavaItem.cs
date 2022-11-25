@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
+    using Squalr.Engine.Processes;
     using System;
     using System.Runtime.Serialization;
 
@@ -11,9 +12,8 @@
         /// </summary>
         public new const String Extension = ".jvm";
 
-        public JavaItem()
+        public JavaItem(ProcessSession processSession) : base(processSession)
         {
-
         }
 
         /// <summary>

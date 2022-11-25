@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.2</LangVersion>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <Version>2.3.1</Version>
     <Description>Squalr engine component for performant memory scanning. Squalr achieves fast memory scanning (often faster than Cheat Engine) by leveraging multi-threaded parallelism along with single core parallelism via SIMD instructions.
 
@@ -24,25 +24,26 @@ Scanners are JIT compiled into SSE, AVX, or AVX-512 instructions via RyuJIT thro
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Squalr.Engine.Input\Squalr.Engine.Input.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Memory\Squalr.Engine.Memory.csproj" />
-    <ProjectReference Include="..\Squalr.Engine\Squalr.Engine.csproj" IncludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\ScanSettings.Designer.cs">
-      <DependentUpon>ScanSettings.settings</DependentUpon>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
       <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\ScanSettings.settings">
-      <LastGenOutput>ScanSettings.Designer.cs</LastGenOutput>
+    <None Update="Properties\Settings.settings">
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
       <Generator>SettingsSingleFileGenerator</Generator>
     </None>
   </ItemGroup>

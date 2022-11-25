@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Memory.Windows.Native
 {
+    using Squalr.Engine.Common.Extensions;
     using System;
     using System.Runtime.InteropServices;
     using static Enumerations;
@@ -173,6 +174,28 @@
             /// Required in the 64 bit struct. Blame Windows
             /// </summary>
             public UInt32 Alignment2;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MemoryWorkSetExBlock
+        {
+            private IntPtr flags;
+
+            public Int64 Flags => flags.ToInt64();
+            public Boolean Valid => Flags.GetBit(0);
+            public Int64 ShareCount => Flags.GetBits(1, 3);
+            public MemoryProtectionFlags Win32Protection => (MemoryProtectionFlags)Flags.GetBits(4, 11);
+            public Boolean Shared => Flags.GetBit(15);
+            public Int64 Node => Flags.GetBits(16, 6);
+            public Boolean Locked => Flags.GetBit(22);
+            public Boolean Bad => Flags.GetBit(31);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MemoryWorkingSetExInformation
+        {
+            public IntPtr VirtualAddress;
+            public MemoryWorkSetExBlock VirtualAttributes;
         }
     }
     //// End class

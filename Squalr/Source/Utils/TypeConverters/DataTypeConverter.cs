@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Source.Utils.TypeConverters
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Utils;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
     using System.Globalization;
@@ -10,7 +9,7 @@
     /// <summary>
     /// Data type converter for use in the property viewer.
     /// </summary>
-    public class DataTypeConverter : StringConverter
+    public class DataTypeConverter : TypeConverter
     {
         /// <summary>
         /// Gets the standard collection of values to display in a drop down.
@@ -19,7 +18,7 @@
         /// <returns>The standard collection of values.</returns>
         public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
         {
-            return new StandardValuesCollection(DataType.GetScannableDataTypes()
+            return new StandardValuesCollection(ScannableType.GetScannableDataTypes()
                 .Select(dataType => Conversions.DataTypeToName(dataType))
                 .ToList());
         }
@@ -43,9 +42,9 @@
         /// <returns>The converted value.</returns>
         public override Object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
         {
-            foreach (DataType type in DataType.GetScannableDataTypes())
+            foreach (ScannableType type in ScannableType.GetScannableDataTypes())
             {
-                if (type == (DataType)null || !(value is String))
+                if (type == (ScannableType)null || !(value is String))
                 {
                     break;
                 }

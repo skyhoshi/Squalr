@@ -6,8 +6,7 @@
     using ICSharpCode.AvalonEdit.Highlighting;
     using ICSharpCode.AvalonEdit.Highlighting.Xshd;
     using Source.Editors.ScriptEditor;
-    using Squalr.Engine.Logging;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common.Logging;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -38,8 +37,8 @@
             this.LoadHightLightRules();
             this.InitializeCompleteionWindow();
             this.ScriptEditorTextEditor.FontFamily = new FontFamily("Consolas");
-            //// this.ScriptEditorTextEditor.TextArea.TextEntering += this.ScriptEditorTextEditorTextAreaTextEntering;
-            //// this.ScriptEditorTextEditor.TextArea.TextEntered += this.ScriptEditorTextEditorTextAreaTextEntered;
+            this.ScriptEditorTextEditor.TextArea.TextEntering += this.ScriptEditorTextEditorTextAreaTextEntering;
+            this.ScriptEditorTextEditor.TextArea.TextEntered += this.ScriptEditorTextEditorTextAreaTextEntered;
             this.ScriptEditorTextEditor.TextChanged += this.ScriptEditorTextEditorTextChanged;
             this.ScriptEditorTextEditor.Text = script ?? String.Empty;
         }
@@ -70,10 +69,10 @@
         /// </summary>
         private void InitializeCompleteionWindow()
         {
-            this.CompletionData = new List<ICompletionData>();
-            this.CompletionData.Add(new AutoCompleteData("Memory"));
-            this.CompletionData.Add(new AutoCompleteData("Engine"));
-            this.CompletionData.Add(new AutoCompleteData("Graphics"));
+          //  this.CompletionData = new List<ICompletionData>();
+           // this.CompletionData.Add(new AutoCompleteData("Memory"));
+          //  this.CompletionData.Add(new AutoCompleteData("Engine"));
+          //  this.CompletionData.Add(new AutoCompleteData("Graphics"));
         }
 
         /// <summary>
@@ -84,7 +83,7 @@
             String highlightingResource = Assembly.GetExecutingAssembly().GetManifestResourceNames()
                 .FirstOrDefault(resourceName => resourceName.EndsWith(ScriptEditor.ScriptSyntaxHighlightingResource));
 
-            if (highlightingResource.IsNullOrEmpty())
+            if (String.IsNullOrEmpty(highlightingResource))
             {
                 Logger.Log(LogLevel.Error, "Unable to load code highlighting rules. Scripts will be affected");
                 return;
@@ -109,7 +108,7 @@
         /// <param name="e">Event args.</param>
         private void ScriptEditorTextEditorTextChanged(Object sender, EventArgs e)
         {
-            this.ScriptEditorViewModel.UpdateScriptCommand.Execute(this.ScriptEditorTextEditor.Text);
+           // this.ScriptEditorViewModel.UpdateScriptCommand.Execute(this.ScriptEditorTextEditor.Text);
         }
 
         /// <summary>
@@ -193,7 +192,7 @@
         /// <param name="e">Event args.</param>
         private void CodeInjectionFileMenuItemClick(Object sender, RoutedEventArgs e)
         {
-            this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetCodeInjectionTemplate() + this.ScriptEditorTextEditor.Text;
+           this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetCodeInjectionTemplate() + this.ScriptEditorTextEditor.Text;
         }
 
         /// <summary>

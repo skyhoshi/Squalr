@@ -47,7 +47,7 @@
                             Grid.Column="0"
                             Width="16"
                             Height="16"
-                            Source="{Binding Path=Icon, Converter={StaticResource IconConverter}}" />
+                            Source="{Binding Path=., Converter={StaticResource IconConverter}}" />
                         <TextBlock
                             Grid.Column="1"
                             Margin="4,0,0,0"

@@ -1,14 +1,16 @@
 ﻿namespace Squalr.View
 {
     using Source.DotNetExplorer;
-    using Source.Results;
+    using Source.ScanResults;
     using Source.Snapshots;
     using Squalr.Properties;
     using Squalr.Source.Debugger;
+    using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.HotkeyEditor;
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.TextEditor;
+    using Squalr.Source.MemoryViewer;
     using Squalr.Source.Output;
     using Squalr.Source.ProcessSelector;
     using Squalr.Source.ProjectExplorer;
@@ -22,7 +24,7 @@
     /// <summary>
     /// Provides the template required to view a pane.
     /// </summary>
-    internal class ViewTemplateSelector : DataTemplateSelector
+    public class ViewTemplateSelector : DataTemplateSelector
     {
         /// <summary>
         /// The template for the Process Selector.
@@ -38,6 +40,11 @@
         /// The template for the Output.
         /// </summary>
         private DataTemplate outputViewTemplate;
+
+        /// <summary>
+        /// The template for the Data Type Editor.
+        /// </summary>
+        private DataTemplate dataTypeEditorViewTemplate;
 
         /// <summary>
         /// The template for the Offset Editor.
@@ -65,16 +72,6 @@
         private DataTemplate changeCounterViewTemplate;
 
         /// <summary>
-        /// The template for the Input Correlator.
-        /// </summary>
-        private DataTemplate inputCorrelatorViewTemplate;
-
-        /// <summary>
-        /// The template for the Label Thresholder.
-        /// </summary>
-        private DataTemplate labelThresholderViewTemplate;
-
-        /// <summary>
         /// The template for the Pointer Scanner.
         /// </summary>
         private DataTemplate pointerScannerViewTemplate;
@@ -83,6 +80,11 @@
         /// The template for the Snapshot Manager.
         /// </summary>
         private DataTemplate snapshotManagerViewTemplate;
+
+        /// <summary>
+        /// The template for the Memory Viewer.
+        /// </summary>
+        private DataTemplate memoryViewerViewTemplate;
 
         /// <summary>
         /// The template for the Scan Results.
@@ -150,6 +152,16 @@
         /// <returns>The template associated with the provided view model.</returns>
         public override DataTemplate SelectTemplate(Object item, DependencyObject container)
         {
+            if (item is ContentPresenter)
+            {
+                Object content = (item as ContentPresenter).Content;
+
+                if (content != null && this.DataTemplates.ContainsKey(content.GetType()))
+                {
+                    return this.DataTemplates[content.GetType()];
+                }
+            }
+
             if (this.DataTemplates.ContainsKey(item.GetType()))
             {
                 return this.DataTemplates[item.GetType()];
@@ -206,6 +218,23 @@
             {
                 this.outputViewTemplate = value;
                 this.DataTemplates[typeof(OutputViewModel)] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the template for the Offset Editor.
+        /// </summary>
+        public DataTemplate DataTypeEditorViewTemplate
+        {
+            get
+            {
+                return this.dataTypeEditorViewTemplate;
+            }
+
+            set
+            {
+                this.dataTypeEditorViewTemplate = value;
+                this.DataTemplates[typeof(DataTypeEditorViewModel)] = value;
             }
         }
 
@@ -312,40 +341,6 @@
         }
 
         /// <summary>
-        /// Gets or sets the template for the Input Correlator.
-        /// </summary>
-        public DataTemplate InputCorrelatorViewTemplate
-        {
-            get
-            {
-                return this.inputCorrelatorViewTemplate;
-            }
-
-            set
-            {
-                this.inputCorrelatorViewTemplate = value;
-                this.DataTemplates[typeof(InputCorrelatorViewModel)] = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the template for the Label Thresholder.
-        /// </summary>
-        public DataTemplate LabelThresholderViewTemplate
-        {
-            get
-            {
-                return this.labelThresholderViewTemplate;
-            }
-
-            set
-            {
-                this.labelThresholderViewTemplate = value;
-                this.DataTemplates[typeof(LabelThresholderViewModel)] = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the template for the Pointer Scanner.
         /// </summary>
         public DataTemplate PointerScannerViewTemplate
@@ -376,6 +371,23 @@
             {
                 this.snapshotManagerViewTemplate = value;
                 this.DataTemplates[typeof(SnapshotManagerViewModel)] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the template for the Memory Viewer.
+        /// </summary>
+        public DataTemplate MemoryViewerViewTemplate
+        {
+            get
+            {
+                return this.memoryViewerViewTemplate;
+            }
+
+            set
+            {
+                this.memoryViewerViewTemplate = value;
+                this.DataTemplates[typeof(MemoryViewerViewModel)] = value;
             }
         }
 

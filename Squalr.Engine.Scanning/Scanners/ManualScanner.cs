@@ -1,17 +1,17 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
-    using Squalr.Engine.Logging;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners.Comparers;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
-    using Squalr.Engine.Utils.Extensions;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.TrackableTask;
+    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// A memory scanning class for classic manual memory scanning techniques.
@@ -30,7 +30,7 @@
         /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
         /// <param name="taskIdentifier">The unique identifier to prevent duplicate tasks.</param>
         /// <returns></returns>
-        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, ConstraintNode constraints, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> Scan(Snapshot snapshot, ScanConstraints constraints, String taskIdentifier = null)
         {
             try
             {
@@ -40,6 +40,8 @@
                     {
                         Snapshot result = null;
 
+                        snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+
                         try
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -48,7 +50,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentBag<IList<SnapshotRegion>> regions = new ConcurrentBag<IList<SnapshotRegion>>();
+                            ConcurrentScanBag resultRegions = new ConcurrentScanBag();
 
                             ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
                             options.CancellationToken = cancellationToken;
@@ -61,17 +63,17 @@
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
-                                    if (!region.ReadGroup.CanCompare(constraints.HasRelativeConstraint()))
+                                    if (!region.ReadGroup.CanCompare(constraints: constraints))
                                     {
                                         return;
                                     }
 
-                                    SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
-                                    IList<SnapshotRegion> results = vectorComparer.Compare();
+                                    ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.CreateScannerInstance(region: region, constraints: constraints);
+                                    IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
 
                                     if (!results.IsNullOrEmpty())
                                     {
-                                        regions.Add(results);
+                                        resultRegions.Add(results);
                                     }
 
                                     // Update progress every N regions
@@ -85,9 +87,12 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(ManualScanner.Name, regions.SelectMany(region => region));
+                            result = new Snapshot(ManualScanner.Name, resultRegions);
+                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
+                            result.ComputeElementCount(constraints.ElementType.Size);
+                            Logger.Log(LogLevel.Info, "Results: " + result.ElementCount + " (" + Conversions.ValueToMetricSize(result.ByteCount) + ")");
                         }
                         catch (OperationCanceledException ex)
                         {

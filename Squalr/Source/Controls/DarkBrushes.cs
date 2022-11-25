@@ -51,7 +51,12 @@
         /// Gray 74 theme color.
         /// </summary>
         public static readonly Color SqualrColorGray74 = Color.FromArgb(0xBD, 0xBD, 0xBD);
-        
+
+        /// <summary>
+        /// Gray 85 theme color.
+        /// </summary>
+        public static readonly Color SqualrColorGray85 = Color.FromArgb(0xD8, 0xD8, 0xD8);
+
         /// <summary>
         /// Theme color for the frames.
         /// </summary>

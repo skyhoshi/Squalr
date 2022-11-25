@@ -7,7 +7,7 @@
     /// <summary>
     /// View model for the Packet Editor.
     /// </summary>
-    internal class PacketEditorViewModel : ToolViewModel
+    public class PacketEditorViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="PacketEditorViewModel" /> class.

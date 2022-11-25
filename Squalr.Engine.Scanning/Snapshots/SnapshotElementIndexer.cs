@@ -1,9 +1,11 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.Utils.Extensions;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using System;
+    using System.Buffers.Binary;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Defines a reference to an element within a snapshot region.
@@ -14,40 +16,21 @@
         /// Initializes a new instance of the <see cref="SnapshotElementIndexer" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="alignment">The memory alignment of the snapshot region being indexed.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(
-            SnapshotRegion region,
-            Int32 elementIndex = 0)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, MemoryAlignment alignment, Int32 elementIndex = 0)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
+            this.Alignment = alignment;
         }
 
         /// <summary>
         /// Gets the base address of this element.
         /// </summary>
-        public UInt64 BaseAddress
+        public UInt64 GetBaseAddress(Int32 dataTypeSize)
         {
-            get
-            {
-                return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * this.Region.ReadGroup.Alignment);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the label associated with this element.
-        /// </summary>
-        public Object ElementLabel
-        {
-            get
-            {
-                return this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-            }
-
-            set
-            {
-                this.Region.ReadGroup.ElementLabels[this.ElementIndex] = value;
-            }
+            return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * dataTypeSize);
         }
 
         /// <summary>
@@ -60,88 +43,74 @@
         /// </summary>
         public Int32 ElementIndex { get; set; }
 
-        public Object LoadCurrentValue()
+        /// <summary>
+        /// Gets or sets the memory alignment of this indexer.
+        /// </summary>
+        public MemoryAlignment Alignment { get; set; }
+
+        public Object LoadCurrentValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
-                switch (this.Region.ReadGroup.ElementDataType)
-                {
-                    case DataType type when type == DataType.Byte:
-                        return *pointerBase;
-                    case DataType type when type == DataType.SByte:
-                        return *(SByte*)pointerBase;
-                    case DataType type when type == DataType.Int16:
-                        return *(Int16*)pointerBase;
-                    case DataType type when type == DataType.Int32:
-                        return *(Int32*)pointerBase;
-                    case DataType type when type == DataType.Int64:
-                        return *(Int64*)pointerBase;
-                    case DataType type when type == DataType.UInt16:
-                        return *(UInt16*)pointerBase;
-                    case DataType type when type == DataType.UInt32:
-                        return *(UInt32*)pointerBase;
-                    case DataType type when type == DataType.UInt64:
-                        return *(UInt64*)pointerBase;
-                    case DataType type when type == DataType.Single:
-                        return *(Single*)pointerBase;
-                    case DataType type when type == DataType.Double:
-                        return *(Double*)pointerBase;
-                    default:
-                        throw new ArgumentException();
-                }
+                return LoadValues(dataType, pointerBase);
             }
         }
 
-        public Object LoadPreviousValue()
+        public Object LoadPreviousValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
-                switch (this.Region.ReadGroup.ElementDataType)
-                {
-                    case DataType type when type == DataType.Byte:
-                        return *pointerBase;
-                    case DataType type when type == DataType.SByte:
-                        return *(SByte*)pointerBase;
-                    case DataType type when type == DataType.Int16:
-                        return *(Int16*)pointerBase;
-                    case DataType type when type == DataType.Int32:
-                        return *(Int32*)pointerBase;
-                    case DataType type when type == DataType.Int64:
-                        return *(Int64*)pointerBase;
-                    case DataType type when type == DataType.UInt16:
-                        return *(UInt16*)pointerBase;
-                    case DataType type when type == DataType.UInt32:
-                        return *(UInt32*)pointerBase;
-                    case DataType type when type == DataType.UInt64:
-                        return *(UInt64*)pointerBase;
-                    case DataType type when type == DataType.Single:
-                        return *(Single*)pointerBase;
-                    case DataType type when type == DataType.Double:
-                        return *(Double*)pointerBase;
-                    default:
-                        throw new ArgumentException();
-                }
+                return LoadValues(dataType, pointerBase);
             }
         }
 
-        /// <summary>
-        /// Gets the label of this element.
-        /// </summary>
-        /// <returns>The label of this element.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Object GetElementLabel()
+        private Object LoadValues(ScannableType dataType, Byte* pointerBase)
         {
-            return this.Region.ReadGroup.ElementLabels == null ? null : this.Region.ReadGroup.ElementLabels[this.ElementIndex];
-        }
-
-        /// <summary>
-        /// Sets the label of this element.
-        /// </summary>
-        /// <param name="newLabel">The new element label.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void SetElementLabel(Object newLabel)
-        {
-            this.Region.ReadGroup.ElementLabels[this.ElementIndex] = newLabel;
+            switch (dataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return *pointerBase;
+                case ScannableType type when type == ScannableType.SByte:
+                    return *(SByte*)pointerBase;
+                case ScannableType type when type == ScannableType.Int16:
+                    return *(Int16*)pointerBase;
+                case ScannableType type when type == ScannableType.Int32:
+                    return *(Int32*)pointerBase;
+                case ScannableType type when type == ScannableType.Int64:
+                    return *(Int64*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return *(UInt16*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return *(UInt32*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return *(UInt64*)pointerBase;
+                case ScannableType type when type == ScannableType.Single:
+                    return *(Single*)pointerBase;
+                case ScannableType type when type == ScannableType.Double:
+                    return *(Double*)pointerBase;
+                case ByteArrayType type:
+                    Byte[] byteArray = new Byte[type.Length];
+                    Marshal.Copy((IntPtr)pointerBase, byteArray, 0, type.Length);
+                    return byteArray;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int16*)pointerBase);
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int32*)pointerBase);
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int64*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt16*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt32*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt64*)pointerBase);
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)pointerBase));
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)pointerBase));
+                default:
+                    throw new ArgumentException();
+            }
         }
 
         /// <summary>

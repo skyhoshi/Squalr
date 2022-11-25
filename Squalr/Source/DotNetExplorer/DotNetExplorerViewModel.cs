@@ -1,8 +1,8 @@
 ﻿namespace Squalr.Source.DotNetExplorer
 {
     using Engine.AddressResolver.DotNet;
-    using GalaSoft.MvvmLight.CommandWpf;
-    using Squalr.Engine.DataTypes;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Memory.Clr;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Docking;
@@ -17,7 +17,7 @@
     /// <summary>
     /// View model for the .Net Explorer.
     /// </summary>
-    internal class DotNetExplorerViewModel : ToolViewModel
+    public class DotNetExplorerViewModel : ToolViewModel
     {
         /// <summary>
         /// Singleton instance of the <see cref="DotNetExplorerViewModel" /> class.
@@ -102,8 +102,9 @@
         {
             DotNetObject dotNetObject = dotNetObjectViewModel.DotNetObject;
             DotNetItem dotnetItem = new DotNetItem(
+                SessionManager.Session,
                 dotNetObject.Name,
-                dotNetObject.ElementType == DataType.Boolean ? DataType.Byte : dotNetObject.ElementType,
+                dotNetObject.ElementType == ScannableType.Boolean ? ScannableType.Byte : dotNetObject.ElementType,
                 dotNetObject.GetFullName());
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(dotnetItem);

@@ -1,31 +1,40 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Templates\**" />
+    <EmbeddedResource Remove="Templates\**" />
+    <None Remove="Templates\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Squalr.Engine.Architecture\Squalr.Engine.Architecture.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Memory\Squalr.Engine.Memory.csproj" />
     <ProjectReference Include="..\Squalr.Engine.Scanning\Squalr.Engine.Scanning.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Scripting\Squalr.Engine.Scripting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\ProjectSettings.Designer.cs">
-      <DependentUpon>ProjectSettings.settings</DependentUpon>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
       <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Properties\ProjectSettings.settings">
-      <LastGenOutput>ProjectSettings.Designer.cs</LastGenOutput>
+    <None Update="Properties\Settings.settings">
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
       <Generator>SettingsSingleFileGenerator</Generator>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Templates\" />
+    <PackageReference Include="CS-Script.Core" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

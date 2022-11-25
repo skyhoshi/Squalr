@@ -3,4 +3,31 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-// Graphics injection in development :)
+<#@ import namespace="Squalr" #>
+<#@ import namespace="Squalr.Engine" #>
+using System;
+using Squalr.Engine.Scripting;
+using Squalr.Engine.Scripting.Graphics;
+using Squalr.Engine.Scripting.Input;
+using Squalr.Engine.Scripting.Memory;
+public void OnActivate()
+{
+	var moduleBase = Memory.GetModuleAddress("moduleName"); 
+	var entry = moduleBase + 0x1234; 
+		
+	var code = @"
+		nop
+		";
+		
+	Memory.CreateCodeCave(entry, code);
+}
+
+public void OnUpdate(float elapsedTimeMs)
+{
+}
+
+public void OnDeactivate()
+{
+	Memory.ClearAllKeywords();
+	Memory.RemoveAllCodeCaves();
+}

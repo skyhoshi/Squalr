@@ -1,43 +1,27 @@
 ﻿namespace Squalr.Engine.Memory.Windows
 {
-    using Squalr.Engine.DataTypes;
-    using Squalr.Engine.OS;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Memory.Windows.Native;
     using System;
+    using System.Buffers.Binary;
     using System.Diagnostics;
     using System.Text;
+    using static Squalr.Engine.Memory.Windows.Native.Enumerations;
 
     /// <summary>
     /// Class for memory editing a remote process.
     /// </summary>
     internal class WindowsMemoryWriter : IMemoryWriter
     {
-        /// <summary>
-        /// The chunk size for memory regions. Prevents large allocations.
-        /// </summary>
-        private const Int32 ChunkSize = 2000000000;
+        private WindowsMemoryQuery windowsMemoryQuery = new WindowsMemoryQuery();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WindowsAdapter"/> class.
+        /// Initializes a new instance of the <see cref="WindowsMemoryWriter"/> class.
         /// </summary>
         public WindowsMemoryWriter()
         {
-            // Subscribe to process events
-            Processes.Default.Subscribe(this);
-        }
-
-        /// <summary>
-        /// Gets or sets a reference to the target process.
-        /// </summary>
-        public Process ExternalProcess { get; set; }
-
-        /// <summary>
-        /// Recieves a process update. This is an optimization over grabbing the process from the <see cref="IProcessInfo"/> component
-        /// of the <see cref="EngineCore"/> every time we need it, which would be cumbersome when doing hundreds of thousands of memory read/writes.
-        /// </summary>
-        /// <param name="process">The newly selected process.</param>
-        public void Update(Process process)
-        {
-            this.ExternalProcess = process;
         }
 
         /// <summary>
@@ -46,50 +30,77 @@
         /// <param name="elementType">The data type to write.</param>
         /// <param name="address">The address to write to.</param>
         /// <param name="value">The value to write.</param>
-        public void Write(DataType elementType, UInt64 address, Object value)
+        public void Write(Process process, ScannableType elementType, UInt64 address, Object value)
         {
             Byte[] bytes;
 
             switch (elementType)
             {
-                case DataType type when type == DataType.Byte || type == typeof(Boolean):
-                    bytes = BitConverter.GetBytes((Byte)value);
+                case ScannableType type when type == ScannableType.Byte || type == typeof(Boolean):
+                    bytes = new Byte[] { (Byte)value };
                     break;
-                case DataType type when type == DataType.SByte:
-                    bytes = BitConverter.GetBytes((SByte)value);
+                case ScannableType type when type == ScannableType.SByte:
+                    bytes = new Byte[] { unchecked((Byte)(SByte)value) };
                     break;
-                case DataType type when type == DataType.Char:
+                case ScannableType type when type == ScannableType.Char:
                     bytes = Encoding.UTF8.GetBytes(new Char[] { (Char)value });
                     break;
-                case DataType type when type == DataType.Int16:
+                case ScannableType type when type == ScannableType.Int16:
                     bytes = BitConverter.GetBytes((Int16)value);
                     break;
-                case DataType type when type == DataType.Int32:
+                case ScannableType type when type == ScannableType.Int16BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int16)value));
+                    break;
+                case ScannableType type when type == ScannableType.Int32:
                     bytes = BitConverter.GetBytes((Int32)value);
                     break;
-                case DataType type when type == DataType.Int64:
+                case ScannableType type when type == ScannableType.Int32BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int32)value));
+                    break;
+                case ScannableType type when type == ScannableType.Int64:
                     bytes = BitConverter.GetBytes((Int64)value);
                     break;
-                case DataType type when type == DataType.UInt16:
+                case ScannableType type when type == ScannableType.Int64BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((Int64)value));
+                    break;
+                case ScannableType type when type == ScannableType.UInt16:
                     bytes = BitConverter.GetBytes((UInt16)value);
                     break;
-                case DataType type when type == DataType.UInt32:
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt16)value));
+                    break;
+                case ScannableType type when type == ScannableType.UInt32:
                     bytes = BitConverter.GetBytes((UInt32)value);
                     break;
-                case DataType type when type == DataType.UInt64:
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt32)value));
+                    break;
+                case ScannableType type when type == ScannableType.UInt64:
                     bytes = BitConverter.GetBytes((UInt64)value);
                     break;
-                case DataType type when type == DataType.Single:
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness((UInt64)value));
+                    break;
+                case ScannableType type when type == ScannableType.Single:
                     bytes = BitConverter.GetBytes((Single)value);
                     break;
-                case DataType type when type == DataType.Double:
+                case ScannableType type when type == ScannableType.SingleBE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(BitConverter.SingleToInt32Bits((Single)value)));
+                    break;
+                case ScannableType type when type == ScannableType.Double:
                     bytes = BitConverter.GetBytes((Double)value);
+                    break;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    bytes = BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(BitConverter.DoubleToInt64Bits((Double)value)));
+                    break;
+                case ByteArrayType type:
+                    bytes = (Byte[])value;
                     break;
                 default:
                     throw new ArgumentException("Invalid type provided");
             }
 
-            this.WriteBytes(address, bytes);
+            this.WriteBytes(process, address, bytes);
         }
 
         /// <summary>
@@ -98,9 +109,9 @@
         /// <typeparam name="T">The type of the value.</typeparam>
         /// <param name="address">The address where the value is written.</param>
         /// <param name="value">The value to write.</param>
-        public void Write<T>(UInt64 address, T value)
+        public void Write<T>(Process process, UInt64 address, T value)
         {
-            this.Write(typeof(T), address, (Object)value);
+            this.Write(process, typeof(T), address, (Object)value);
         }
 
         /// <summary>
@@ -108,10 +119,42 @@
         /// </summary>
         /// <param name="address">The address where the array is written.</param>
         /// <param name="byteArray">The array of bytes to write.</param>
-        public void WriteBytes(UInt64 address, Byte[] byteArray)
+        public void WriteBytes(Process process, UInt64 address, Byte[] byteArray)
         {
-            // Write the byte array
-            Memory.WriteBytes(this.ExternalProcess == null ? IntPtr.Zero : this.ExternalProcess.Handle, address, byteArray);
+            IntPtr processHandle = process == null ? IntPtr.Zero : process.Handle;
+
+            MemoryProtectionFlags oldProtection = MemoryProtectionFlags.NoAccess;
+            Int32 bytesWritten;
+
+            try
+            {
+                bool isAddressWritable = windowsMemoryQuery.IsAddressWritable(process, address);
+
+                // Make address writable if it is not so already
+                if (!isAddressWritable)
+                {
+                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, MemoryProtectionFlags.ExecuteReadWrite, out oldProtection);
+                }
+
+                // Write the data to the target process
+                if (NativeMethods.WriteProcessMemory(processHandle, address.ToIntPtr(), byteArray, byteArray.Length, out bytesWritten))
+                {
+                    if (bytesWritten != byteArray.Length)
+                    {
+                        Logger.Log(LogLevel.Error, "Error writing memory. Wrote " + bytesWritten + " bytes, but expected " + byteArray.Length);
+                    }
+                }
+
+                // Restore old protection after doing the write, if it was previously unwritable
+                if (!isAddressWritable)
+                {
+                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, oldProtection, out oldProtection);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error writing memory.", ex);
+            }
         }
 
         /// <summary>
@@ -120,10 +163,10 @@
         /// <param name="address">The address where the string is written.</param>
         /// <param name="text">The text to write.</param>
         /// <param name="encoding">The encoding used.</param>
-        public void WriteString(UInt64 address, String text, Encoding encoding)
+        public void WriteString(Process process, UInt64 address, String text, Encoding encoding)
         {
             // Write the text
-            this.WriteBytes(address, encoding.GetBytes(text + '\0'));
+            this.WriteBytes(process, address, encoding.GetBytes(text + '\0'));
         }
     }
     //// End class

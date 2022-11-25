@@ -5,13 +5,12 @@
     xmlns:content="clr-namespace:Squalr.Content"
     xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:intr="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:types="clr-namespace:Squalr.Engine.DataTypes;assembly=Squalr.Engine"
+    xmlns:types="clr-namespace:Squalr.Engine.Common;assembly=Squalr.Engine.Common"
     x:Name="SqualrPointerScanResults"
     d:DesignHeight="256"
     d:DesignWidth="512"
-    x:ClassModifier="internal"
+    x:ClassModifier="public"
     DataContext="{Binding PointerScanResultsViewModel, Source={StaticResource ViewModelLocator}}"
     mc:Ignorable="d">
     <x:Code>
@@ -82,7 +81,7 @@
                     </MenuItem.Header>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.SByte}"
+                        CommandParameter="{x:Static types:ScannableType.SByte}"
                         Style="{Binding}"
                         ToolTip="1 Byte Signed Integer">
                         <MenuItem.Header>
@@ -90,7 +89,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.SByte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.SByte}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -101,7 +100,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Int16}"
+                        CommandParameter="{x:Static types:ScannableType.Int16}"
                         Style="{Binding}"
                         ToolTip="2 Byte Signed Integer">
                         <MenuItem.Header>
@@ -109,7 +108,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int16}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -120,7 +119,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Int32}"
+                        CommandParameter="{x:Static types:ScannableType.Int32}"
                         Style="{Binding}"
                         ToolTip="4 Byte Signed Integer">
                         <MenuItem.Header>
@@ -128,7 +127,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int32}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -139,7 +138,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Int64}"
+                        CommandParameter="{x:Static types:ScannableType.Int64}"
                         Style="{Binding}"
                         ToolTip="8 Byte Signed Integer">
                         <MenuItem.Header>
@@ -147,7 +146,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Int64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Int64}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -158,7 +157,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Byte}"
+                        CommandParameter="{x:Static types:ScannableType.Byte}"
                         Style="{Binding}"
                         ToolTip="1 Byte Unsigned Integer">
                         <MenuItem.Header>
@@ -166,7 +165,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Byte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Byte}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -177,7 +176,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.UInt16}"
+                        CommandParameter="{x:Static types:ScannableType.UInt16}"
                         Style="{Binding}"
                         ToolTip="2 Byte Unsigned Integer">
                         <MenuItem.Header>
@@ -185,7 +184,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt16}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -196,7 +195,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.UInt32}"
+                        CommandParameter="{x:Static types:ScannableType.UInt32}"
                         Style="{Binding}"
                         ToolTip="4 Byte Unsigned Integer">
                         <MenuItem.Header>
@@ -204,7 +203,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt32}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -215,7 +214,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.UInt64}"
+                        CommandParameter="{x:Static types:ScannableType.UInt64}"
                         Style="{Binding}"
                         ToolTip="8 Byte Unsigned Integer">
                         <MenuItem.Header>
@@ -223,7 +222,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.UInt64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.UInt64}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -234,7 +233,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Single}"
+                        CommandParameter="{x:Static types:ScannableType.Single}"
                         Style="{Binding}"
                         ToolTip="Single Precision Floating Point Value">
                         <MenuItem.Header>
@@ -242,7 +241,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Single}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Single}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
@@ -253,7 +252,7 @@
                     </MenuItem>
                     <MenuItem
                         Command="{Binding ChangeTypeCommand}"
-                        CommandParameter="{x:Static types:DataType.Double}"
+                        CommandParameter="{x:Static types:ScannableType.Double}"
                         Style="{Binding}"
                         ToolTip="Double Precision Floating Point Value">
                         <MenuItem.Header>
@@ -261,7 +260,7 @@
                                 <Image
                                     Width="16"
                                     Height="16"
-                                    Source="{Binding ConverterParameter={x:Static types:DataType.Double}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                    Source="{Binding ConverterParameter={x:Static types:ScannableType.Double}, Converter={StaticResource DataTypeToIconConverter}}" />
                                 <TextBlock
                                     Padding="4,0,0,0"
                                     Background="Transparent"
