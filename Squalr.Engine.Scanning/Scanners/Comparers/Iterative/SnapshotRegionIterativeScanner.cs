@@ -179,11 +179,11 @@
         {
             if (this.ElementCompare())
             {
-                this.RunLengthEncoder.Increment();
+                this.RunLengthEncoder.EncodeOne();
             }
             else
             {
-                this.RunLengthEncoder.FinalizeCurrentEncode(0, 0);
+                this.RunLengthEncoder.FinalizeCurrentEncode(0);
             }
 
             throw new NotImplementedException();

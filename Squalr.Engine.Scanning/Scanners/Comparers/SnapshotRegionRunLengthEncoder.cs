@@ -8,7 +8,9 @@
     using System.Runtime.CompilerServices;
 
     /// <summary>
-    /// A structure for producing snapshot regions from a scanned snapshot region via run length encoded scan matches.
+    /// A class for producing snapshot regions from a scanned snapshot region via run length encoded scan matches.
+    /// This is one of the magic tricks Squalr uses for fast scans. Each scan thread uses run length encoding to track the number of consecutive
+    /// successful scan matches. Once a non-matching element is found, a snapshot region is created containing the contiguous block of successful results.
     /// </summary>
     internal unsafe class SnapshotRegionRunLengthEncoder
     {
@@ -20,11 +22,11 @@
         public SnapshotRegionRunLengthEncoder(SnapshotRegion region, ScanConstraints constraints)
         {
             this.Region = region;
-            this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size;
             this.ResultRegions = new List<SnapshotRegion>();
+            this.RunLengthEncodeOffset = region?.ReadGroupOffset ?? 0;
 
-            if (this.DataType is ByteArrayType)
+            if (constraints.ElementType is ByteArrayType)
             {
                 this.Alignment = MemoryAlignment.Alignment1;
             }
@@ -35,7 +37,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the index from which the run length encoding is started.
+        /// Gets or sets the current base address offset from which the run length encoding has started.
         /// </summary>
         private Int32 RunLengthEncodeOffset { get; set; }
 
@@ -55,11 +57,6 @@
         private Int32 DataTypeSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the data type being compared.
-        /// </summary>
-        private ScannableType DataType { get; set; }
-
-        /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
         private SnapshotRegion Region { get; set; }
@@ -77,21 +74,21 @@
         /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.
         /// </summary>
-        public IList<SnapshotRegion> GatherCollectedRegions(Int32 readGroupBase)
+        public IList<SnapshotRegion> GatherCollectedRegions()
         {
-            this.FinalizeCurrentEncode(readGroupBase);
+            this.FinalizeCurrentEncode();
             return this.ResultRegions;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void IncrementBatch(Int32 elementCount)
+        public void EncodeBatch(Int32 advanceByteCount)
         {
-            this.RunLength += elementCount;
+            this.RunLength += advanceByteCount;
             this.IsEncoding = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Increment()
+        public void EncodeOne()
         {
             this.RunLength++;
             this.IsEncoding = true;
@@ -100,28 +97,31 @@
         /// <summary>
         /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
         /// </summary>
-        /// <param name="readGroupOffset">The base address of the read group.</param>
-        /// <param name="readGroupOffset">The offset into the read group.</param>
+        /// <param name="advanceByteCount">The number of failed bytes (ie values that did not match scans) to increment by.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void FinalizeCurrentEncode(Int32 readGroupBase, Int32 readGroupOffset = 0)
+        public void FinalizeCurrentEncode(Int32 advanceByteCount = 0)
         {
             // Create the final region if we are still encoding
             if (this.IsEncoding)
             {
-                Int32 finalReadGroupOffset = readGroupBase + readGroupOffset - this.RunLength * unchecked((Int32)this.Alignment);
-                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + unchecked((UInt64)finalReadGroupOffset);
-                UInt64 absoluteAddressEnd = absoluteAddressStart + unchecked((UInt64)this.RunLength);
+                // Run length is in bytes, but snapshot regions need to know total number of elements, which depends on the data type and alignment
+                Int32 elementCount = this.RunLength / (Int32)this.Alignment;
+                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + (UInt64)this.RunLengthEncodeOffset;
+                UInt64 absoluteAddressEnd = absoluteAddressStart + (UInt64)elementCount;
 
-                // Vector comparisons can produce some false positives since vectors can load values outside of the snapshot range.
-                // This check catches any potential errors introduced this way.
-                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
+                // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range.
+                // This is particularly true in "next scans". This check catches any potential errors introduced this way.
+                // if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
                 {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, finalReadGroupOffset, this.RunLength));
+                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, elementCount));
                 }
 
+                this.RunLengthEncodeOffset += this.RunLength;
                 this.RunLength = 0;
                 this.IsEncoding = false;
             }
+
+            this.RunLengthEncodeOffset += advanceByteCount;
         }
     }
     //// End class

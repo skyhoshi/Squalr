@@ -270,11 +270,8 @@
             */
 
             Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
-            Int32 elementsPerVector = this.VectorSize / this.DataTypeSize;
-            Int32 incrementSize = this.VectorSize - scanCountPerVector;
             Vector<Byte> runLengthVector;
             Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
-            this.RunLengthEncodeOffset = this.VectorReadOffset;
 
             // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
             this.Region.ResizeForSafeReading(this.VectorSize);
@@ -299,13 +296,13 @@
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLengthEncoder.IncrementBatch(elementsPerVector);
+                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorReadBase, this.VectorReadOffset);
+                    this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorSize);
                     continue;
                 }
 
@@ -320,17 +317,17 @@
 
                         if (runLengthResult)
                         {
-                            this.RunLengthEncoder.Increment();
+                            this.RunLengthEncoder.EncodeBatch(this.DataTypeSize / scanCountPerVector);
                         }
                         else
                         {
-                            this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorReadBase, this.VectorReadOffset + resultIndex + alignmentIndex);
+                            this.RunLengthEncoder.FinalizeCurrentEncode(this.DataTypeSize / scanCountPerVector);
                         }
                     }
                 }
             }
 
-            return this.RunLengthEncoder.GatherCollectedRegions(this.VectorReadBase);
+            return this.RunLengthEncoder.GatherCollectedRegions();
         }
 
         /// <summary>

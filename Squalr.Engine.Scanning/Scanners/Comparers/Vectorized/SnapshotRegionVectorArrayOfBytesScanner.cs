@@ -95,14 +95,14 @@
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.IncrementBatch(this.VectorSize);
+                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
                     continue;
                 }
 
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.FinalizeCurrentEncode(0, ByteArraySize);
+                    this.RunLengthEncoder.FinalizeCurrentEncode(ByteArraySize);
                     continue;
                 }
 
@@ -112,17 +112,17 @@
                     // Vector result was false
                     if (scanResults[unchecked(index)] == 0)
                     {
-                        this.RunLengthEncoder.FinalizeCurrentEncode(index, ByteArraySize);
+                        this.RunLengthEncoder.FinalizeCurrentEncode(this.DataTypeSize);
                     }
                     // Vector result was true
                     else
                     {
-                        this.RunLengthEncoder.IncrementBatch(this.DataTypeSize);
+                        this.RunLengthEncoder.EncodeBatch(this.DataTypeSize);
                     }
                 }
             }
 
-            return this.RunLengthEncoder.GatherCollectedRegions(this.VectorReadBase);
+            return this.RunLengthEncoder.GatherCollectedRegions();
         }
 
         /// <summary>

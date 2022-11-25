@@ -50,11 +50,6 @@
         public Int32 AlignmentReadOffset { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the index from which the run length encoding is started.
-        /// </summary>
-        public Int32 RunLengthEncodeOffset { get; protected set; }
-
-        /// <summary>
         /// Gets the current values at the current vector read index.
         /// </summary>
         public UInt64 CurrentAddress
