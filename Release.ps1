@@ -51,8 +51,11 @@ Set-Alias Squirrel ($env:USERPROFILE + "\.nuget\packages\clowd.squirrel\2.9.42\t
 # Download currently live version
 Squirrel http-down --url "https://github.com/Squalr/Squalr"
 
+$xml = [Xml] (Get-Content .\Squalr\Squalr.csproj)
+$version = [Version] $xml.Project.PropertyGroup.AssemblyVersion
+
 # build new version and delta updates.
-Squirrel pack --framework net7 --packId "Squalr" --packVersion "1.0.0" --packAuthors "Squalr, Inc." --packDir ".\publish" --icon "Squalr/AppIcon.ico" # --splashImage "install.gif"`
+Squirrel pack --framework net7 --packId "Squalr" --packVersion "$version" --packAuthors "Squalr, Inc." --packDir ".\publish" --icon "Squalr/AppIcon.ico" # --splashImage "install.gif"`
 
 # Remove temporary files
 # Remove-Item $compiledNugetFile -Force -ErrorAction Ignore
