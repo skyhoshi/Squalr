@@ -24,7 +24,7 @@
             this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder(region, constraints);
             this.Region = region;
             this.VectorSize = Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset - this.Region.ReadGroupOffset % this.VectorSize;
+            this.VectorReadBase = this.Region.ReadGroupOffset;
             this.VectorReadOffset = 0;
             this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size;

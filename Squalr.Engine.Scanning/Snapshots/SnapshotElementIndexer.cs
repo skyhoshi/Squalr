@@ -16,8 +16,9 @@
         /// Initializes a new instance of the <see cref="SnapshotElementIndexer" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="alignment">The memory alignment of the snapshot region being indexed.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, MemoryAlignment alignment = MemoryAlignment.Alignment1)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, MemoryAlignment alignment, Int32 elementIndex = 0)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;

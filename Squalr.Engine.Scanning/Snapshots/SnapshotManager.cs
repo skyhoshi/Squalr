@@ -56,7 +56,6 @@
                 if (this.Snapshots.Count == 0 || this.Snapshots.Peek() == null || this.Snapshots.Peek().ElementCount == 0)
                 {
                     Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings, emulatorType);
-                    snapshot.Alignment = ScanSettings.Alignment;
 
                     return snapshot;
                 }

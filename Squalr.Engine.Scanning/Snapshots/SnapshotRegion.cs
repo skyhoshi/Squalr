@@ -84,7 +84,7 @@
         public Int32 GetElementCount(Int32 dataTypeSize, MemoryAlignment alignment)
         {
             Int32 alignmentValue = unchecked((Int32)alignment);
-            Int32 elementCount = this.RegionSize / (alignmentValue <= 0 ? 1 : alignmentValue);
+            Int32 elementCount = this.RegionSize / 1;// (alignmentValue <= 0 ? 1 : alignmentValue);
 
             return elementCount;
         }
@@ -120,7 +120,7 @@
         public IEnumerator<SnapshotElementIndexer> IterateElements(Int32 elementSize, MemoryAlignment alignment)
         {
             Int32 elementCount = this.GetElementCount(elementSize, alignment);
-            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this);
+            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this, alignment: alignment);
 
             for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
             {

@@ -111,7 +111,7 @@
 
                 // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range.
                 // This is particularly true in "next scans". This check catches any potential errors introduced this way.
-                // if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
+                if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
                 {
                     this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, elementCount));
                 }

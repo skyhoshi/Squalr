@@ -67,17 +67,6 @@
         public UInt64 ElementCount { get; set; }
 
         /// <summary>
-        /// Sets the label data type for all read groups.
-        /// </summary>
-        public ScannableType LabelDataType
-        {
-            set
-            {
-                this.ReadGroups.ForEach(readGroup => readGroup.LabelDataType = value);
-            }
-        }
-
-        /// <summary>
         /// Gets the time since the last update was performed on this snapshot.
         /// </summary>
         public DateTime TimeSinceLastUpdate { get; private set; }
@@ -166,13 +155,20 @@
         }
 
         /// <summary>
-        /// Sets the label of every element in this snapshot to the same value.
+        /// Aligns this snapshot to the provided alignment. If the provided alignment is Auto, the alignment will be set based on the provided data type.
         /// </summary>
-        /// <typeparam name="LabelType">The data type of the label.</typeparam>
-        /// <param name="label">The new snapshot label value.</param>
-        public void SetElementLabels<LabelType>(LabelType label) where LabelType : struct, IComparable<LabelType>
+        /// <param name="alignment">The alignment to set.</param>
+        /// <param name="dataType">The datatype to align to if the alignment is set to Auto.</param>
+        public void AlignAndResolveAuto(MemoryAlignment alignment, ScannableType dataType)
         {
-            this.SnapshotRegions?.ForEach(x => x.ReadGroup.SetElementLabels(Enumerable.Repeat(label, unchecked((Int32)x.RegionSize)).Cast<Object>().ToArray()));
+            if (dataType is ByteArrayType)
+            {
+                this.Alignment = MemoryAlignment.Alignment1;
+            }
+            else
+            {
+                this.Alignment = alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataType.Size : alignment;
+            }
         }
 
         /// <summary>
