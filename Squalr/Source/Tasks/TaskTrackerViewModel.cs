@@ -29,6 +29,7 @@
         private TaskTrackerViewModel() : base("Task Tracker")
         {
             this.trackedTasks = new FullyObservableCollection<TrackableTask>();
+            this.TaskLock = new Object();
 
             this.CancelTaskCommand = new RelayCommand<TrackableTask>(task => task.Cancel(), (task) => true);
         }
@@ -58,6 +59,8 @@
             }
         }
 
+        private Object TaskLock { get; set; }
+
         /// <summary>
         /// Tracks a given task until it is canceled or completed.
         /// </summary>
@@ -68,7 +71,14 @@
             {
                 task.OnCanceledEvent += this.RemoveTask;
                 task.OnCompletedEvent += this.RemoveTask;
-                this.TrackedTasks.Add(task);
+
+                lock(this.TaskLock)
+                {
+                    if (!task.IsCompleted && !task.IsCanceled)
+                    {
+                        this.TrackedTasks.Add(task);
+                    }
+                }
             }));
         }
 
@@ -80,9 +90,12 @@
         {
             Application.Current.Dispatcher.Invoke(new Action(() =>
             {
-                if (this.TrackedTasks.Contains(task))
+                lock (this.TaskLock)
                 {
-                    this.TrackedTasks.Remove(task);
+                    if (this.TrackedTasks.Contains(task))
+                    {
+                        this.TrackedTasks.Remove(task);
+                    }
                 }
             }));
         }
