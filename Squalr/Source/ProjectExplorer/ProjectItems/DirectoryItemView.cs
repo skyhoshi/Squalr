@@ -15,9 +15,22 @@
 
         private DirectoryItem directoryItem;
 
+        private FullyObservableCollection<ProjectItem> childItems;
+
         public DirectoryItemView(DirectoryItem directoryItem)
         {
+            this.childItems = new FullyObservableCollection<ProjectItem>();
             this.DirectoryItem = directoryItem;
+
+            if (this.DirectoryItem != null)
+            {
+                foreach (ProjectItem projectItem in this.DirectoryItem.ChildItems.Values)
+                {
+                    this.childItems.Add(projectItem);
+                }
+                this.DirectoryItem.ProjectItemAddedEvent = ProjectItemAdded;
+                this.DirectoryItem.ProjectItemDeletedEvent = ProjectItemDeleted;
+            }
         }
 
         /// <summary>
@@ -29,6 +42,11 @@
             get
             {
                 return this.DirectoryItem.Name;
+            }
+
+            set
+            {
+                this.DirectoryItem.Name = value;
             }
         }
 
@@ -59,7 +77,7 @@
         {
             get
             {
-                return this.DirectoryItem.ChildItems;
+                return this.childItems;
             }
         }
 
@@ -81,14 +99,26 @@
 
         public void AddChild(ProjectItem projectItem)
         {
-            this.DirectoryItem.AddChild(projectItem);
+            this.DirectoryItem?.AddChild(projectItem);
             this.IsExpanded = true;
             this.RaisePropertyChanged(nameof(this.ChildItems));
         }
 
         public void RemoveChild(ProjectItem projectItem)
         {
-            this.DirectoryItem.RemoveChild(projectItem);
+            this.DirectoryItem?.DeleteChild(projectItem);
+            this.RaisePropertyChanged(nameof(this.ChildItems));
+        }
+
+        private void ProjectItemDeleted(ProjectItem projectItem)
+        {
+            this.childItems.Remove(projectItem);
+            this.RaisePropertyChanged(nameof(this.ChildItems));
+        }
+
+        private void ProjectItemAdded(ProjectItem projectItem)
+        {
+            this.childItems.Add(projectItem);
             this.RaisePropertyChanged(nameof(this.ChildItems));
         }
     }

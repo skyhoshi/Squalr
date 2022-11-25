@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Memory
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -17,7 +17,7 @@
         /// <param name="address">The address to read from.</param>
         /// <param name="success">Whether or not the read succeeded.</param>
         /// <returns>The value read from memory.</returns>
-        Object Read(Process process, DataTypeBase elementType, UInt64 address, out Boolean success);
+        Object Read(Process process, ScannableType elementType, UInt64 address, out Boolean success);
 
         /// <summary>
         /// Reads a value from the opened processes memory.

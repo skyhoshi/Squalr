@@ -107,7 +107,7 @@
                 throw new NotSupportedException("Multiple calls are not supported.");
             }
 
-            if (ownerPtr != null)
+            if (ownerPtr != IntPtr.Zero)
             {
                 ProcessThread processThread = Process.GetCurrentProcess().Threads
                     .OfType<ProcessThread>()

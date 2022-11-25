@@ -198,6 +198,7 @@
             }
         }
 
+
         private void FindWhatReads(ProjectItemView projectItemView)
         {
             ProjectItem projectItem = projectItemView?.ProjectItem;

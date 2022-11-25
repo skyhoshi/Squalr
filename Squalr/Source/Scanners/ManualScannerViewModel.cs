@@ -2,13 +2,13 @@
 {
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using Squalr.Source.Docking;
-    using Squalr.Source.Results;
+    using Squalr.Source.ScanResults;
     using Squalr.Source.Tasks;
     using System;
     using System.Threading;
@@ -37,6 +37,7 @@
 
             // Not async for faster UI feedback
             this.UpdateActiveValueCommand = new RelayCommand<Object>((newValue) => this.UpdateActiveValue(newValue), (newValue) => true);
+            this.UpdateActiveArgsCommand = new RelayCommand<Object>((newArgs) => this.UpdateActiveArgs(newArgs), (newArgs) => true);
             this.SelectChangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Changed), () => true);
             this.SelectDecreasedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Decreased), () => true);
             this.SelectDecreasedByXCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.DecreasedByX), () => true);
@@ -50,7 +51,7 @@
             this.SelectNotEqualCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.NotEqual), () => true);
             this.SelectUnchangedCommand = new RelayCommand(() => this.ChangeScanConstraintSelection(ScanConstraint.ConstraintType.Unchanged), () => true);
 
-            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal, DataTypeBase.Int32);
+            this.ActiveConstraint = new ScanConstraint(ScanConstraint.ConstraintType.Equal, ScannableType.Int32);
 
             // Not registering this as a dockable window, since it is just part of the top bar now
             // DockingViewModel.GetInstance().RegisterViewModel(this);
@@ -65,6 +66,11 @@
         /// Gets the command to update the value of the active scan constraint.
         /// </summary>
         public ICommand UpdateActiveValueCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to update the args of the active scan constraint.
+        /// </summary>
+        public ICommand UpdateActiveArgsCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to select the <see cref="ScanConstraint.ConstraintType.Changed"/> constraint.
@@ -169,8 +175,8 @@
         private void StartScan()
         {
             // Create a constraint manager that includes the current active constraint
-            DataTypeBase dataType = ScanResultsViewModel.GetInstance().ActiveType;
-            ScanConstraints scanConstraints = new ScanConstraints(dataType, this.ActiveConstraint?.Clone());
+            ScannableType dataType = ScanResultsViewModel.GetInstance().ActiveType;
+            ScanConstraints scanConstraints = new ScanConstraints(dataType, this.ActiveConstraint?.Clone(), ScanSettings.Alignment);
 
             if (!scanConstraints.IsValid())
             {
@@ -183,7 +189,7 @@
                 // Collect values
                 TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
                     SessionManager.Session.OpenedProcess,
-                    SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess),
+                    SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
                     TrackableTask.UniversalIdentifier
                 );
 
@@ -214,6 +220,16 @@
         private void UpdateActiveValue(Object newValue)
         {
             this.ActiveConstraint.ConstraintValue = newValue;
+            this.UpdateAllProperties();
+        }
+
+        /// <summary>
+        /// Updates the value of the current scan constraint.
+        /// </summary>
+        /// <param name="newValue">The new value of the scan constraint.</param>
+        private void UpdateActiveArgs(Object newArgs)
+        {
+            this.ActiveConstraint.ConstraintArgs = newArgs;
             this.UpdateAllProperties();
         }
 

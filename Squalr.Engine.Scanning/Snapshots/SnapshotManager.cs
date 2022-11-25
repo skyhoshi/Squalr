@@ -1,8 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.DataTypes;
-    using Squalr.Engine.Scanning.Properties;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -41,21 +40,23 @@
         private Object AccessLock { get; set; }
 
         public delegate void OnSnapshotsUpdated(SnapshotManager snapshotManager);
+        public delegate void OnNewSnapshot(SnapshotManager snapshotManager);
 
         public event OnSnapshotsUpdated OnSnapshotsUpdatedEvent;
+        public event OnNewSnapshot OnNewSnapshotEvent;
 
         /// <summary>
         /// Returns the memory regions associated with the current snapshot. If none exist, a query will be done. Will not read any memory.
         /// </summary>
         /// <returns>The current active snapshot of memory in the target process.</returns>
-        public Snapshot GetActiveSnapshotCreateIfNone(Process process)
+        public Snapshot GetActiveSnapshotCreateIfNone(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
             lock (this.AccessLock)
             {
                 if (this.Snapshots.Count == 0 || this.Snapshots.Peek() == null || this.Snapshots.Peek().ElementCount == 0)
                 {
-                    Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings);
-                    snapshot.Align(ScanSettings.Alignment);
+                    Snapshot snapshot = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromSettings, emulatorType);
+                    snapshot.Alignment = ScanSettings.Alignment;
 
                     return snapshot;
                 }
@@ -163,6 +164,7 @@
                 this.Snapshots.Push(snapshot);
                 this.DeletedSnapshots.Clear();
                 this.OnSnapshotsUpdatedEvent.Invoke(this);
+                this.OnNewSnapshotEvent.Invoke(this);
             }
         }
     }

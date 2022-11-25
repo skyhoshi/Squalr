@@ -2,6 +2,7 @@
 {
     using CommandLine;
     using Squalr.Engine.Common;
+    using Squalr.Engine.Scanning;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
 
@@ -32,7 +33,7 @@
 
             for (UInt64 index = pageStart; index < pageEnd; index++)
             {
-                Object currentValue = results[index].LoadCurrentValue();
+                Object currentValue = results[index, ScanSettings.DataType.Size].LoadCurrentValue(ScanSettings.DataType);
                 String str;
 
                 switch (currentValue)
@@ -45,7 +46,7 @@
                         break;
                 }
 
-                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index].BaseAddress) + "\t|\t" + str);
+                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index, ScanSettings.DataType.Size].GetBaseAddress(ScanSettings.DataType.Size)) + "\t|\t" + str);
             }
 
             Console.WriteLine();

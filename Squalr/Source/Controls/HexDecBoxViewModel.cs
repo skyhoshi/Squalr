@@ -3,7 +3,6 @@
     using GalaSoft.MvvmLight;
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using System;
     using System.Windows.Input;
 
@@ -20,7 +19,7 @@
         /// <summary>
         /// The data type being represented.
         /// </summary>
-        private DataTypeBase elementType;
+        private ScannableType elementType;
 
         /// <summary>
         /// A value indicating whether the value is displayed as hex.
@@ -28,11 +27,16 @@
         private Boolean isHex;
 
         /// <summary>
+        /// A value indicating whether hex values support masking operators (*, x, ?).
+        /// </summary>
+        private Boolean supportsMasks;
+
+        /// <summary>
         /// 
         /// </summary>
         public HexDecBoxViewModel()
         {
-            this.DataType = DataTypeBase.Int32;
+            this.DataType = ScannableType.Int32;
 
             this.ConvertDecCommand = new RelayCommand(() => this.ConvertDec());
             this.ConvertHexCommand = new RelayCommand(() => this.ConvertHex());
@@ -116,6 +120,25 @@
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether hex values support masking operators (*, x, ?).
+        /// </summary>
+        public Boolean SupportsMask
+        {
+            get
+            {
+                return this.supportsMasks;
+            }
+
+            set
+            {
+                this.supportsMasks = value;
+                this.RaisePropertyChanged(nameof(this.SupportsMask));
+                this.RaisePropertyChanged(nameof(this.IsValid));
+                this.RaisePropertyChanged(nameof(this.Self));
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the value is displayed as dec.
         /// </summary>
         public Boolean IsDec
@@ -138,7 +161,7 @@
         /// <summary>
         /// Gets or sets the data type being represented.
         /// </summary>
-        public DataTypeBase DataType
+        public ScannableType DataType
         {
             get
             {
@@ -161,11 +184,11 @@
         {
             get
             {
-                if (this.IsHex && SyntaxChecker.CanParseHex(this.DataType, this.Text))
+                if (this.IsHex && SyntaxChecker.CanParseHex(this.DataType, this.Text, this.SupportsMask && this.DataType is ByteArrayType))
                 {
                     return true;
                 }
-                else if (SyntaxChecker.CanParseValue(this.DataType, this.Text))
+                else if (!this.IsHex && SyntaxChecker.CanParseValue(this.DataType, this.Text))
                 {
                     return true;
                 }
@@ -240,6 +263,20 @@
         }
 
         /// <summary>
+        /// Gets the array of byte scan mask associated with this hex dec box.
+        /// </summary>
+        /// <returns>The array of byte scan mask.</returns>
+        public Object GetMask()
+        {
+            if (this.IsHex && this.SupportsMask && this.IsValid)
+            {
+                return Conversions.ParseByteArrayMask(this.Text);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Sets the raw value being represented.
         /// </summary>
         /// <param name="value">The raw value.</param>
@@ -283,7 +320,7 @@
         /// </summary>
         private void ConvertDec()
         {
-            if (SyntaxChecker.CanParseHex(this.DataType, this.Text))
+            if (this.IsValid)
             {
                 this.Text = Conversions.ParseHexStringAsPrimitiveString(this.DataType, this.Text);
             }
@@ -296,7 +333,7 @@
         /// </summary>
         private void ConvertHex()
         {
-            if (SyntaxChecker.CanParseValue(this.DataType, this.Text))
+            if (this.IsValid)
             {
                 this.Text = Conversions.ParsePrimitiveStringAsHexString(this.DataType, this.Text);
             }

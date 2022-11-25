@@ -2,6 +2,7 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;

@@ -1,8 +1,30 @@
 ﻿namespace Squalr.Engine.Memory
 {
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+
+    /// <summary>
+    /// An enum specifying how to handle any regions that partially fall within the specified range.
+    /// </summary>
+    public enum RegionBoundsHandling
+    {
+        /// <summary>
+        /// Exclude the entire region that is partially outside of the specified range.
+        /// </summary>
+        Exclude,
+
+        /// <summary>
+        /// Include the entire region that is partially outside of the specified range.
+        /// </summary>
+        Include,
+
+        /// <summary>
+        /// Resize region that is partially outside of the specified range to fit within the range.
+        /// </summary>
+        Resize,
+    }
 
     /// <summary>
     /// An interface for querying virtual memory.
@@ -17,6 +39,7 @@
         /// <param name="allowedTypes">Memory types that can be present.</param>
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
+        /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         IEnumerable<NormalizedRegion> GetVirtualPages(
             Process process,
@@ -24,13 +47,22 @@
             MemoryProtectionEnum excludedProtection,
             MemoryTypeEnum allowedTypes,
             UInt64 startAddress,
-            UInt64 endAddress);
+            UInt64 endAddress,
+            RegionBoundsHandling regionBoundsHandling = RegionBoundsHandling.Exclude);
 
         /// <summary>
         /// Gets all virtual pages in the opened process.
         /// </summary>
         /// <returns>A collection of regions in the process.</returns>
         IEnumerable<NormalizedRegion> GetAllVirtualPages(Process process);
+
+        /// <summary>
+        /// Gets a value indicating whether an address is writable.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        bool IsAddressWritable(Process process, UInt64 address);
 
         /// <summary>
         /// Gets the maximum address possible in the target process.
@@ -69,6 +101,18 @@
         IEnumerable<NormalizedRegion> GetHeapAddresses(Process process);
 
         /// <summary>
+        /// Gets all modules in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator modules in the process.</returns>
+        IEnumerable<NormalizedModule> GetDolphinModules(Process process);
+
+        /// <summary>
+        /// Gets all heap memory in the opened Dolphin emulator process.
+        /// </summary>
+        /// <returns>A collection of Dolphin emulator heap memory in the process.</returns>
+        IEnumerable<NormalizedRegion> GetDolphinHeaps(Process process);
+
+        /// <summary>
         /// Converts an address to a module and an address offset.
         /// </summary>
         /// <param name="address">The original address.</param>
@@ -82,6 +126,30 @@
         /// <param name="identifier">The module identifier, or name.</param>
         /// <returns>The base address of the module.</returns>
         UInt64 ResolveModule(Process process, String identifier);
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType);
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="realAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType);
+
+        /// <summary>
+        /// Gets all virtual pages for the target emulator in the opened process.
+        /// </summary>
+        /// <returns>A collection of regions in the process.</returns>
+        IEnumerable<NormalizedRegion> GetEmulatorVirtualPages(Process process, EmulatorType emulatorType);
     }
     //// End interface
 }

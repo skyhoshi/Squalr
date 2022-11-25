@@ -433,6 +433,40 @@
                 }
             }
         }
+
+        public static Boolean GetBit(this Int32 result, Int32 bit)
+        {
+            return (result & (1 << bit)) != 0;
+        }
+
+        public static Boolean GetBit(this Int64 result, Int32 bit)
+        {
+            return (result & (1 << bit)) != 0;
+        }
+
+        public static Boolean GetBit(this IntPtr result, Int32 bit)
+        {
+            return GetBit(result.ToInt64(), bit);
+        }
+
+        public static Int32 GetBits(this int result, Int32 bit, Int32 length)
+        {
+            Int32 mask = (1 << length) - 1;
+
+            return (result >> bit) & mask;
+        }
+
+        public static Int64 GetBits(this Int64 result, Int32 bit, Int32 length)
+        {
+            Int64 mask = (1L << length) - 1L;
+
+            return (result >> bit) & mask;
+        }
+
+        public static Int64 GetBits(this IntPtr result, Int32 bit, Int32 length)
+        {
+            return GetBits(result.ToInt64(), bit, length);
+        }
     }
     //// End class
 }

@@ -35,10 +35,8 @@
   <FloatingWindows />
   <Hidden>
     <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Change Counter" ContentId="ChangeCounterViewModel" />
-    <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Label Thresholder" ContentId="LabelThresholderViewModel" />
     <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title=".Net Explorer" ContentId="DotNetExplorerViewModel" LastActivationTimeStamp="06/02/2018 13:04:33" PreviousContainerId="9e24467d-d273-4039-b9f6-0170695cb8ff" PreviousContainerIndex="0" />
     <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Process Selector" ContentId="ProcessSelectorViewModel" FloatingLeft="-425" FloatingTop="335" FloatingWidth="1270" FloatingHeight="726" LastActivationTimeStamp="06/02/2018 13:06:46" PreviousContainerId="bd1dfd76-4792-469f-ba48-65d989e701c8" PreviousContainerIndex="0" />
-    <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Input Correlator" ContentId="InputCorrelatorViewModel" LastActivationTimeStamp="06/02/2018 13:06:52" PreviousContainerId="9e24467d-d273-4039-b9f6-0170695cb8ff" PreviousContainerIndex="0" />
     <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Code Tracer" ContentId="CodeTracerViewModel" FloatingLeft="91" FloatingTop="436" FloatingWidth="1270" FloatingHeight="726" LastActivationTimeStamp="06/02/2018 13:06:55" PreviousContainerId="9e24467d-d273-4039-b9f6-0170695cb8ff" PreviousContainerIndex="0" />
     <LayoutAnchorable IsVisible="False" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Disassembly" ContentId="DisassemblyViewModel" LastActivationTimeStamp="06/02/2018 13:06:57" PreviousContainerId="9e24467d-d273-4039-b9f6-0170695cb8ff" PreviousContainerIndex="0" />
   </Hidden>

@@ -52,7 +52,7 @@
 
             if (!String.IsNullOrWhiteSpace(projectName))
             {
-                project = new Project(projectName);
+                project = new Project(SessionManager.Session, projectName);
             }
 
             if (project == null)

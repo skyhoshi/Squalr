@@ -3,7 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Processes;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
@@ -61,7 +61,8 @@
                                     return;
                                 }
 
-                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null);
+                                const MemoryAlignment alignment = MemoryAlignment.Alignment4;
+                                ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
                                 SnapshotElementVectorComparer vectorComparer = new SnapshotElementVectorComparer(region: region, constraints: constraints);
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 

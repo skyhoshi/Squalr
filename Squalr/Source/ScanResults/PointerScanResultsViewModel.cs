@@ -1,10 +1,8 @@
-﻿namespace Squalr.Source.Results
+﻿namespace Squalr.Source.ScanResults
 {
     using GalaSoft.MvvmLight.Command;
-    using Squalr.Engine;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Projects.Items;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Source.Docking;
@@ -75,12 +73,12 @@
         private PointerScanResultsViewModel() : base("Pointer Scan Results")
         {
             this.ExtractPointerCommand = new RelayCommand<Int32>((levelIndex) => this.ExtractPointer(levelIndex), (levelIndex) => true);
-            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>(), (selectedItems) => true);
+            this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectScanResults(selectedItems), (selectedItems) => true);
 
-            this.ChangeTypeCommand = new RelayCommand<DataTypeBase>((type) => Task.Run(() => this.ChangeType(type)), (type) => true);
+            this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => Task.Run(() => this.ChangeType(type)), (type) => true);
             this.NewPointerScanCommand = new RelayCommand(() => Task.Run(() => this.DiscoveredPointers = null), () => true);
 
-            this.ActiveType = DataTypeBase.Int32;
+            this.ActiveType = ScannableType.Int32;
             this.pointers = new FullyObservableCollection<PointerItem>();
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
@@ -161,7 +159,7 @@
         /// <summary>
         /// Gets or sets the active scan results data type.
         /// </summary>
-        public DataTypeBase ActiveType
+        public ScannableType ActiveType
         {
             get
             {
@@ -219,6 +217,15 @@
             return PointerScanResultsViewModel.pointerScanResultsViewModelInstance.Value;
         }
 
+        /// <summary>
+        /// Selects the given scan results.
+        /// </summary>
+        /// <param name="selectedItems">The scan results to select.</param>
+        private void SelectScanResults(Object selectedItems)
+        {
+            this.SelectedScanResults = (selectedItems as IList)?.Cast<PointerItem>();
+        }
+
         private void ExtractPointer(Int32 levelIndex)
         {
             Pointer pointer = this.DiscoveredPointers.GetRandomPointer(levelIndex);
@@ -234,7 +241,7 @@
         /// Changes the active scan pointer results type.
         /// </summary>
         /// <param name="newType">The new pointer scan results type.</param>
-        private void ChangeType(DataTypeBase newType)
+        private void ChangeType(ScannableType newType)
         {
             this.ActiveType = newType;
         }

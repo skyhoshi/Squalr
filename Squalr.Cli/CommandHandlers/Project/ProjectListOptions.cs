@@ -4,6 +4,7 @@
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
     using System;
+    using System.Collections.Generic;
 
     [Verb("list", HelpText = "List current project items.")]
     public class ProjectListOptions
@@ -23,9 +24,9 @@
             Console.WriteLine("Enabled " + "\t|\t" + "Name" + "\t|\t" + "Address" + "\t|\t" + "Value" + "\t|\t" + "Description");
             Console.WriteLine("------------------------------------------------------------------");
 
-            foreach (ProjectItem next in SessionManager.Project.ProjectItems)
+            foreach (KeyValuePair<String, ProjectItem> next in SessionManager.Project.ChildItems)
             {
-                Console.WriteLine((next.IsEnabled ? "X" : "") + "\t|\t" + next.Name + "\t|\t" + "TODO" + "\t|\t" + "TODO" + "\t|\t" + next.Description);
+                Console.WriteLine((next.Value.IsEnabled ? "X" : "") + "\t|\t" + next.Value.Name + "\t|\t" + "TODO" + "\t|\t" + "TODO" + "\t|\t" + next.Value.Description);
             }
 
             Console.WriteLine();

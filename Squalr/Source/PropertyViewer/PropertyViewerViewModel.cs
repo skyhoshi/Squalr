@@ -44,7 +44,11 @@
             // Use reflection to set all propertygrid colors to dark, since some are otherwise not publically accessible
             PropertyInfo[] allProperties = this.propertyGrid.GetType().GetProperties();
             IEnumerable<PropertyInfo> colorProperties = allProperties.Select(x => x).Where(x => x.PropertyType == typeof(Color));
-            colorProperties.ForEach(x => x.SetValue(this.propertyGrid, DarkBrushes.SqualrColorPanel, null));
+
+            foreach(PropertyInfo propertyInfo in colorProperties)
+            {
+                propertyInfo.SetValue(this.propertyGrid, DarkBrushes.SqualrColorPanel, null);
+            }
 
             this.propertyGrid.BackColor = DarkBrushes.SqualrColorPanel;
             this.propertyGrid.CommandsBackColor = DarkBrushes.SqualrColorPanel;

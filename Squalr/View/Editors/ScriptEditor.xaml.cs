@@ -1,13 +1,20 @@
 ﻿namespace Squalr.View.Editors
 {
+    using ICSharpCode.AvalonEdit.CodeCompletion;
+    using ICSharpCode.AvalonEdit.Document;
+    using ICSharpCode.AvalonEdit.Editing;
+    using ICSharpCode.AvalonEdit.Highlighting;
+    using ICSharpCode.AvalonEdit.Highlighting.Xshd;
     using Source.Editors.ScriptEditor;
     using Squalr.Engine.Common.Logging;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Windows;
     using System.Windows.Input;
+    using System.Windows.Media;
     using System.Xml;
 
     /// <summary>
@@ -29,11 +36,11 @@
             this.InitializeComponent();
             this.LoadHightLightRules();
             this.InitializeCompleteionWindow();
-            //this.ScriptEditorTextEditor.FontFamily = new FontFamily("Consolas");
-            //// this.ScriptEditorTextEditor.TextArea.TextEntering += this.ScriptEditorTextEditorTextAreaTextEntering;
-            //// this.ScriptEditorTextEditor.TextArea.TextEntered += this.ScriptEditorTextEditorTextAreaTextEntered;
-            //this.ScriptEditorTextEditor.TextChanged += this.ScriptEditorTextEditorTextChanged;
-            //this.ScriptEditorTextEditor.Text = script ?? String.Empty;
+            this.ScriptEditorTextEditor.FontFamily = new FontFamily("Consolas");
+            this.ScriptEditorTextEditor.TextArea.TextEntering += this.ScriptEditorTextEditorTextAreaTextEntering;
+            this.ScriptEditorTextEditor.TextArea.TextEntered += this.ScriptEditorTextEditorTextAreaTextEntered;
+            this.ScriptEditorTextEditor.TextChanged += this.ScriptEditorTextEditorTextChanged;
+            this.ScriptEditorTextEditor.Text = script ?? String.Empty;
         }
 
         /// <summary>
@@ -50,12 +57,12 @@
         /// <summary>
         /// Gets or sets the completion fields.
         /// </summary>
-       // private IList<ICompletionData> CompletionData { get; set; }
+        private IList<ICompletionData> CompletionData { get; set; }
 
         /// <summary>
         /// Gets or sets the completion window.
         /// </summary>
-       // private CompletionWindow CompletionWindow { get; set; }
+        private CompletionWindow CompletionWindow { get; set; }
 
         /// <summary>
         /// Initializes fields that can be shown in the completion window.
@@ -88,7 +95,7 @@
                 {
                     using (XmlTextReader reader = new XmlTextReader(stream))
                     {
-                        //this.ScriptEditorTextEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                        this.ScriptEditorTextEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
                     }
                 }
             }
@@ -111,7 +118,6 @@
         /// <param name="e">Event args.</param>
         private void ScriptEditorTextEditorTextAreaTextEntered(Object sender, TextCompositionEventArgs e)
         {
-            /*
             //// if (e.Text == ".")
             {
                 //// Open code completion after the user has pressed dot:
@@ -128,7 +134,6 @@
 
                 this.CompletionWindow.Show();
             }
-            */
         }
 
         /// <summary>
@@ -138,12 +143,12 @@
         /// <param name="e">Event args.</param>
         private void ScriptEditorTextEditorTextAreaTextEntering(Object sender, TextCompositionEventArgs e)
         {
-           // if (e.Text.Length > 0 && this.CompletionWindow != null)
+            if (e.Text.Length > 0 && this.CompletionWindow != null)
             {
-             //   if (!char.IsLetterOrDigit(e.Text[0]))
+                if (!char.IsLetterOrDigit(e.Text[0]))
                 {
                     // Whenever a non-letter is typed while the completion window is open, insert the currently selected element
-                   // this.CompletionWindow.CompletionList.RequestInsertion(e);
+                    this.CompletionWindow.CompletionList.RequestInsertion(e);
                 }
             }
         }
@@ -187,7 +192,7 @@
         /// <param name="e">Event args.</param>
         private void CodeInjectionFileMenuItemClick(Object sender, RoutedEventArgs e)
         {
-          //  this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetCodeInjectionTemplate() + this.ScriptEditorTextEditor.Text;
+           this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetCodeInjectionTemplate() + this.ScriptEditorTextEditor.Text;
         }
 
         /// <summary>
@@ -197,13 +202,12 @@
         /// <param name="e">Event args.</param>
         private void GraphicsOverlayFileMenuItemClick(Object sender, RoutedEventArgs e)
         {
-           // this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetGraphicsInjectionTemplate() + this.ScriptEditorTextEditor.Text;
+            this.ScriptEditorTextEditor.Text = this.ScriptEditorViewModel.GetGraphicsInjectionTemplate() + this.ScriptEditorTextEditor.Text;
         }
 
         /// <summary>
         /// Implements AvalonEdit ICompletionData interface to provide the entries in the completion drop down.
         /// </summary>
-        /*
         internal class AutoCompleteData : ICompletionData
         {
             /// <summary>
@@ -272,7 +276,6 @@
                 textArea.Document.Replace(completionSegment, this.Text);
             }
         }
-        */
         //// End class
     }
     //// End class

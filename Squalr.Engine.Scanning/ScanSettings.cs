@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
 
     public static class ScanSettings
@@ -96,29 +96,16 @@
             }
         }
 
-        public static Int32 InputCorrelatorTimeOutInterval
+        public static MemoryAlignment Alignment
         {
             get
             {
-                return Properties.Settings.Default.InputCorrelatorTimeOutInterval;
+                return (MemoryAlignment)Properties.Settings.Default.Alignment;
             }
 
             set
             {
-                Properties.Settings.Default.InputCorrelatorTimeOutInterval = value;
-            }
-        }
-
-        public static Int32 Alignment
-        {
-            get
-            {
-                return Properties.Settings.Default.Alignment;
-            }
-
-            set
-            {
-                Properties.Settings.Default.Alignment = value;
+                Properties.Settings.Default.Alignment = (int)value;
             }
         }
 
@@ -239,7 +226,7 @@
             }
         }
 
-        public static DataTypeBase DataType
+        public static ScannableType DataType
         {
             get
             {
@@ -249,6 +236,19 @@
             set
             {
                 Properties.Settings.Default.DataType = value;
+            }
+        }
+
+        public static EmulatorType EmulatorType
+        {
+            get
+            {
+                return (EmulatorType)Properties.Settings.Default.EmulatorType;
+            }
+
+            set
+            {
+                Properties.Settings.Default.EmulatorType = (int)value;
             }
         }
     }

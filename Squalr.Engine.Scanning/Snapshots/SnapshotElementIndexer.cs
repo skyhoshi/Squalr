@@ -1,9 +1,11 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using System;
+    using System.Buffers.Binary;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Defines a reference to an element within a snapshot region.
@@ -15,10 +17,11 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="elementIndex">The index of the element to begin pointing to.</param>
-        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0)
+        public unsafe SnapshotElementIndexer(SnapshotRegion region, Int32 elementIndex = 0, MemoryAlignment alignment = MemoryAlignment.Alignment1)
         {
             this.Region = region;
             this.ElementIndex = elementIndex;
+            this.Alignment = alignment;
         }
 
         /// <summary>
@@ -55,67 +58,73 @@
         /// </summary>
         public Int32 ElementIndex { get; set; }
 
-        public Object LoadCurrentValue(DataTypeBase dataType)
+        /// <summary>
+        /// Gets or sets the memory alignment of this indexer.
+        /// </summary>
+        public MemoryAlignment Alignment { get; set; }
+
+        public Object LoadCurrentValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
-                switch (dataType)
-                {
-                    case DataTypeBase type when type == DataTypeBase.Byte:
-                        return *pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.SByte:
-                        return *(SByte*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int16:
-                        return *(Int16*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int32:
-                        return *(Int32*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int64:
-                        return *(Int64*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt16:
-                        return *(UInt16*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt32:
-                        return *(UInt32*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt64:
-                        return *(UInt64*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Single:
-                        return *(Single*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Double:
-                        return *(Double*)pointerBase;
-                    default:
-                        throw new ArgumentException();
-                }
+                return LoadValues(dataType, pointerBase);
             }
         }
 
-        public Object LoadPreviousValue(DataTypeBase dataType)
+        public Object LoadPreviousValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex])
+            fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
-                switch (dataType)
-                {
-                    case DataTypeBase type when type == DataTypeBase.Byte:
-                        return *pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.SByte:
-                        return *(SByte*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int16:
-                        return *(Int16*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int32:
-                        return *(Int32*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Int64:
-                        return *(Int64*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt16:
-                        return *(UInt16*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt32:
-                        return *(UInt32*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.UInt64:
-                        return *(UInt64*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Single:
-                        return *(Single*)pointerBase;
-                    case DataTypeBase type when type == DataTypeBase.Double:
-                        return *(Double*)pointerBase;
-                    default:
-                        throw new ArgumentException();
-                }
+                return LoadValues(dataType, pointerBase);
+            }
+        }
+
+        private Object LoadValues(ScannableType dataType, Byte* pointerBase)
+        {
+            switch (dataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return *pointerBase;
+                case ScannableType type when type == ScannableType.SByte:
+                    return *(SByte*)pointerBase;
+                case ScannableType type when type == ScannableType.Int16:
+                    return *(Int16*)pointerBase;
+                case ScannableType type when type == ScannableType.Int32:
+                    return *(Int32*)pointerBase;
+                case ScannableType type when type == ScannableType.Int64:
+                    return *(Int64*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return *(UInt16*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return *(UInt32*)pointerBase;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return *(UInt64*)pointerBase;
+                case ScannableType type when type == ScannableType.Single:
+                    return *(Single*)pointerBase;
+                case ScannableType type when type == ScannableType.Double:
+                    return *(Double*)pointerBase;
+                case ByteArrayType type:
+                    Byte[] byteArray = new Byte[type.Length];
+                    Marshal.Copy((IntPtr)pointerBase, byteArray, 0, type.Length);
+                    return byteArray;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int16*)pointerBase);
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int32*)pointerBase);
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return BinaryPrimitives.ReverseEndianness(*(Int64*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt16*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt32*)pointerBase);
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return BinaryPrimitives.ReverseEndianness(*(UInt64*)pointerBase);
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)pointerBase));
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)pointerBase));
+                default:
+                    throw new ArgumentException();
             }
         }
 

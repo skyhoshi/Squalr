@@ -13,6 +13,11 @@
         /// <summary>
         /// Image of one blue block.
         /// </summary>
+        public static readonly BitmapImage BlueBlocksArray = Images.LoadImage("BlueBlocksArray.png");
+
+        /// <summary>
+        /// Image of one blue block.
+        /// </summary>
         public static readonly BitmapImage BlueBlocks1 = Images.LoadImage("BlueBlocks1.png");
 
         /// <summary>
@@ -84,6 +89,11 @@
         /// Image for an inactive connection.
         /// </summary>
         public static readonly BitmapImage Disconnected = Images.LoadImage("Disconnected.png");
+
+        /// <summary>
+        /// Image of the Dolphin emulator.
+        /// </summary>
+        public static readonly BitmapImage DolphinEmulator = Images.LoadImage("DolphinEmulator.png");
 
         /// <summary>
         /// Image of two down arrows.

@@ -2,18 +2,20 @@
 {
     using Source.DotNetExplorer;
     using Source.Main;
-    using Source.Results;
+    using Source.ScanResults;
     using Source.Snapshots;
     using Squalr.Properties;
     using Squalr.Source.ChangeLog;
     using Squalr.Source.Controls;
     using Squalr.Source.Debugger;
     using Squalr.Source.Docking;
+    using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.HotkeyEditor;
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.TextEditor;
     using Squalr.Source.Editors.ValueEditor;
+    using Squalr.Source.MemoryViewer;
     using Squalr.Source.Output;
     using Squalr.Source.ProcessSelector;
     using Squalr.Source.ProjectExplorer;
@@ -21,8 +23,6 @@
     using Squalr.Source.PropertyViewer;
     using Squalr.Source.Scanning;
     using Squalr.Source.Tasks;
-    using System;
-    using System.ComponentModel;
 
     /// <summary>
     /// This class contains static references to all the view models in the
@@ -137,7 +137,18 @@
         }
 
         /// <summary>
-        /// Gets a Offset Editor view model.
+        /// Gets the Data Type Editor view model.
+        /// </summary>
+        public DataTypeEditorViewModel DataTypeEditorViewModel
+        {
+            get
+            {
+                return DataTypeEditorViewModel.GetInstance();
+            }
+        }
+
+        /// <summary>
+        /// Gets the Offset Editor view model.
         /// </summary>
         public OffsetEditorViewModel OffsetEditorViewModel
         {
@@ -148,7 +159,7 @@
         }
 
         /// <summary>
-        /// Gets a Hotkey Editor view model.
+        /// Gets the Hotkey Editor view model.
         /// </summary>
         public HotkeyEditorViewModel HotkeyEditorViewModel
         {
@@ -188,17 +199,6 @@
             get
             {
                 return ChangeCounterViewModel.GetInstance();
-            }
-        }
-
-        /// <summary>
-        /// Gets the Input Correlator view model.
-        /// </summary>
-        public InputCorrelatorViewModel InputCorrelatorViewModel
-        {
-            get
-            {
-                return InputCorrelatorViewModel.GetInstance();
             }
         }
 
@@ -243,6 +243,17 @@
             get
             {
                 return SnapshotManagerViewModel.GetInstance();
+            }
+        }
+
+        /// <summary>
+        /// Gets the Memory Viewer view model.
+        /// </summary>
+        public MemoryViewerViewModel MemoryViewerViewModel
+        {
+            get
+            {
+                return MemoryViewerViewModel.GetInstance();
             }
         }
 

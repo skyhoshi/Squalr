@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Constraints
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.ComponentModel;
 
@@ -12,8 +12,9 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraints" /> class.
         /// </summary>
-        public ScanConstraints(Type elementType, Constraint rootConstraint)
+        public ScanConstraints(Type elementType, Constraint rootConstraint, MemoryAlignment alignment)
         {
+            this.Alignment = alignment;
             this.RootConstraint = rootConstraint;
             this.SetElementType(elementType);
         }
@@ -23,7 +24,12 @@
         /// <summary>
         /// Gets the element type of this constraint manager.
         /// </summary>
-        public DataTypeBase ElementType { get; private set; }
+        public ScannableType ElementType { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the enforced memory alignment.
+        /// </summary>
+        public MemoryAlignment Alignment { get; private set; }
 
         /// <summary>
         /// Gets the root constraint for this scan constraint set. Usually, this is just a single scan constraint like "> 5".
@@ -34,7 +40,7 @@
         /// Sets the element type to which all constraints apply.
         /// </summary>
         /// <param name="elementType">The new element type.</param>
-        public override void SetElementType(DataTypeBase elementType)
+        public override void SetElementType(ScannableType elementType)
         {
             this.ElementType = elementType;
             this.RootConstraint?.SetElementType(elementType);
@@ -47,7 +53,7 @@
 
         public override Constraint Clone()
         {
-            return new ScanConstraints(this.ElementType, this.RootConstraint?.Clone());
+            return new ScanConstraints(this.ElementType, this.RootConstraint?.Clone(), this.Alignment);
         }
     }
     //// End class

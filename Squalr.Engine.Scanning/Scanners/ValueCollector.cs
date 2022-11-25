@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
@@ -21,7 +20,7 @@
         /// </summary>
         private const String Name = "Value Collector";
 
-        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null)
+        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, bool withLogging = true)
         {
             try
             {
@@ -33,7 +32,10 @@
                         {
                             Int32 processedRegions = 0;
 
-                            Logger.Log(LogLevel.Info, "Reading values from memory...");
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Info, "Reading values from memory...");
+                            }
 
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
@@ -64,28 +66,43 @@
                             cancellationToken.ThrowIfCancellationRequested();
 
                             stopwatch.Stop();
-                            snapshot.LoadMetaData(DataTypeBase.Byte.Size);
+                            snapshot.ComputeElementCount(ScannableType.Byte.Size);
 
-                            Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
-                            Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
+                                Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                            }
 
-                            return snapshot;
+                                return snapshot;
                         }
                         catch (OperationCanceledException ex)
                         {
-                            Logger.Log(LogLevel.Warn, "Scan canceled", ex);
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Warn, "Scan canceled", ex);
+                            }
+
                             return null;
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error, "Error performing scan", ex);
+                            if (withLogging)
+                            {
+                                Logger.Log(LogLevel.Error, "Error performing scan", ex);
+                            }
+
                             return null;
                         }
                     }, cancellationToken));
             }
             catch (TaskConflictException ex)
             {
-                Logger.Log(LogLevel.Warn, "Unable to start scan. Scan is already queued.");
+                if (withLogging)
+                {
+                    Logger.Log(LogLevel.Warn, "Unable to start scan. Scan is already queued.");
+                }
+
                 throw ex;
             }
         }

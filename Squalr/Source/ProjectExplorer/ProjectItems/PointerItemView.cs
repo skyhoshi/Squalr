@@ -1,8 +1,9 @@
 ﻿namespace Squalr.Source.ProjectExplorer.ProjectItems
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Controls;
+    using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.OffsetEditor;
     using Squalr.Source.Editors.ValueEditor;
     using Squalr.Source.Utils.TypeConverters;
@@ -120,8 +121,10 @@
         /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Data Type"), Description("The data type of this address")]
-        public DataTypeBase DataType
+        [TypeConverter(typeof(DataTypeConverter))]
+        [Editor(typeof(DataTypeEditorModel), typeof(UITypeEditor))]
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Data Type"), Description("The data type of this address")]
+        public ScannableType DataType
         {
             get
             {
@@ -178,10 +181,13 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets the display value for this pointer item view.
+        /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
         [Editor(typeof(ValueEditorModel), typeof(UITypeEditor))]
-        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Address Value"), Description("The value at the resolved address")]
+        [SortedCategory(SortedCategory.CategoryType.Common), DisplayName("Value"), Description("The value at the resolved address")]
         public override Object DisplayValue
         {
             get
@@ -193,6 +199,26 @@
             {
                 this.PointerItem.AddressValue = value;
                 this.RaisePropertyChanged(nameof(this.DisplayValue));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the emulator type of this address.
+        /// </summary>
+        [Browsable(true)]
+        [RefreshProperties(RefreshProperties.All)]
+        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Emulator Type"), Description("The emulator context in which the address is resolved.")]
+        public EmulatorType EmulatorType
+        {
+            get
+            {
+                return this.PointerItem.EmulatorType;
+            }
+
+            set
+            {
+                this.PointerItem.EmulatorType = value;
+                this.RaisePropertyChanged(nameof(this.EmulatorType));
             }
         }
 

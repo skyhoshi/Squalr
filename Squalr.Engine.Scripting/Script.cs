@@ -10,7 +10,7 @@
     /// <summary>
     /// Instance of a single script.
     /// </summary>
-    public abstract class ModScript
+    public abstract class Script
     {
         /// <summary>
         /// Gets or sets a cancelation request for the update loop.
@@ -32,15 +32,15 @@
         /// </summary>
         private Task Task { get; set; }
 
-        protected ModScript()
+        protected Script()
         {
         }
 
-        public static ModScript FromAssembly(Assembly assembly)
+        public static Script FromAssembly(Assembly assembly)
         {
-            dynamic modScript = assembly?.CreateInstance("Squalr.Engine.Scripting.ModScript");
+            dynamic script = assembly?.CreateInstance("Squalr.Engine.Scripting.Script");
 
-            return modScript;
+            return script;
         }
 
         public String Text { get; set; }
@@ -66,7 +66,7 @@
             try
             {
                 // Bind the deactivation function such that scripts can deactivate themselves
-                // this.ScriptObject.Deactivate = new Action(() => script.IsActivated = false);
+                this.ScriptObject.Deactivate = new Action(() => this.IsActivated = false);
 
                 // Call OnActivate function in the script
                 this.ScriptObject.OnActivate();
@@ -132,7 +132,7 @@
                         previousTime = currentTime;
 
                         // Await with cancellation
-                        await Task.Delay(ModScript.UpdateTime, this.CancelRequest.Token);
+                        await Task.Delay(Script.UpdateTime, this.CancelRequest.Token);
                     }
                 },
                 this.CancelRequest.Token);
@@ -161,7 +161,7 @@
                 try
                 {
                     this.CancelRequest?.Cancel();
-                    this.Task?.Wait(ModScript.AbortTime);
+                    this.Task?.Wait(Script.AbortTime);
                 }
                 catch
                 {

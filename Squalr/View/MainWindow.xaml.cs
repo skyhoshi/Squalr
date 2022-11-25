@@ -1,11 +1,10 @@
 ﻿namespace Squalr.View
 {
-    using Squalr.Engine.Common.DataTypes;
     using Squalr.Source.Controls;
-    using Squalr.Source.Results;
+    using Squalr.Source.ScanResults;
     using Squalr.Source.Scanning;
     using System;
-    using System.Threading.Tasks;
+    using System.ComponentModel;
     using System.Windows;
 
     /// <summary>
@@ -21,25 +20,28 @@
             this.InitializeComponent();
 
             this.ValueHexDecBoxViewModel = this.ValueHexDecBox.DataContext as HexDecBoxViewModel;
+            this.ValueHexDecBoxViewModel.SupportsMask = true;
             this.ValueHexDecBoxViewModel.PropertyChanged += HexDecBoxViewModelPropertyChanged;
+
+            ScanResultsViewModel.GetInstance().PropertyChanged += ScanResultsPropertyChanged;
         }
 
         private HexDecBoxViewModel ValueHexDecBoxViewModel { get; set; }
 
-        /// <summary>
-        /// Updates the active type.
-        /// </summary>
-        /// <param name="activeType">The new active type.</param>
-        public void Update(DataTypeBase activeType)
+        private void ScanResultsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-            this.ValueHexDecBoxViewModel.DataType = activeType;
+            if (e.PropertyName == nameof(ScanResultsViewModel.ActiveType))
+            {
+                ValueHexDecBoxViewModel.DataType = ScanResultsViewModel.GetInstance().ActiveType;
+            }
         }
 
-        private void HexDecBoxViewModelPropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void HexDecBoxViewModelPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ValueHexDecBoxViewModel.Text))
             {
                 ManualScannerViewModel.GetInstance().UpdateActiveValueCommand.Execute(this.ValueHexDecBoxViewModel.GetValue());
+                ManualScannerViewModel.GetInstance().UpdateActiveArgsCommand.Execute(this.ValueHexDecBoxViewModel.GetMask());
             }
         }
     }

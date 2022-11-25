@@ -1,8 +1,9 @@
-﻿namespace Squalr.Engine.Scanning.Snapshots
+﻿namespace Squalr.Engine.Scanning.Scanners
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Scanners.Constraints;
+    using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
@@ -18,7 +19,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, DataTypeBase dataType)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, ScannableType dataType)
         {
             this.Region = region;
             this.CurrentTypeCode = Type.GetTypeCode(dataType);
@@ -38,7 +39,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="pointerIncrementMode">The method by which to increment element pointers.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, DataTypeBase dataType) : this(region, pointerIncrementMode, dataType)
+        public unsafe SnapshotElementComparer(SnapshotRegion region, PointerIncrementMode pointerIncrementMode, Constraint constraints, ScannableType dataType) : this(region, pointerIncrementMode, dataType)
         {
             this.ElementCompare = this.BuildCompareActions(constraints);
         }
@@ -519,9 +520,9 @@
         /// <param name="pointerIncrementMode">The method by which to increment pointers.</param>
         private unsafe void SetPointerFunction(PointerIncrementMode pointerIncrementMode)
         {
-            Int32 alignment = ScanSettings.Alignment;
+            MemoryAlignment alignment = ScanSettings.Alignment;
 
-            if (alignment == 1)
+            if (alignment == MemoryAlignment.Alignment1)
             {
                 switch (pointerIncrementMode)
                 {
@@ -568,35 +569,35 @@
                     case PointerIncrementMode.AllPointers:
                         this.IncrementPointers = () =>
                         {
-                            this.CurrentLabelIndex += alignment;
-                            this.CurrentValuePointer += alignment;
-                            this.PreviousValuePointer += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
+                            this.PreviousValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.CurrentOnly:
                         this.IncrementPointers = () =>
                         {
-                            this.CurrentValuePointer += alignment;
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.LabelsOnly:
                         this.IncrementPointers = () =>
                         {
-                            this.CurrentLabelIndex += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.NoPrevious:
                         this.IncrementPointers = () =>
                         {
-                            this.CurrentLabelIndex += alignment;
-                            this.CurrentValuePointer += alignment;
+                            this.CurrentLabelIndex += unchecked((Int32)alignment);
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                     case PointerIncrementMode.ValuesOnly:
                         this.IncrementPointers = () =>
                         {
-                            this.CurrentValuePointer += alignment;
-                            this.PreviousValuePointer += alignment;
+                            this.CurrentValuePointer += unchecked((Int32)alignment);
+                            this.PreviousValuePointer += unchecked((Int32)alignment);
                         };
                         break;
                 }

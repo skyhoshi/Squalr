@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Memory.Clr
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -58,7 +58,7 @@
         [ReadOnly(true)]
         //// [TypeConverter(typeof(DataTypeConverter))]
         [Category("Properties"), DisplayName("Value Type"), Description("Data type of the address")]
-        public DataTypeBase ElementType { get; set; }
+        public ScannableType ElementType { get; set; }
 
         /// <summary>
         /// Gets or sets the children of this .Net object.

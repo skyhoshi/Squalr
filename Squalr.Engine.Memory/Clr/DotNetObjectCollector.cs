@@ -1,9 +1,8 @@
 ﻿namespace Squalr.Engine.Memory.Clr
 {
-    using Squalr.Engine.Common.DataTypes;
+    using Squalr.Engine.Common;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Reflection;
     using System.Threading;
 
@@ -253,9 +252,9 @@
                 case TypeCode.Boolean:
                     return typeof(Boolean);
                 case TypeCode.Byte:
-                    return DataTypeBase.Byte;
+                    return ScannableType.Byte;
                 case TypeCode.Char:
-                    return DataTypeBase.Char;
+                    return ScannableType.Char;
                 case TypeCode.DateTime:
                     return typeof(DateTime);
                 case TypeCode.DBNull:
@@ -263,27 +262,27 @@
                 case TypeCode.Decimal:
                     return typeof(Decimal);
                 case TypeCode.Double:
-                    return DataTypeBase.Double;
+                    return ScannableType.Double;
                 case TypeCode.Int16:
-                    return DataTypeBase.Int16;
+                    return ScannableType.Int16;
                 case TypeCode.Int32:
-                    return DataTypeBase.Int32;
+                    return ScannableType.Int32;
                 case TypeCode.Int64:
-                    return DataTypeBase.Int64;
+                    return ScannableType.Int64;
                 case TypeCode.Object:
                     return typeof(Object);
                 case TypeCode.SByte:
-                    return DataTypeBase.SByte;
+                    return ScannableType.SByte;
                 case TypeCode.Single:
-                    return DataTypeBase.Single;
+                    return ScannableType.Single;
                 case TypeCode.String:
-                    return DataTypeBase.String;
+                    return ScannableType.String;
                 case TypeCode.UInt16:
-                    return DataTypeBase.UInt16;
+                    return ScannableType.UInt16;
                 case TypeCode.UInt32:
-                    return DataTypeBase.UInt32;
+                    return ScannableType.UInt32;
                 case TypeCode.UInt64:
-                    return DataTypeBase.UInt64;
+                    return ScannableType.UInt64;
                 default:
                     break;
             }
