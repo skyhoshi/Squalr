@@ -8,8 +8,8 @@
     x:Name="SqualrCreateProjectDialog"
     Width="320"
     Height="144"
-    d:DesignHeight="320"
-    d:DesignWidth="144"
+    d:DesignWidth="320"
+    d:DesignHeight="144"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding RenameProjectDialogViewModel, Source={StaticResource ViewModelLocator}}"
@@ -20,7 +20,7 @@
         <shell:WindowChrome CaptionHeight="{Binding ActualHeight, ElementName=titlebar}" />
     </shell:WindowChrome.WindowChrome>
 
-    <shell:Grid Background="{StaticResource SqualrColorBlack}">
+    <shell:Grid Background="{StaticResource SqualrColorPanel}">
         <shell:Grid.RowDefinitions>
             <shell:RowDefinition Height="Auto" />
             <shell:RowDefinition Height="Auto" />
@@ -47,17 +47,16 @@
                 <shell:StackPanel Orientation="Horizontal">
                     <shell:TextBlock
                         Margin="0,0,0,4"
-                        Background="{StaticResource SqualrColorBlack}"
                         Foreground="{StaticResource SqualrColorWhite}"
                         Text="Rename project: " />
                     <shell:TextBlock
                         Margin="0,0,0,4"
-                        Background="{StaticResource SqualrColorBlack}"
                         Foreground="{StaticResource SqualrColorWhite}"
                         Text="{Binding ProjectName}" />
                 </shell:StackPanel>
                 <shell:TextBox
-                    Background="{StaticResource SqualrColorBlack}"
+                    Background="{StaticResource SqualrColorGray27}"
+                    BorderBrush="{StaticResource SqualrColorGray40}"
                     Foreground="{StaticResource SqualrColorWhite}"
                     Text="{Binding NewProjectName, UpdateSourceTrigger=PropertyChanged}" />
             </shell:StackPanel>
@@ -65,7 +64,6 @@
 
         <shell:Grid Margin="4" shell:Grid.Row="2">
             <shell:TextBlock
-                Background="{StaticResource SqualrColorBlack}"
                 Foreground="{StaticResource SqualrColorWhite}"
                 Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
         </shell:Grid>

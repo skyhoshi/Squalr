@@ -245,6 +245,7 @@
                             </WrapPanel>
                             <Controls:HexDecBox
                                 x:Name="ScanRangeStartHexDecBox"
+                                IsEnabled="{Binding SettingsViewModel.IsNotUserMode, Source={StaticResource ViewModelLocator}}"
                                 Width="196"
                                 Margin="0,4,8,0"
                                 HorizontalAlignment="Left"
@@ -252,6 +253,7 @@
                                 BorderThickness="1" />
                             <Controls:HexDecBox
                                 x:Name="ScanRangeEndHexDecBox"
+                                IsEnabled="{Binding SettingsViewModel.IsNotUserMode, Source={StaticResource ViewModelLocator}}"
                                 Width="196"
                                 Margin="0,4,8,0"
                                 HorizontalAlignment="Left"
