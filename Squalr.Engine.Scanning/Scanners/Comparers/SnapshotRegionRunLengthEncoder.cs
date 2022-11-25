@@ -108,8 +108,9 @@
                 UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + (UInt64)this.RunLengthEncodeOffset;
                 UInt64 absoluteAddressEnd = absoluteAddressStart + (UInt64)this.RunLength;
 
-                // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range.
+                // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range. This can result in next scans actually increasing the result count.
                 // This is particularly true in "next scans". This check catches any potential errors introduced this way.
+                // TODO: This is really bad and impacts performance. The vector scanner should handle this, rather than pushing this bug here.
                 if (absoluteAddressStart >= this.Region.BaseAddress && absoluteAddressEnd <= this.Region.EndAddress)
                 {
                     this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));

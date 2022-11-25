@@ -18,6 +18,8 @@
         /// <returns>The resulting regions, if any.</returns>
         public static ISnapshotRegionScanner CreateScannerInstance(SnapshotRegion region, ScanConstraints constraints)
         {
+            // TODO: Allocating these objects is a severe performance hit. Refactor to cache scanner instances, and lend these out to each scan thread temporarily.
+            // Clean up when done with scan to avoid any refs to large scan regions.
             switch(constraints?.ElementType)
             {
                 case ByteArrayType:

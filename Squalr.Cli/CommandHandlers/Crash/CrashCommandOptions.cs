@@ -15,7 +15,7 @@
         {
             // If set to 0.0, assume unset and set to 1.0. Otherwise, clamp in bounds.
             Intensity = Intensity <= 0.0 ? 1.0 : Math.Clamp(Intensity, 0.0, 1.0);
-            Int32 alignment = 1;
+            MemoryAlignment alignment = MemoryAlignment.Alignment1;
 
             // Collect values
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(

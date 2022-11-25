@@ -4,7 +4,6 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Scanning;
-    using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using System;
     using System.ComponentModel;
@@ -67,6 +66,23 @@
 
                 ProjectSettings.ProjectRoot = value;
                 this.RaisePropertyChanged(nameof(this.ProjectRoot));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Squalr should perform automatic updates.
+        /// </summary>
+        public Boolean AutomaticUpdates
+        {
+            get
+            {
+                return SqualrSettings.AutomaticUpdates;
+            }
+
+            set
+            {
+                SqualrSettings.AutomaticUpdates = value;
+                this.RaisePropertyChanged(nameof(this.AutomaticUpdates));
             }
         }
 
