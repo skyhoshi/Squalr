@@ -186,7 +186,6 @@
         /// <summary>
         /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
         /// </summary>
-        /// <param name="elementSize"></param>
         public void ComputeElementCount(Int32 elementSize)
         {
             this.ByteCount = 0;
@@ -195,8 +194,8 @@
             this.SnapshotRegions?.ForEach(region =>
             {
                 region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += region.RegionSize.ToUInt64();
-                this.ElementCount += region.GetElementCount(elementSize, this.Alignment).ToUInt64();
+                this.ByteCount += (region.RegionSize + elementSize - 1).ToUInt64();
+                this.ElementCount += region.GetElementCount(this.Alignment).ToUInt64();
             });
         }
 
@@ -273,7 +272,7 @@
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(elementSize, this.Alignment).ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(this.Alignment).ToUInt64())
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }

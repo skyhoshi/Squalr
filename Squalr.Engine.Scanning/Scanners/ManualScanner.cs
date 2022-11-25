@@ -40,6 +40,8 @@
                     {
                         Snapshot result = null;
 
+                        snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+
                         try
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -86,6 +88,7 @@
                             cancellationToken.ThrowIfCancellationRequested();
 
                             result = new Snapshot(ManualScanner.Name, resultRegions);
+                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             result.ComputeElementCount(constraints.ElementType.Size);
