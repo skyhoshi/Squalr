@@ -1,6 +1,8 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Iterative;
     using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
@@ -23,9 +25,16 @@
             switch(constraints?.ElementType)
             {
                 case ByteArrayType:
-                    return new SnapshotRegionVectorArrayOfBytesScanner(region, constraints);
+                    return new SnapshotRegionVectorArrayOfBytesScanner(region: region, constraints: constraints);
                 default:
-                    return new SnapshotRegionVectorScanner(region, constraints);
+                    if (Vectors.HasVectorSupport)
+                    {
+                        return new SnapshotRegionVectorScanner(region: region, constraints: constraints);
+                    }
+                    else
+                    {
+                        return new SnapshotRegionIterativeScanner(region: region, constraints: constraints);
+                    }
             }
         }
     }

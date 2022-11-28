@@ -2,7 +2,6 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
-    using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
     using System.Collections.Generic;
 
@@ -26,33 +25,41 @@
         /// </summary>
         /// <param name="readGroup">The read group of this snapshot region.</param>
         /// <param name="readGroupOffset">The base address of this snapshot region.</param>
-        /// <param name="regionSize">The size of this snapshot region.</param>
-        public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 regionSize)
+        /// <param name="elementCount">The size of this snapshot region.</param>
+        public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 elementCount)
         {
             this.ReadGroup = readGroup;
             this.ReadGroupOffset = readGroupOffset;
-            this.RegionSize = regionSize;
+            this.ElementCount = elementCount;
         }
 
         /// <summary>
-        /// Gets or sets the readgroup to which this snapshot region reads it's values.
+        /// Gets the readgroup from which this snapshot region reads its values.
         /// </summary>
-        public ReadGroup ReadGroup { get; set; }
+        public ReadGroup ReadGroup { get; private set; }
 
         /// <summary>
-        /// Gets or sets the offset from the base of this snapshot's read group.
+        /// Gets the offset from the base of this snapshot's read group.
         /// </summary>
-        public Int32 ReadGroupOffset { get; set; }
+        public Int32 ReadGroupOffset { get; private set; }
 
         /// <summary>
-        /// Gets or sets the size of this snapshot region in bytes.
+        /// Gets the size of this snapshot region in elements. This is the number of bytes contained, but if accessing data types larger than 
         /// </summary>
-        public Int32 RegionSize { get; set; }
+        public Int32 ElementCount { get; private set; }
 
         /// <summary>
-        /// Gets the base address of the region.
+        /// Gets the size of this region in bytes. Note that doing such requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
         /// </summary>
-        public UInt64 BaseAddress
+        public Int32 GetByteCount(Int32 dataTypeSize)
+        {
+            return this.ElementCount + Math.Clamp(dataTypeSize, 1, dataTypeSize) - 1;
+        }
+
+        /// <summary>
+        /// Gets the address of the first element contained in this snapshot region.
+        /// </summary>
+        public UInt64 BaseElementAddress
         {
             get
             {
@@ -61,18 +68,18 @@
         }
 
         /// <summary>
-        /// Gets the end address of the region.
+        /// Gets the address of the last element contained in this snapshot region.
         /// </summary>
-        public UInt64 EndAddress
+        public UInt64 EndElementAddress
         {
             get
             {
-                return this.ReadGroup.BaseAddress.Add(this.ReadGroupOffset + this.RegionSize);
+                return this.ReadGroup.BaseAddress.Add(this.ReadGroupOffset + this.ElementCount, wrapAround: false);
             }
         }
 
         /// <summary>
-        /// Gets or sets the base index of this snapshot. In other words, the index of the first element of this region in the scan results.
+        /// Gets or sets the base index of this snapshot. In other words, the scan results index of the first element of this region.
         /// </summary>
         public UInt64 BaseElementIndex { get; set; }
 
@@ -80,10 +87,10 @@
         /// Gets the number of elements contained in this snapshot.
         /// <param name="alignment">The memory address alignment of each element.</param>
         /// </summary>
-        public Int32 GetElementCount(MemoryAlignment alignment)
+        public Int32 GetAlignedElementCount(MemoryAlignment alignment)
         {
             Int32 alignmentValue = unchecked((Int32)alignment);
-            Int32 elementCount = this.RegionSize / (alignmentValue <= 0 ? 1 : alignmentValue);
+            Int32 elementCount = this.ElementCount / (alignmentValue <= 0 ? 1 : alignmentValue);
 
             return elementCount;
         }
@@ -96,7 +103,7 @@
         {
             Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
 
-            this.RegionSize = Math.Clamp(this.RegionSize, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
+            this.ElementCount = Math.Clamp(this.ElementCount, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
         }
 
         /// <summary>
@@ -118,7 +125,7 @@
         /// <returns>The enumerator for an element reference within this snapshot region.</returns>
         public IEnumerator<SnapshotElementIndexer> IterateElements(MemoryAlignment alignment)
         {
-            Int32 elementCount = this.GetElementCount(alignment);
+            Int32 elementCount = this.GetAlignedElementCount(alignment);
             SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this, alignment: alignment);
 
             for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)

@@ -117,7 +117,7 @@
         {
             get
             {
-                return this.Region.BaseAddress.Add(this.ElementIndex);
+                return this.Region.BaseElementAddress.Add(this.ElementIndex);
             }
         }
 

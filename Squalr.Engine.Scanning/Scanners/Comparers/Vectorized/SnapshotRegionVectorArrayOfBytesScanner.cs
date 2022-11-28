@@ -88,7 +88,7 @@
             }
 
             // Note that array of bytes must increment by 1 per iteration, unlike data type scans which can increment by vector size
-            for (; this.VectorReadOffset <= this.Region.RegionSize - ByteArraySize; this.VectorReadOffset++)
+            for (; this.VectorReadOffset <= this.Region.ElementCount - ByteArraySize; this.VectorReadOffset++)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 

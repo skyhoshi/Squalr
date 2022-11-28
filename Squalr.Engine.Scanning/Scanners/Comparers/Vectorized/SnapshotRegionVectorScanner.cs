@@ -207,6 +207,10 @@
              * 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
              *      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
              * 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
+             * 
+             * Future Improvements: We can improve this algorithm by making each bit of the nibble encode the result of a scan, rather than having x bytes of redundency.
+             * This probably requires use of vector shifts or premade masks to extract the desired individual bits (then just OR them), then some updates to the vector processing loop
+             * for mixed result vectors.
             */
 
             Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
@@ -216,13 +220,13 @@
             // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
             this.Region.ResizeForSafeReading(this.VectorSize);
 
-            for (; this.VectorReadOffset < this.Region.RegionSize; this.VectorReadOffset += this.VectorSize)
+            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += this.VectorSize)
             {
                 runLengthVector = Vector<Byte>.Zero;
                 this.AlignmentReadOffset = 0;
 
                 // For misalinged types, we will need to increment the vector read index and perform additional scans
-                for (Int32 alignment = 0; this.VectorReadOffset < this.Region.RegionSize && alignment < scanCountPerVector; alignment++)
+                for (Int32 alignment = 0; this.VectorReadOffset < this.Region.ElementCount && alignment < scanCountPerVector; alignment++)
                 {
                     // Call the desired comparison function to get the results
                     Vector<Byte> scanResults = this.VectorCompare();
