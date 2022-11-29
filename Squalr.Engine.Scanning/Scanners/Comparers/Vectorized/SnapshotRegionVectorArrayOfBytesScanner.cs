@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -11,7 +12,7 @@
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotRegionVectorArrayOfBytesScanner : SnapshotRegionScannerBase
+    internal unsafe class SnapshotRegionVectorArrayOfBytesScanner : SnapshotRegionVectorScannerBase
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegionVectorArrayOfBytesScanner" /> class.
@@ -29,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
 
@@ -40,9 +41,14 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * this.VectorSize)));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
+
+        /// <summary>
+        /// Iterator for array of bytes vectorized chunks.
+        /// </summary>
+        protected Int32 ArrayOfBytesChunkIndex { get; set; }
 
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
@@ -101,7 +107,7 @@
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
+                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
                     continue;
                 }
 
@@ -113,7 +119,7 @@
                 }
 
                 // Otherwise the vector contains a mixture of true and false
-                for (Int32 index = 0; index < this.VectorSize; index += this.DataTypeSize)
+                for (Int32 index = 0; index < Vectors.VectorSize; index += this.DataTypeSize)
                 {
                     // Vector result was false
                     if (scanResults[unchecked(index)] == 0)
@@ -234,8 +240,8 @@
                             }
                         case ScanConstraint.ConstraintType.Equal:
                         case ScanConstraint.ConstraintType.NotEqual:
-                            Int32 remainder = arrayOfBytes.Length % this.VectorSize;
-                            Int32 chunkCount = arrayOfBytes.Length / this.VectorSize + (remainder > 0 ? 1 : 0);
+                            Int32 remainder = arrayOfBytes.Length % Vectors.VectorSize;
+                            Int32 chunkCount = arrayOfBytes.Length / Vectors.VectorSize + (remainder > 0 ? 1 : 0);
                             Span<Byte> arrayOfByteSpan = new Span<Byte>(arrayOfBytes);
                             Span<Byte> maskSpan = new Span<Byte>(mask);
                             Vector<Byte>[] arrayOfByteChunks = new Vector<Byte>[chunkCount];
@@ -243,14 +249,14 @@
 
                             for (Int32 chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
                             {
-                                Int32 currentChunkSize = remainder > 0 && chunkIndex == chunkCount - 1 ? remainder : this.VectorSize;
-                                Span<Byte> arrayOfBytesChunk = arrayOfByteSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
-                                Span<Byte> maskChunk = maskSpan.Slice(this.VectorSize * chunkIndex, currentChunkSize);
+                                Int32 currentChunkSize = remainder > 0 && chunkIndex == chunkCount - 1 ? remainder : Vectors.VectorSize;
+                                Span<Byte> arrayOfBytesChunk = arrayOfByteSpan.Slice(Vectors.VectorSize * chunkIndex, currentChunkSize);
+                                Span<Byte> maskChunk = maskSpan.Slice(Vectors.VectorSize * chunkIndex, currentChunkSize);
 
-                                if (currentChunkSize != this.VectorSize)
+                                if (currentChunkSize != Vectors.VectorSize)
                                 {
-                                    Byte[] arrayOfBytesChunkPadded = Enumerable.Repeat<Byte>(0x00, this.VectorSize).ToArray();
-                                    Byte[] maskChunkPadded = Enumerable.Repeat<Byte>(0xFF, this.VectorSize).ToArray();
+                                    Byte[] arrayOfBytesChunkPadded = Enumerable.Repeat<Byte>(0x00, Vectors.VectorSize).ToArray();
+                                    Byte[] maskChunkPadded = Enumerable.Repeat<Byte>(0xFF, Vectors.VectorSize).ToArray();
 
                                     arrayOfBytesChunk.CopyTo(arrayOfBytesChunkPadded);
                                     maskChunk.CopyTo(maskChunkPadded);

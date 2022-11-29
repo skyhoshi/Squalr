@@ -22,13 +22,13 @@
         /// <returns>The resulting regions, if any.</returns>
         public static ISnapshotRegionScanner AquireScannerInstance(SnapshotRegion region, ScanConstraints constraints)
         {
-            if (Vectors.HasVectorSupport)
+            if (Vectors.HasVectorSupport && region.GetByteCount(constraints.ElementType.Size) >= Vectors.VectorSize)
             {
                 return SnapshotRegionScannerFactory.CreateVectorScannerInstance(region, constraints);
             }
             else
             {
-                return snapshotRegionIterativeScanners.Get();
+                return snapshotRegionIterativeScannerPool.Get();
             }
         }
 
@@ -43,62 +43,62 @@
             switch (constraints?.ElementType)
             {
                 case ByteArrayType:
-                    return snapshotRegionVectorArrayOfBytesScanners.Get();
+                    return snapshotRegionVectorArrayOfBytesScannerPool.Get();
                 default:
                     if ((Int32)constraints.Alignment == constraints.ElementType.Size)
                     {
-                        return snapshotRegionVectorFastScanners.Get();
+                        return snapshotRegionVectorFastScannerPool.Get();
                     }
                     else
                     {
-                        return snapshotRegionVectorMisalignedScanners.Get();
+                        return snapshotRegionVectorMisalignedScannerPool.Get();
                     }
             }
         }
 
-        private static ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> snapshotRegionVectorArrayOfBytesScanners = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
+        private static ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> snapshotRegionVectorArrayOfBytesScannerPool = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
         {
             SnapshotRegionVectorArrayOfBytesScanner instance = new SnapshotRegionVectorArrayOfBytesScanner();
 
             instance.SetDisposeCallback(() =>
             {
-                snapshotRegionVectorArrayOfBytesScanners.Return(instance);
+                snapshotRegionVectorArrayOfBytesScannerPool.Return(instance);
             });
 
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionVectorFastScanner> snapshotRegionVectorFastScanners = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
+        private static ObjectPool<SnapshotRegionVectorFastScanner> snapshotRegionVectorFastScannerPool = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
         {
             SnapshotRegionVectorFastScanner instance = new SnapshotRegionVectorFastScanner();
 
             instance.SetDisposeCallback(() =>
             {
-                snapshotRegionVectorFastScanners.Return(instance);
+                snapshotRegionVectorFastScannerPool.Return(instance);
             });
 
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionVectorMisalignedScanner> snapshotRegionVectorMisalignedScanners = new ObjectPool<SnapshotRegionVectorMisalignedScanner>(() =>
+        private static ObjectPool<SnapshotRegionVectorMisalignedScanner> snapshotRegionVectorMisalignedScannerPool = new ObjectPool<SnapshotRegionVectorMisalignedScanner>(() =>
         {
             SnapshotRegionVectorMisalignedScanner instance = new SnapshotRegionVectorMisalignedScanner();
 
             instance.SetDisposeCallback(() =>
             {
-                snapshotRegionVectorMisalignedScanners.Return(instance);
+                snapshotRegionVectorMisalignedScannerPool.Return(instance);
             });
 
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionIterativeScanner> snapshotRegionIterativeScanners = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
+        private static ObjectPool<SnapshotRegionIterativeScanner> snapshotRegionIterativeScannerPool = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
         {
             SnapshotRegionIterativeScanner instance = new SnapshotRegionIterativeScanner();
 
             instance.SetDisposeCallback(() =>
             {
-                snapshotRegionIterativeScanners.Return(instance);
+                snapshotRegionIterativeScannerPool.Return(instance);
             });
 
             return instance;

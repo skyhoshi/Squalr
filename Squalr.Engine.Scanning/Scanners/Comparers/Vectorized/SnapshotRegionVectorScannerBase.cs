@@ -6,8 +6,6 @@
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Buffers.Binary;
-    using System.Collections.Generic;
-    using System.Data;
     using System.Numerics;
     using System.Runtime.CompilerServices;
 
@@ -162,30 +160,49 @@
         }
 
         /// <summary>
+        /// Gets or sets the index from which the next vector is read.
+        /// </summary>
+        public Int32 VectorReadOffset { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets the alignment offset, which is also used for reading the next vector.
+        /// </summary>
+        public Int32 AlignmentReadOffset { get; protected set; }
+
+        /// <summary>
+        /// Gets the current values at the current vector read index.
+        /// </summary>
+        public UInt64 CurrentAddress
+        {
+            get
+            {
+                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the base address from which vectors are read.
+        /// </summary>
+        protected Int32 VectorReadBase { get; set; }
+
+        /// <summary>
+        /// Gets the vector misalignment of the region being scanned.
+        /// </summary>
+        protected Int32 VectorMisalignment { get; private set; }
+
+        /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
         protected Func<Vector<Byte>> VectorCompare { get; private set; }
-
-        /// <summary>
-        /// An alignment mask table for computing temporary run length encoding data during scans.
-        /// </summary>
-        private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
-        {
-                new Vector<Byte>(1 << 0),
-                new Vector<Byte>(1 << 1),
-                new Vector<Byte>(1 << 2),
-                new Vector<Byte>(1 << 3),
-                new Vector<Byte>(1 << 4),
-                new Vector<Byte>(1 << 5),
-                new Vector<Byte>(1 << 6),
-                new Vector<Byte>(1 << 7),
-        };
 
         public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
         {
             base.Initialize(region: region, constraints: constraints);
 
             this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
+            this.VectorReadBase = this.Region.ReadGroupOffset;
+            this.VectorReadOffset = 0;
+            this.VectorMisalignment = this.Region.GetByteCount(this.DataTypeSize) % Vectors.VectorSize;
         }
 
         /// <summary>
@@ -205,8 +222,8 @@
         private Int32 CalculateVectorOverRead()
         {
             Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
-            Int32 vectorRemainder = availableByteCount % this.VectorSize;
-            Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + this.VectorSize);
+            Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
+            Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
             UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
             Int32 vectorOverRead = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
 

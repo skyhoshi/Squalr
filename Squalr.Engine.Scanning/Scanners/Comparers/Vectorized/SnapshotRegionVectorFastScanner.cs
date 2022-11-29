@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
+    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -30,25 +31,25 @@
         {
             this.Initialize(region : region, constraints: constraints);
 
-            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += this.VectorSize)
+            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += Vectors.VectorSize)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 
                 // Optimization: check all vector results true
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
+                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.VectorSize);
+                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
                     continue;
                 }
 
                 // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
+                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
                 {
                     if (scanResults[resultIndex] != 0)
                     {

@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
+    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -21,6 +22,21 @@
         }
 
         /// <summary>
+        /// An alignment mask table for computing temporary run length encoding data during scans.
+        /// </summary>
+        private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
+        {
+                new Vector<Byte>(1 << 0),
+                new Vector<Byte>(1 << 1),
+                new Vector<Byte>(1 << 2),
+                new Vector<Byte>(1 << 3),
+                new Vector<Byte>(1 << 4),
+                new Vector<Byte>(1 << 5),
+                new Vector<Byte>(1 << 6),
+                new Vector<Byte>(1 << 7),
+        };
+
+        /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
         /// <param name="region">The region to scan.</param>
@@ -29,18 +45,13 @@
         public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
         {
             // This algorithm works as such:
-            // 1) Load a vector of the data type to scan (say 128 bytes => 16 doubles).
+            // 1) Load a hardware vector of the data type to scan (say 128 bytes => 16 doubles).
             // 2) Simultaneously scan all 16 doubles (scan result will be true/false).
-            // 3) Store the results in a run length encoding (RLE) vector.
-            //      Important: this RLE vector is a lie, because if we are scanning mis-aligned ints, we will have missed them.
-            //      For example, if there is no alignment, there are 7 additional doubles between each of the doubles we just scanned!
+            // 3) Store the results in a run length encoding (RLE) vector. Important: this RLE vector is (temporarily) a lie.
+            //      In this case 1-byte alignment would mean there are 7 additional doubles between each of the doubles we just scanned!
             // 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
             //      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
             // 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
-            // 
-            // Future Improvements: We can improve this algorithm by making each bit of the nibble encode the result of a scan, rather than having x bytes of redundency.
-            // This probably requires use of vector shifts or premade masks to extract the desired individual bits (then just OR them), then some updates to the vector processing loop
-            // for mixed result vectors.
 
             // Since this algorithm loads elements into a hardware vector, there are three cases we need to consider:
             // Case 1) The snapshot readgroup does not fit into a single hardware vector (In which case using this scan class was a mistake, and it will crash)
@@ -52,25 +63,32 @@
             Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
             Vector<Byte> runLengthVector;
 
-            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += this.VectorSize)
+            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += Vectors.VectorSize)
             {
                 runLengthVector = Vector<Byte>.Zero;
+
+                for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
+                {
+                    Vector<Byte> scanResults = this.VectorCompare();
+
+                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(AlignmentMaskTable[alignmentIndex], scanResults));
+                }
 
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
+                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
                     continue;
                 }
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.VectorSize);
+                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
                     continue;
                 }
 
                 // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
+                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
                 {
                     Byte runLengthFlags = runLengthVector[resultIndex];
 
