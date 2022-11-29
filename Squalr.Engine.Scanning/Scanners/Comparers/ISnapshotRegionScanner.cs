@@ -18,6 +18,10 @@
         /// <returns>The resulting regions, if any.</returns>
         public IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints);
 
+        /// <summary>
+        /// Sets the action to perform when the scanner is disposed. Note that a disposed scanner is not necessarily destroyed, as these objects may be recycled for future scans.
+        /// </summary>
+        /// <param name="onDispose">The dispose function callback.</param>
         public void SetDisposeCallback(Action onDispose);
     }
     //// End interface

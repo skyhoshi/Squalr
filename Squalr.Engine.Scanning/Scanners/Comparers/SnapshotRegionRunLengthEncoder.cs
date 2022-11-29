@@ -1,6 +1,5 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers
 {
-    using Squalr.Engine.Common;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -12,19 +11,13 @@
     /// This is one of the magic tricks Squalr uses for fast scans. Each scan thread uses run length encoding to track the number of consecutive
     /// successful scan matches. Once a non-matching element is found, a snapshot region is created containing the contiguous block of successful results.
     /// </summary>
-    internal unsafe class SnapshotRegionRunLengthEncoder
+    internal unsafe class SnapshotRegionRunLengthEncoder : IDisposable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegionRunLengthEncoder" /> class.
         /// </summary>
-        /// <param name="region">The parent region that contains this element.</param>
-        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionRunLengthEncoder(SnapshotRegion region, ScanConstraints constraints)
+        public SnapshotRegionRunLengthEncoder()
         {
-            this.Region = region;
-            this.DataTypeSize = constraints.ElementType.Size;
-            this.ResultRegions = new List<SnapshotRegion>();
-            this.RunLengthEncodeOffset = region?.ReadGroupOffset ?? 0;
         }
 
         /// <summary>
@@ -43,11 +36,6 @@
         private Int32 RunLength { get; set; }
 
         /// <summary>
-        /// Gets or sets the size of the data type being compared.
-        /// </summary>
-        private Int32 DataTypeSize { get; set; }
-
-        /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
         private SnapshotRegion Region { get; set; }
@@ -56,6 +44,26 @@
         /// Gets or sets the list of discovered result regions.
         /// </summary>
         private IList<SnapshotRegion> ResultRegions { get; set; }
+
+        /// <summary>
+        /// Initializes this run legnth encoder for a given region being scanned and a set of scan constraints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        public void Initialize(SnapshotRegion region)
+        {
+            this.Region = region;
+            this.ResultRegions = new List<SnapshotRegion>();
+            this.RunLengthEncodeOffset = region?.ReadGroupOffset ?? 0;
+        }
+
+        /// <summary>
+        /// Perform cleanup and release references, this run length encoder may still be referenced by cached scanner instances.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Region = null;
+            this.ResultRegions = null;
+        }
 
         /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.

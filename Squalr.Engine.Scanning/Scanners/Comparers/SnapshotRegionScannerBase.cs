@@ -6,6 +6,8 @@
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections.Generic;
+    using System.Data;
+    using System.Drawing;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
@@ -17,6 +19,7 @@
         /// </summary>
         public SnapshotRegionScannerBase()
         {
+            this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder();
         }
 
         /// <summary>
@@ -92,7 +95,7 @@
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public virtual void Initialize(SnapshotRegion region, ScanConstraints constraints)
         {
-            this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder(region, constraints);
+            this.RunLengthEncoder.Initialize(region);
             this.Region = region;
             this.VectorSize = Vectors.VectorSize;
             this.VectorReadBase = this.Region.ReadGroupOffset;
@@ -110,13 +113,23 @@
             }
         }
 
+        /// <summary>
+        /// Sets the action to perform when the scanner is disposed. Note that a disposed scanner is not necessarily destroyed, as these objects may be recycled for future scans.
+        /// </summary>
+        /// <param name="onDispose">The dispose function callback.</param>
         public void SetDisposeCallback(Action onDispose)
         {
             this.OnDispose = onDispose;
         }
 
+        /// <summary>
+        /// Perform cleanup and release references, since this snapshot scanner instance may be recycled and exist in cached memory.
+        /// </summary>
         public virtual void Dispose()
         {
+            this.RunLengthEncoder.Dispose();
+            this.Region = null;
+
             if (this.OnDispose != null)
             {
                 this.OnDispose();
