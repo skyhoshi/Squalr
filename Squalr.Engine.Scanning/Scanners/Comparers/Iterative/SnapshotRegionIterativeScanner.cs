@@ -19,15 +19,8 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The constraints to use for the element comparisons.</param>
-        public unsafe SnapshotRegionIterativeScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
+        public unsafe SnapshotRegionIterativeScanner() : base()
         {
-            // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
-            this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
-            this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
-
-            this.InitializePointers();
-            this.SetConstraintFunctions();
-            this.ElementCompare = this.BuildCompareActions(constraints);
         }
 
         /// <summary>
@@ -35,9 +28,6 @@
         /// </summary>
         ~SnapshotRegionIterativeScanner()
         {
-            // Let the GC do what it wants now
-            this.CurrentValuesHandle.Free();
-            this.PreviousValuesHandle.Free();
         }
 
         /// <summary>
@@ -169,6 +159,26 @@
             }
         }
 
+        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        {
+            base.Initialize(region, constraints);
+
+            // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
+            this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
+            this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
+
+            this.InitializePointers();
+            this.SetConstraintFunctions();
+            this.ElementCompare = this.BuildCompareActions(constraints);
+        }
+
+        public override void Dispose()
+        {
+            // Let the GC do what it wants now
+            this.CurrentValuesHandle.Free();
+            this.PreviousValuesHandle.Free();
+        }
+
         /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
@@ -183,7 +193,7 @@
             }
             else
             {
-                this.RunLengthEncoder.FinalizeCurrentEncode(0);
+                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
             }
 
             throw new NotImplementedException();
@@ -496,7 +506,7 @@
         /// Sets the default compare action to use for this element.
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the element quick action.</param>
-        private Func<Boolean> BuildCompareActions(Constraint constraint)
+        private Func<Boolean> BuildCompareActions(IScanConstraint constraint)
         {
             switch (constraint)
             {

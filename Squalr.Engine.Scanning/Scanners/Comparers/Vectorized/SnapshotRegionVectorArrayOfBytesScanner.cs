@@ -18,10 +18,8 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionVectorArrayOfBytesScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
+        public SnapshotRegionVectorArrayOfBytesScanner() : base()
         {
-            this.SetConstraintFunctions();
-            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
 
         /// <summary>
@@ -71,6 +69,14 @@
         /// </summary>
         private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToValue { get; set; }
 
+        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        {
+            base.Initialize(region, constraints);
+
+            this.SetConstraintFunctions();
+            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
+        }
+
         /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
@@ -102,7 +108,7 @@
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.FinalizeCurrentEncode(ByteArraySize);
+                    this.RunLengthEncoder.FinalizeCurrentEncodeChecked(ByteArraySize);
                     continue;
                 }
 
@@ -112,7 +118,7 @@
                     // Vector result was false
                     if (scanResults[unchecked(index)] == 0)
                     {
-                        this.RunLengthEncoder.FinalizeCurrentEncode(this.DataTypeSize);
+                        this.RunLengthEncoder.FinalizeCurrentEncodeChecked(this.DataTypeSize);
                     }
                     // Vector result was true
                     else
@@ -122,7 +128,9 @@
                 }
             }
 
-            return this.RunLengthEncoder.GatherCollectedRegions();
+            this.RunLengthEncoder.FinalizeCurrentEncodeChecked();
+
+            return this.RunLengthEncoder.GetCollectedRegions();
         }
 
         /// <summary>
@@ -141,7 +149,7 @@
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the scan.</param>
         /// <param name="compareActionValue">The value to use for the scan.</param>
-        private Func<Vector<Byte>> BuildCompareActions(Constraint constraint)
+        private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
             switch (constraint)
             {

@@ -5,9 +5,7 @@
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
-    using System.Buffers.Binary;
     using System.Collections.Generic;
-    using System.Numerics;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
@@ -17,26 +15,8 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegionScannerBase" /> class.
         /// </summary>
-        /// <param name="region">The parent region that contains this element.</param>
-        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionScannerBase(SnapshotRegion region, ScanConstraints constraints)
+        public SnapshotRegionScannerBase()
         {
-            this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder(region, constraints);
-            this.Region = region;
-            this.VectorSize = Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset;
-            this.VectorReadOffset = 0;
-            this.DataType = constraints.ElementType;
-            this.DataTypeSize = constraints.ElementType.Size;
-
-            if (this.DataType is ByteArrayType)
-            {
-                this.Alignment = MemoryAlignment.Alignment1;
-            }
-            else
-            {
-                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
-            }
         }
 
         /// <summary>
@@ -99,6 +79,49 @@
         /// Gets or sets the data type being compared.
         /// </summary>
         protected ScannableType DataType { get; set; }
+
+        /// <summary>
+        /// The action to perform when disposing this scanner.
+        /// </summary>
+        private Action OnDispose { get; set; }
+
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
+        public virtual void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        {
+            this.RunLengthEncoder = new SnapshotRegionRunLengthEncoder(region, constraints);
+            this.Region = region;
+            this.VectorSize = Vectors.VectorSize;
+            this.VectorReadBase = this.Region.ReadGroupOffset;
+            this.VectorReadOffset = 0;
+            this.DataType = constraints.ElementType;
+            this.DataTypeSize = constraints.ElementType.Size;
+
+            if (this.DataType is ByteArrayType)
+            {
+                this.Alignment = MemoryAlignment.Alignment1;
+            }
+            else
+            {
+                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
+            }
+        }
+
+        public void SetDisposeCallback(Action onDispose)
+        {
+            this.OnDispose = onDispose;
+        }
+
+        public virtual void Dispose()
+        {
+            if (this.OnDispose != null)
+            {
+                this.OnDispose();
+            }
+        }
 
         /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.

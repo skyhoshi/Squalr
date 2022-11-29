@@ -25,15 +25,6 @@
             this.DataTypeSize = constraints.ElementType.Size;
             this.ResultRegions = new List<SnapshotRegion>();
             this.RunLengthEncodeOffset = region?.ReadGroupOffset ?? 0;
-
-            if (constraints.ElementType is ByteArrayType)
-            {
-                this.Alignment = MemoryAlignment.Alignment1;
-            }
-            else
-            {
-                this.Alignment = constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment;
-            }
         }
 
         /// <summary>
@@ -67,16 +58,10 @@
         private IList<SnapshotRegion> ResultRegions { get; set; }
 
         /// <summary>
-        /// Gets or sets the enforced memory alignment for this scan.
-        /// </summary>
-        private MemoryAlignment Alignment { get; set; }
-
-        /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.
         /// </summary>
-        public IList<SnapshotRegion> GatherCollectedRegions()
+        public IList<SnapshotRegion> GetCollectedRegions()
         {
-            this.FinalizeCurrentEncode();
             return this.ResultRegions;
         }
 
@@ -96,10 +81,11 @@
 
         /// <summary>
         /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
+        /// This check performs bounds checking to ensure that no run-length encoding captured extra bytes outside of the scan range.
         /// </summary>
         /// <param name="advanceByteCount">The number of failed bytes (ie values that did not match scans) to increment by.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void FinalizeCurrentEncode(Int32 advanceByteCount = 0)
+        public void FinalizeCurrentEncodeChecked(Int32 advanceByteCount = 0)
         {
             // Create the final region if we are still encoding
             if (this.IsEncoding)
@@ -110,12 +96,30 @@
 
                 // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range. This can result in next scans actually increasing the result count.
                 // This is particularly true in "next scans". This check catches any potential errors introduced this way.
-                // TODO: This is really bad and impacts performance. The vector scanner should handle this, rather than pushing this bug here.
                 if (absoluteAddressStart >= this.Region.BaseElementAddress && absoluteAddressEnd <= this.Region.EndElementAddress)
                 {
                     this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
                 }
 
+                this.RunLengthEncodeOffset += this.RunLength;
+                this.RunLength = 0;
+                this.IsEncoding = false;
+            }
+
+            this.RunLengthEncodeOffset += advanceByteCount;
+        }
+
+        /// <summary>
+        /// Encodes the current scan results if possible. This finalizes the current run-length encoded scan results to a snapshot region.
+        /// </summary>
+        /// <param name="advanceByteCount">The number of failed bytes (ie values that did not match scans) to increment by.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void FinalizeCurrentEncodeUnchecked(Int32 advanceByteCount = 0)
+        {
+            // Create the final region if we are still encoding
+            if (this.IsEncoding)
+            {
+                this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
                 this.RunLengthEncodeOffset += this.RunLength;
                 this.RunLength = 0;
                 this.IsEncoding = false;

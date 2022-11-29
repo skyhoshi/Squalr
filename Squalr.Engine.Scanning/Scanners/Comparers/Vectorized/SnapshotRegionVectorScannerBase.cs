@@ -7,21 +7,22 @@
     using System;
     using System.Buffers.Binary;
     using System.Collections.Generic;
+    using System.Data;
     using System.Numerics;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
     /// </summary>
-    internal unsafe class SnapshotRegionVectorScanner : SnapshotRegionScannerBase
+    internal unsafe abstract class SnapshotRegionVectorScannerBase : SnapshotRegionScannerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotRegionVectorScanner" /> class.
+        /// Initializes a new instance of the <see cref="SnapshotRegionVectorScannerBase" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionVectorScanner(SnapshotRegion region, ScanConstraints constraints) : base(region, constraints)
+        public SnapshotRegionVectorScannerBase() : base()
         {
-            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
 
         /// <summary>
@@ -163,7 +164,7 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
-        private Func<Vector<Byte>> VectorCompare { get; set; }
+        protected Func<Vector<Byte>> VectorCompare { get; private set; }
 
         /// <summary>
         /// An alignment mask table for computing temporary run length encoding data during scans.
@@ -180,6 +181,13 @@
                 new Vector<Byte>(1 << 7),
         };
 
+        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        {
+            base.Initialize(region: region, constraints: constraints);
+
+            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
+        }
+
         /// <summary>
         /// Sets a custom comparison function to use in scanning.
         /// </summary>
@@ -190,88 +198,19 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// 
         /// </summary>
-        /// <param name="region">The region to scan.</param>
-        /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Int32 CalculateVectorOverRead()
         {
-            /*
-             * This algorithm works as such:
-             * 1) Load a vector of the data type to scan (say 128 bytes => 16 doubles).
-             * 2) Simultaneously scan all 16 doubles (scan result will be true/false).
-             * 3) Store the results in a run length encoding (RLE) vector.
-             *      Important: this RLE vector is a lie, because if we are scanning mis-aligned ints, we will have missed them.
-             *      For example, if there is no alignment, there are 7 additional doubles between each of the doubles we just scanned!
-             * 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
-             *      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
-             * 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
-             * 
-             * Future Improvements: We can improve this algorithm by making each bit of the nibble encode the result of a scan, rather than having x bytes of redundency.
-             * This probably requires use of vector shifts or premade masks to extract the desired individual bits (then just OR them), then some updates to the vector processing loop
-             * for mixed result vectors.
-            */
+            Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
+            Int32 vectorRemainder = availableByteCount % this.VectorSize;
+            Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + this.VectorSize);
+            UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
+            Int32 vectorOverRead = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
 
-            Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
-            Vector<Byte> runLengthVector;
-            Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
-
-            // TODO: This might be overkill, also this leaves some dangling values at the end for initial scans. We would need to mop up the final values using a non-vector comparerer.
-            this.Region.ResizeForSafeReading(this.VectorSize);
-
-            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += this.VectorSize)
-            {
-                runLengthVector = Vector<Byte>.Zero;
-                this.AlignmentReadOffset = 0;
-
-                // For misalinged types, we will need to increment the vector read index and perform additional scans
-                for (Int32 alignment = 0; this.VectorReadOffset < this.Region.ElementCount && alignment < scanCountPerVector; alignment++)
-                {
-                    // Call the desired comparison function to get the results
-                    Vector<Byte> scanResults = this.VectorCompare();
-
-                    // Store in-progress scan results for this batch
-                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(scanResults, SnapshotRegionVectorScanner.AlignmentMaskTable[alignment]));
-
-                    this.AlignmentReadOffset++;
-                }
-
-                // Optimization: check all vector results true
-                if (Vector.EqualsAll(runLengthVector, allEqualsVector))
-                {
-                    this.RunLengthEncoder.EncodeBatch(this.VectorSize);
-                    continue;
-                }
-                // Optimization: check all vector results false
-                else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
-                {
-                    this.RunLengthEncoder.FinalizeCurrentEncode(this.VectorSize);
-                    continue;
-                }
-
-                // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < this.VectorSize; resultIndex += this.DataTypeSize)
-                {
-                    Byte runLengthFlags = runLengthVector[resultIndex];
-
-                    for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
-                    {
-                        Boolean runLengthResult = (runLengthFlags & unchecked((Byte)(1 << alignmentIndex))) != 0;
-
-                        if (runLengthResult)
-                        {
-                            this.RunLengthEncoder.EncodeBatch(this.DataTypeSize / scanCountPerVector);
-                        }
-                        else
-                        {
-                            this.RunLengthEncoder.FinalizeCurrentEncode(this.DataTypeSize / scanCountPerVector);
-                        }
-                    }
-                }
-            }
-
-            return this.RunLengthEncoder.GatherCollectedRegions();
+            return vectorOverRead;
         }
 
         /// <summary>
@@ -855,7 +794,7 @@
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the scan.</param>
         /// <param name="compareActionValue">The value to use for the scan.</param>
-        private Func<Vector<Byte>> BuildCompareActions(Constraint constraint)
+        private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
             switch (constraint)
             {

@@ -49,11 +49,15 @@
         public Int32 ElementCount { get; private set; }
 
         /// <summary>
-        /// Gets the size of this region in bytes. Note that doing such requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
+        /// Gets the size of this region in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
+        /// Also, this takes into account how much space is available for reading from the underlying read group.
         /// </summary>
         public Int32 GetByteCount(Int32 dataTypeSize)
         {
-            return this.ElementCount + Math.Clamp(dataTypeSize, 1, dataTypeSize) - 1;
+            Int32 readGroupEndBuffer = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
+            Int32 overReadSize = Math.Min(Math.Clamp(dataTypeSize, 1, dataTypeSize), readGroupEndBuffer);
+
+            return this.ElementCount + overReadSize;
         }
 
         /// <summary>
@@ -63,7 +67,7 @@
         {
             get
             {
-                return this.ReadGroup.BaseAddress.Add(this.ReadGroupOffset);
+                return unchecked(this.ReadGroup.BaseAddress + (UInt64)this.ReadGroupOffset);
             }
         }
 
@@ -74,7 +78,18 @@
         {
             get
             {
-                return this.ReadGroup.BaseAddress.Add(this.ReadGroupOffset + this.ElementCount, wrapAround: false);
+                return unchecked(this.ReadGroup.BaseAddress + (UInt64)(this.ReadGroupOffset + this.ElementCount));
+            }
+        }
+
+        /// <summary>
+        /// Gets the maximum possible data type size that can safely be read from the underlying readgroup.
+        /// </summary>
+        public Int32 GetMaxAllowedDataTypeSize
+        {
+            get
+            {
+                return unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
             }
         }
 

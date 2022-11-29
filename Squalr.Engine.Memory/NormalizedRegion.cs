@@ -56,7 +56,7 @@
         {
             get
             {
-                return this.BaseAddress.Add(this.RegionSize);
+                return unchecked(this.BaseAddress + (UInt64)this.RegionSize);
             }
 
             set

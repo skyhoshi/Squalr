@@ -63,7 +63,9 @@
 
                                 const MemoryAlignment alignment = MemoryAlignment.Alignment4;
                                 ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
-                                SnapshotRegionVectorScanner vectorComparer = new SnapshotRegionVectorScanner(region: region, constraints: constraints);
+                                SnapshotRegionVectorFastScanner vectorComparer = new SnapshotRegionVectorFastScanner();
+                                vectorComparer.Initialize(region: region, constraints: constraints);
+
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 
                                 // SnapshotElementVectorComparer DEBUG_COMPARER = new SnapshotElementVectorComparer(region: region);
