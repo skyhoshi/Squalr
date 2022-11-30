@@ -30,7 +30,7 @@
         /// </summary>
         public UInt64 GetBaseAddress(Int32 dataTypeSize)
         {
-            return this.Region.ReadGroup.BaseAddress.Add(this.Region.ReadGroupOffset).Add(this.ElementIndex * dataTypeSize);
+            return unchecked(this.Region.ReadGroup.BaseAddress + (UInt64)(this.Region.ReadGroupOffset + this.ElementIndex * (Int32)this.Alignment));
         }
 
         /// <summary>

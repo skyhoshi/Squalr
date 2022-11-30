@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.Extensions;
     using System;
     using System.Collections.Generic;
 
@@ -44,7 +43,7 @@
         public Int32 ReadGroupOffset { get; private set; }
 
         /// <summary>
-        /// Gets the size of this snapshot region in elements. This is the number of bytes contained, but if accessing data types larger than 
+        /// Gets the size of this snapshot region in elements. This is the number of bytes directly contained, but more bytes may be used if tracking data types larger than 1-byte.
         /// </summary>
         public Int32 ElementCount { get; private set; }
 
@@ -55,9 +54,9 @@
         public Int32 GetByteCount(Int32 dataTypeSize)
         {
             Int32 readGroupEndBuffer = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
-            Int32 overReadSize = Math.Min(Math.Clamp(dataTypeSize, 1, dataTypeSize), readGroupEndBuffer);
+            Int32 readGroupUsedOverflowBytes = Math.Min(Math.Clamp(dataTypeSize, 1, dataTypeSize), readGroupEndBuffer);
 
-            return this.ElementCount + overReadSize;
+            return this.ElementCount + readGroupUsedOverflowBytes;
         }
 
         /// <summary>

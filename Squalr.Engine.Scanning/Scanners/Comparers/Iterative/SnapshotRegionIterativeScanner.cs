@@ -31,85 +31,9 @@
         }
 
         /// <summary>
-        /// Gets an action to increment only the needed pointers.
-        /// </summary>
-        public Action IncrementPointers { get; private set; }
-
-        /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
         public Func<Boolean> ElementCompare { get; private set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has changed.
-        /// </summary>
-        private Func<Boolean> Changed { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has not changed.
-        /// </summary>
-        private Func<Boolean> Unchanged { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has increased.
-        /// </summary>
-        private Func<Boolean> Increased { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has decreased.
-        /// </summary>
-        private Func<Boolean> Decreased { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value equal to the given value.
-        /// </summary>
-        private Func<Object, Boolean> EqualToValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value not equal to the given value.
-        /// </summary>
-        private Func<Object, Boolean> NotEqualToValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value greater than to the given value.
-        /// </summary>
-        private Func<Object, Boolean> GreaterThanValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value greater than or equal to the given value.
-        /// </summary>
-        private Func<Object, Boolean> GreaterThanOrEqualToValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value less than to the given value.
-        /// </summary>
-        private Func<Object, Boolean> LessThanValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if this element has a value less than to the given value.
-        /// </summary>
-        private Func<Object, Boolean> LessThanOrEqualToValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if the element has increased it's value by the given value.
-        /// </summary>
-        private Func<Object, Boolean> IncreasedByValue { get; set; }
-
-        /// <summary>
-        /// Gets a function which determines if the element has decreased it's value by the given value.
-        /// </summary>
-        private Func<Object, Boolean> DecreasedByValue { get; set; }
-
-        /// <summary>
-        /// Gets the base address of this element.
-        /// </summary>
-        public UInt64 BaseAddress
-        {
-            get
-            {
-                return this.Region.BaseElementAddress.Add(this.ElementIndex);
-            }
-        }
 
         /// <summary>
         /// Gets or sets a garbage collector handle to the current value array.
@@ -131,34 +55,6 @@
         /// </summary>
         private unsafe Byte* PreviousValuePointer { get; set; }
 
-        /// <summary>
-        /// Gets the index of this element.
-        /// </summary>
-        private unsafe Int32 ElementIndex
-        {
-            get
-            {
-                if (this.CurrentValuePointer != null)
-                {
-                    fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset])
-                    {
-                        return (Int32)(this.CurrentValuePointer - pointerBase);
-                    }
-                }
-                else if (this.PreviousValuePointer != null)
-                {
-                    fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset])
-                    {
-                        return (Int32)(this.PreviousValuePointer - pointerBase);
-                    }
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
-
         public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);
@@ -168,7 +64,6 @@
             this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
 
             this.InitializePointers();
-            this.SetConstraintFunctions();
             this.ElementCompare = this.BuildCompareActions(constraints);
         }
 
@@ -185,18 +80,30 @@
         /// <param name="region">The region to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
         /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        public unsafe override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
         {
-            if (this.ElementCompare())
+            this.Initialize(region: region, constraints: constraints);
+
+            Int32 alignedElementCount = region.GetAlignedElementCount(constraints.Alignment);
+
+            for (Int32 index = 0; index < alignedElementCount; index++)
             {
-                this.RunLengthEncoder.EncodeOne();
-            }
-            else
-            {
-                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
+                if (this.ElementCompare())
+                {
+                    this.RunLengthEncoder.EncodeBatch((Int32)constraints.Alignment);
+                }
+                else
+                {
+                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked((Int32)constraints.Alignment);
+                }
+
+                this.CurrentValuePointer += (Int32)constraints.Alignment;
+                this.PreviousValuePointer += (Int32)constraints.Alignment;
             }
 
-            throw new NotImplementedException();
+            this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
+
+            return this.RunLengthEncoder.GetCollectedRegions();
         }
 
         /// <summary>
@@ -239,266 +146,578 @@
         }
 
         /// <summary>
-        /// Initializes all constraint functions for value comparisons.
+        /// Gets the appropriate comparison function for a changed value scan.
         /// </summary>
-        private unsafe void SetConstraintFunctions()
+        private unsafe Func<Boolean> GetComparisonChanged()
         {
             switch (this.DataType)
             {
                 case ScannableType type when type == ScannableType.Byte:
-                    this.Changed = () => { return *this.CurrentValuePointer != *this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *this.CurrentValuePointer == *this.PreviousValuePointer; };
-                    this.Increased = () => { return *this.CurrentValuePointer > *this.PreviousValuePointer; };
-                    this.Decreased = () => { return *this.CurrentValuePointer < *this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *this.CurrentValuePointer == (Byte)value; };
-                    this.NotEqualToValue = (value) => { return *this.CurrentValuePointer != (Byte)value; };
-                    this.GreaterThanValue = (value) => { return *this.CurrentValuePointer > (Byte)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *this.CurrentValuePointer >= (Byte)value; };
-                    this.LessThanValue = (value) => { return *this.CurrentValuePointer < (Byte)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *this.CurrentValuePointer <= (Byte)value; };
-                    this.IncreasedByValue = (value) => { return *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer + (Byte)value); };
-                    this.DecreasedByValue = (value) => { return *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer - (Byte)value); };
-                    break;
+                    return () => *this.CurrentValuePointer != *this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.SByte:
-                    this.Changed = () => { return *(SByte*)this.CurrentValuePointer != *(SByte*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(SByte*)this.CurrentValuePointer == *(SByte*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(SByte*)this.CurrentValuePointer > *(SByte*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(SByte*)this.CurrentValuePointer < *(SByte*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer == (SByte)value; };
-                    this.NotEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer != (SByte)value; };
-                    this.GreaterThanValue = (value) => { return *(SByte*)this.CurrentValuePointer > (SByte)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer >= (SByte)value; };
-                    this.LessThanValue = (value) => { return *(SByte*)this.CurrentValuePointer < (SByte)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(SByte*)this.CurrentValuePointer <= (SByte)value; };
-                    this.IncreasedByValue = (value) => { return *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer + (SByte)value); };
-                    this.DecreasedByValue = (value) => { return *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer - (SByte)value); };
-                    break;
+                    return () => *(SByte*)this.CurrentValuePointer != *(SByte*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.Int16:
-                    this.Changed = () => { return *(Int16*)this.CurrentValuePointer != *(Int16*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(Int16*)this.CurrentValuePointer == *(Int16*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(Int16*)this.CurrentValuePointer > *(Int16*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(Int16*)this.CurrentValuePointer < *(Int16*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer == (Int16)value; };
-                    this.NotEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer != (Int16)value; };
-                    this.GreaterThanValue = (value) => { return *(Int16*)this.CurrentValuePointer > (Int16)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer >= (Int16)value; };
-                    this.LessThanValue = (value) => { return *(Int16*)this.CurrentValuePointer < (Int16)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(Int16*)this.CurrentValuePointer <= (Int16)value; };
-                    this.IncreasedByValue = (value) => { return *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer + (Int16)value); };
-                    this.DecreasedByValue = (value) => { return *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer - (Int16)value); };
-                    break;
+                    return () => *(Int16*)this.CurrentValuePointer != *(Int16*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.Int16BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == (Int16)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) != (Int16)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) > (Int16)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) >= (Int16)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) < (Int16)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) <= (Int16)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer) + (Int16)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer) - (Int16)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.Int32:
-                    this.Changed = () => { return *(Int32*)this.CurrentValuePointer != *(Int32*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(Int32*)this.CurrentValuePointer == *(Int32*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(Int32*)this.CurrentValuePointer > *(Int32*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(Int32*)this.CurrentValuePointer < *(Int32*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer == (Int32)value; };
-                    this.NotEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer != (Int32)value; };
-                    this.GreaterThanValue = (value) => { return *(Int32*)this.CurrentValuePointer > (Int32)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer >= (Int32)value; };
-                    this.LessThanValue = (value) => { return *(Int32*)this.CurrentValuePointer < (Int32)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(Int32*)this.CurrentValuePointer <= (Int32)value; };
-                    this.IncreasedByValue = (value) => { return *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer + (Int32)value); };
-                    this.DecreasedByValue = (value) => { return *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer - (Int32)value); };
-                    break;
+                    return () => *(Int32*)this.CurrentValuePointer != *(Int32*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.Int32BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == (Int32)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) != (Int32)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) > (Int32)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) >= (Int32)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) < (Int32)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) <= (Int32)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer) + (Int32)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer) - (Int32)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.Int64:
-                    this.Changed = () => { return *(Int64*)this.CurrentValuePointer != *(Int64*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(Int64*)this.CurrentValuePointer == *(Int64*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(Int64*)this.CurrentValuePointer > *(Int64*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(Int64*)this.CurrentValuePointer < *(Int64*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer == (Int64)value; };
-                    this.NotEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer != (Int64)value; };
-                    this.GreaterThanValue = (value) => { return *(Int64*)this.CurrentValuePointer > (Int64)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer >= (Int64)value; };
-                    this.LessThanValue = (value) => { return *(Int64*)this.CurrentValuePointer < (Int64)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(Int64*)this.CurrentValuePointer <= (Int64)value; };
-                    this.IncreasedByValue = (value) => { return *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer + (Int64)value); };
-                    this.DecreasedByValue = (value) => { return *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer - (Int64)value); };
-                    break;
+                    return () => *(Int64*)this.CurrentValuePointer != *(Int64*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.Int64BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == (Int64)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) != (Int64)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) > (Int64)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) >= (Int64)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) < (Int64)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) <= (Int64)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer) + (Int64)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer) - (Int64)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.UInt16:
-                    this.Changed = () => { return *(UInt16*)this.CurrentValuePointer != *(UInt16*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(UInt16*)this.CurrentValuePointer == *(UInt16*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(UInt16*)this.CurrentValuePointer > *(UInt16*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(UInt16*)this.CurrentValuePointer < *(UInt16*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer == (UInt16)value; };
-                    this.NotEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer != (UInt16)value; };
-                    this.GreaterThanValue = (value) => { return *(UInt16*)this.CurrentValuePointer > (UInt16)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer >= (UInt16)value; };
-                    this.LessThanValue = (value) => { return *(UInt16*)this.CurrentValuePointer < (UInt16)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(UInt16*)this.CurrentValuePointer <= (UInt16)value; };
-                    this.IncreasedByValue = (value) => { return *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer + (UInt16)value); };
-                    this.DecreasedByValue = (value) => { return *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer - (UInt16)value); };
-                    break;
+                    return () => *(UInt16*)this.CurrentValuePointer != *(UInt16*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.UInt16BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == (UInt16)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) != (UInt16)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) > (UInt16)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) >= (UInt16)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) < (UInt16)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) <= (UInt16)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer) + (UInt16)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer) - (UInt16)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.UInt32:
-                    this.Changed = () => { return *(UInt32*)this.CurrentValuePointer != *(UInt32*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(UInt32*)this.CurrentValuePointer == *(UInt32*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(UInt32*)this.CurrentValuePointer > *(UInt32*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(UInt32*)this.CurrentValuePointer < *(UInt32*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer == (UInt32)value; };
-                    this.NotEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer != (UInt32)value; };
-                    this.GreaterThanValue = (value) => { return *(UInt32*)this.CurrentValuePointer > (UInt32)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer >= (UInt32)value; };
-                    this.LessThanValue = (value) => { return *(UInt32*)this.CurrentValuePointer < (UInt32)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(UInt32*)this.CurrentValuePointer <= (UInt32)value; };
-                    this.IncreasedByValue = (value) => { return *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer + (UInt32)value); };
-                    this.DecreasedByValue = (value) => { return *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer - (UInt32)value); };
-                    break;
+                    return () => *(UInt32*)this.CurrentValuePointer != *(UInt32*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.UInt32BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == (UInt32)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) != (UInt32)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) > (UInt32)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) >= (UInt32)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) < (UInt32)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) <= (UInt32)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) + (UInt32)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) - (UInt32)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.UInt64:
-                    this.Changed = () => { return *(UInt64*)this.CurrentValuePointer != *(UInt64*)this.PreviousValuePointer; };
-                    this.Unchanged = () => { return *(UInt64*)this.CurrentValuePointer == *(UInt64*)this.PreviousValuePointer; };
-                    this.Increased = () => { return *(UInt64*)this.CurrentValuePointer > *(UInt64*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(UInt64*)this.CurrentValuePointer < *(UInt64*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer == (UInt64)value; };
-                    this.NotEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer != (UInt64)value; };
-                    this.GreaterThanValue = (value) => { return *(UInt64*)this.CurrentValuePointer > (UInt64)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer >= (UInt64)value; };
-                    this.LessThanValue = (value) => { return *(UInt64*)this.CurrentValuePointer < (UInt64)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(UInt64*)this.CurrentValuePointer <= (UInt64)value; };
-                    this.IncreasedByValue = (value) => { return *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer + (UInt64)value); };
-                    this.DecreasedByValue = (value) => { return *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer - (UInt64)value); };
-                    break;
+                    return () => *(UInt64*)this.CurrentValuePointer != *(UInt64*)this.PreviousValuePointer;
                 case ScannableType type when type == ScannableType.UInt64BE:
-                    this.Changed = () => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer); };
-                    this.Increased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer); };
-                    this.Decreased = () => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer); };
-                    this.EqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == (UInt64)value; };
-                    this.NotEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) != (UInt64)value; };
-                    this.GreaterThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) > (UInt64)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) >= (UInt64)value; };
-                    this.LessThanValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) < (UInt64)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) <= (UInt64)value; };
-                    this.IncreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer) + (UInt64)value); };
-                    this.DecreasedByValue = (value) => { return BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer) - (UInt64)value); };
-                    break;
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) != BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.Single:
-                    this.Changed = () => { return !(*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer); };
-                    this.Increased = () => { return *(Single*)this.CurrentValuePointer > *(Single*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(Single*)this.CurrentValuePointer < *(Single*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value); };
-                    this.NotEqualToValue = (value) => { return !(*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value); };
-                    this.GreaterThanValue = (value) => { return *(Single*)this.CurrentValuePointer > (Single)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(Single*)this.CurrentValuePointer >= (Single)value; };
-                    this.LessThanValue = (value) => { return *(Single*)this.CurrentValuePointer < (Single)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(Single*)this.CurrentValuePointer <= (Single)value; };
-                    this.IncreasedByValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer + (Single)value)); };
-                    this.DecreasedByValue = (value) => { return (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer - (Single)value)); };
-                    break;
+                    return () => !(*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.SingleBE:
-                    this.Changed = () => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) != BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)); };
-                    this.Unchanged = () => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)); };
-                    this.Increased = () => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) > BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)); };
-                    this.Decreased = () => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) < BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)); };
-                    this.EqualToValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == (Single)value; };
-                    this.NotEqualToValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) != (Single)value; };
-                    this.GreaterThanValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) > (Single)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) >= (Single)value; };
-                    this.LessThanValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) < (Single)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) <= (Single)value; };
-                    this.IncreasedByValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == unchecked(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)) + (Single)value); };
-                    this.DecreasedByValue = (value) => { return BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == unchecked(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)) - (Single)value); };
-                    break;
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) != BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer));
                 case ScannableType type when type == ScannableType.Double:
-                    this.Changed = () => { return !(*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer); };
-                    this.Unchanged = () => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer); };
-                    this.Increased = () => { return *(Double*)this.CurrentValuePointer > *(Double*)this.PreviousValuePointer; };
-                    this.Decreased = () => { return *(Double*)this.CurrentValuePointer < *(Double*)this.PreviousValuePointer; };
-                    this.EqualToValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value); };
-                    this.NotEqualToValue = (value) => { return !(*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value); };
-                    this.GreaterThanValue = (value) => { return *(Double*)this.CurrentValuePointer > (Double)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return *(Double*)this.CurrentValuePointer >= (Double)value; };
-                    this.LessThanValue = (value) => { return *(Double*)this.CurrentValuePointer < (Double)value; };
-                    this.LessThanOrEqualToValue = (value) => { return *(Double*)this.CurrentValuePointer <= (Double)value; };
-                    this.IncreasedByValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer + (Double)value)); };
-                    this.DecreasedByValue = (value) => { return (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer - (Double)value)); };
-                    break;
+                    return () => !(*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer);
                 case ScannableType type when type == ScannableType.DoubleBE:
-                    this.Changed = () => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) != BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)); };
-                    this.Unchanged = () => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)); };
-                    this.Increased = () => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) > BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)); };
-                    this.Decreased = () => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) < BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)); };
-                    this.EqualToValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == (Double)value; };
-                    this.NotEqualToValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) != (Double)value; };
-                    this.GreaterThanValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) > (Double)value; };
-                    this.GreaterThanOrEqualToValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) >= (Double)value; };
-                    this.LessThanValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) < (Double)value; };
-                    this.LessThanOrEqualToValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) <= (Double)value; };
-                    this.IncreasedByValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == unchecked(BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)) + (Double)value); };
-                    this.DecreasedByValue = (value) => { return BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == unchecked(BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)) - (Double)value); };
-                    break;
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) != BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer));
                 default:
-                    throw new ArgumentException();
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for an unchanged value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonUnchanged()
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer == *this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer == *(SByte*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer == *(Int16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer == *(Int32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer == *(Int64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer == *(UInt16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer == *(UInt32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer == *(UInt64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Single:
+                    return () => (*(Single*)this.CurrentValuePointer).AlmostEquals(*(Single*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer));
+                case ScannableType type when type == ScannableType.Double:
+                    return () => (*(Double*)this.CurrentValuePointer).AlmostEquals(*(Double*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer));
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for an increased value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonIncreased()
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer > *this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer > *(SByte*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer > *(Int16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer > *(Int32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer > *(Int64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer > *(UInt16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer > *(UInt32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer > *(UInt64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) > BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer > *(Single*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) > BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer));
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer > *(Double*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) > BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer));
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a decreased value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonDecreased()
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer < *this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer < *(SByte*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer < *(Int16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer < *(Int32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer < *(Int64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer < *(UInt16*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer < *(UInt32*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer < *(UInt64*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) < BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer);
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer < *(Single*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) < BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer));
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer < *(Double*)this.PreviousValuePointer;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) < BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer));
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for an increased by value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonIncreasedBy(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer + (Byte)value);
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer + (SByte)value);
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer + (Int16)value);
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer) + (Int16)value);
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer + (Int32)value);
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer) + (Int32)value);
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer + (Int64)value);
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer) + (Int64)value);
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer + (UInt16)value);
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer) + (UInt16)value);
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer + (UInt32)value);
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) + (UInt32)value);
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer + (UInt64)value);
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer) + (UInt64)value);
+                case ScannableType type when type == ScannableType.Single:
+                    return () => (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer + (Single)value));
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == unchecked(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)) + (Single)value);
+                case ScannableType type when type == ScannableType.Double:
+                    return () => (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer + (Double)value));
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == unchecked(BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)) + (Double)value);
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a decreased by value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonDecreasedBy(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer == unchecked(*this.PreviousValuePointer - (Byte)value);
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer == unchecked(*(SByte*)this.PreviousValuePointer - (SByte)value);
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer == unchecked(*(Int16*)this.PreviousValuePointer - (Int16)value);
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int16*)this.PreviousValuePointer) - (Int16)value);
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer == unchecked(*(Int32*)this.PreviousValuePointer - (Int32)value);
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer) - (Int32)value);
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer == unchecked(*(Int64*)this.PreviousValuePointer - (Int64)value);
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer) - (Int64)value);
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer == unchecked(*(UInt16*)this.PreviousValuePointer - (UInt16)value);
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt16*)this.PreviousValuePointer) - (UInt16)value);
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer == unchecked(*(UInt32*)this.PreviousValuePointer - (UInt32)value);
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt32*)this.PreviousValuePointer) - (UInt32)value);
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer == unchecked(*(UInt64*)this.PreviousValuePointer - (UInt64)value);
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == unchecked(BinaryPrimitives.ReverseEndianness(*(UInt64*)this.PreviousValuePointer) - (UInt64)value);
+                case ScannableType type when type == ScannableType.Single:
+                    return () => (*(Single*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Single*)this.PreviousValuePointer - (Single)value));
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == unchecked(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.PreviousValuePointer)) - (Single)value);
+                case ScannableType type when type == ScannableType.Double:
+                    return () => (*(Double*)this.CurrentValuePointer).AlmostEquals(unchecked(*(Double*)this.PreviousValuePointer - (Double)value));
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == unchecked(BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.PreviousValuePointer)) - (Double)value);
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for an equal to value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonEqual(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer == (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer == (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer == (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) == (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer == (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) == (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer == (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) == (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer == (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) == (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer == (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) == (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer == (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) == (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => (*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value);
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) == (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => (*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value);
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) == (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a not equal to value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonNotEqual(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer != (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer != (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer != (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) != (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer != (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) != (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer != (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) != (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer != (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) != (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer != (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) != (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer != (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) != (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => !(*(Single*)this.CurrentValuePointer).AlmostEquals((Single)value);
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) != (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => !(*(Double*)this.CurrentValuePointer).AlmostEquals((Double)value);
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) != (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a greater than value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonGreaterThan(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer > (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer > (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer > (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) > (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer > (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) > (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer > (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) > (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer > (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) > (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer > (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) > (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer > (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) > (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer > (Single)value;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) > (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer > (Double)value;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) > (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a greater than or equal to value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonGreaterThanOrEqual(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer >= (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer >= (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer >= (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) >= (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer >= (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) >= (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer >= (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) >= (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer >= (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) >= (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer >= (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) >= (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer >= (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) >= (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer >= (Single)value;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) >= (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer >= (Double)value;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) >= (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a greater than value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonLessThan(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer < (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer < (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer < (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) < (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer < (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) < (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer < (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) < (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer < (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) < (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer < (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) < (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer < (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) < (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer < (Single)value;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) < (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer < (Double)value;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) < (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate comparison function for a less than or equal to value scan.
+        /// </summary>
+        private unsafe Func<Boolean> GetComparisonLessThanOrEqual(Object value)
+        {
+            switch (this.DataType)
+            {
+                case ScannableType type when type == ScannableType.Byte:
+                    return () => *this.CurrentValuePointer <= (Byte)value;
+                case ScannableType type when type == ScannableType.SByte:
+                    return () => *(SByte*)this.CurrentValuePointer <= (SByte)value;
+                case ScannableType type when type == ScannableType.Int16:
+                    return () => *(Int16*)this.CurrentValuePointer <= (Int16)value;
+                case ScannableType type when type == ScannableType.Int16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int16*)this.CurrentValuePointer) <= (Int16)value;
+                case ScannableType type when type == ScannableType.Int32:
+                    return () => *(Int32*)this.CurrentValuePointer <= (Int32)value;
+                case ScannableType type when type == ScannableType.Int32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer) <= (Int32)value;
+                case ScannableType type when type == ScannableType.Int64:
+                    return () => *(Int64*)this.CurrentValuePointer <= (Int64)value;
+                case ScannableType type when type == ScannableType.Int64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer) <= (Int64)value;
+                case ScannableType type when type == ScannableType.UInt16:
+                    return () => *(UInt16*)this.CurrentValuePointer <= (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt16BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt16*)this.CurrentValuePointer) <= (UInt16)value;
+                case ScannableType type when type == ScannableType.UInt32:
+                    return () => *(UInt32*)this.CurrentValuePointer <= (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt32BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt32*)this.CurrentValuePointer) <= (UInt32)value;
+                case ScannableType type when type == ScannableType.UInt64:
+                    return () => *(UInt64*)this.CurrentValuePointer <= (UInt64)value;
+                case ScannableType type when type == ScannableType.UInt64BE:
+                    return () => BinaryPrimitives.ReverseEndianness(*(UInt64*)this.CurrentValuePointer) <= (UInt64)value;
+                case ScannableType type when type == ScannableType.Single:
+                    return () => *(Single*)this.CurrentValuePointer <= (Single)value;
+                case ScannableType type when type == ScannableType.SingleBE:
+                    return () => BitConverter.Int32BitsToSingle(BinaryPrimitives.ReverseEndianness(*(Int32*)this.CurrentValuePointer)) <= (Single)value;
+                case ScannableType type when type == ScannableType.Double:
+                    return () => *(Double*)this.CurrentValuePointer <= (Double)value;
+                case ScannableType type when type == ScannableType.DoubleBE:
+                    return () => BitConverter.Int64BitsToDouble(BinaryPrimitives.ReverseEndianness(*(Int64*)this.CurrentValuePointer)) <= (Double)value;
+                default:
+                    throw new ArgumentException("Unsupported data type provided.");
             }
         }
 
@@ -510,6 +729,8 @@
         {
             switch (constraint)
             {
+                case ScanConstraints scanConstraints:
+                    return this.BuildCompareActions(scanConstraints?.RootConstraint);
                 case OperationConstraint operationConstraint:
                     if (operationConstraint.Left == null || operationConstraint.Right == null)
                     {
@@ -549,29 +770,29 @@
                     switch (scanConstraint.Constraint)
                     {
                         case ScanConstraint.ConstraintType.Unchanged:
-                            return this.Unchanged;
+                            return this.GetComparisonUnchanged();
                         case ScanConstraint.ConstraintType.Changed:
-                            return this.Changed;
+                            return this.GetComparisonChanged();
                         case ScanConstraint.ConstraintType.Increased:
-                            return this.Increased;
+                            return this.GetComparisonIncreased();
                         case ScanConstraint.ConstraintType.Decreased:
-                            return this.Decreased;
+                            return this.GetComparisonDecreased();
                         case ScanConstraint.ConstraintType.IncreasedByX:
-                            return () => this.IncreasedByValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonIncreasedBy(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.DecreasedByX:
-                            return () => this.DecreasedByValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonDecreasedBy(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.Equal:
-                            return () => this.EqualToValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonEqual(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.NotEqual:
-                            return () => this.NotEqualToValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonNotEqual(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.GreaterThan:
-                            return () => this.GreaterThanValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonGreaterThan(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.GreaterThanOrEqual:
-                            return () => this.GreaterThanOrEqualToValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonGreaterThanOrEqual(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.LessThan:
-                            return () => this.LessThanValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonLessThan(scanConstraint.ConstraintValue);
                         case ScanConstraint.ConstraintType.LessThanOrEqual:
-                            return () => this.LessThanOrEqualToValue(scanConstraint.ConstraintValue);
+                            return this.GetComparisonLessThanOrEqual(scanConstraint.ConstraintValue);
                         default:
                             throw new Exception("Unknown constraint type");
                     }

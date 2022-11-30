@@ -176,7 +176,7 @@
         {
             get
             {
-                return Region.ReadGroup.BaseAddress + unchecked((UInt32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
+                return Region.ReadGroup.BaseAddress + unchecked((UInt64)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
             }
         }
 
@@ -199,10 +199,10 @@
         {
             base.Initialize(region: region, constraints: constraints);
 
-            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
-            this.VectorReadBase = this.Region.ReadGroupOffset;
-            this.VectorReadOffset = 0;
+            this.VectorCompare = this.BuildCompareActions(constraints);
             this.VectorMisalignment = this.Region.GetByteCount(this.DataTypeSize) % Vectors.VectorSize;
+            this.VectorReadBase = this.Region.ReadGroupOffset - this.VectorMisalignment;
+            this.VectorReadOffset = 0;
         }
 
         /// <summary>
@@ -815,6 +815,8 @@
         {
             switch (constraint)
             {
+                case ScanConstraints scanConstraints:
+                    return this.BuildCompareActions(scanConstraints?.RootConstraint);
                 case OperationConstraint operationConstraint:
                     if (operationConstraint.Left == null || operationConstraint.Right == null)
                     {
