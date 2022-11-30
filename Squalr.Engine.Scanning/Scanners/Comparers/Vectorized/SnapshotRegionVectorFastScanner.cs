@@ -6,6 +6,7 @@
     using System;
     using System.Collections.Generic;
     using System.Numerics;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A fast vectorized snapshot region scanner that is optimized for snapshot regions that can be chunked to fit entirely in a hardware vector.
@@ -31,29 +32,49 @@
         {
             this.Initialize(region : region, constraints: constraints);
 
+            // Perform the first (potentially misaligned) vector scan. There should always be 1 scan needed, so no checks required.
+            Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
+            Vector<Byte> scanResults = Vector.BitwiseAnd(misalignmentMask, this.VectorCompare());
+            this.EncodeScanResults(ref scanResults);
+            this.VectorReadOffset += Vectors.VectorSize;
+
+            // Perform remaining scans
             for (; this.VectorReadOffset < this.Region.Range; this.VectorReadOffset += Vectors.VectorSize)
             {
-                Vector<Byte> scanResults = this.VectorCompare();
+                scanResults = this.VectorCompare();
+                this.EncodeScanResults(ref scanResults);
+            }
 
-                // Optimization: check all vector results true
-                if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
-                    continue;
-                }
-                // Optimization: check all vector results false
-                else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
-                {
-                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
-                    continue;
-                }
+            this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
 
+            return this.RunLengthEncoder.GetCollectedRegions();
+        }
+
+        /// <summary>
+        /// Run-length encodes the given scan results into snapshot regions.
+        /// </summary>
+        /// <param name="scanResults">The scan results to encode.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EncodeScanResults(ref Vector<Byte> scanResults)
+        {
+            // Optimization: check all vector results true
+            if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
+            }
+            // Optimization: check all vector results false
+            else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
+            }
+            else
+            {
                 // Otherwise the vector contains a mixture of true and false
                 for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
                 {
                     if (scanResults[resultIndex] != 0)
                     {
-                        this.RunLengthEncoder.EncodeBatch(this.DataTypeSize);
+                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
                     }
                     else
                     {
@@ -61,10 +82,6 @@
                     }
                 }
             }
-
-            this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
-
-            return this.RunLengthEncoder.GetCollectedRegions();
         }
     }
     //// End class

@@ -186,23 +186,35 @@
         protected Int32 VectorReadBase { get; set; }
 
         /// <summary>
-        /// Gets the vector misalignment of the region being scanned.
+        /// Gets the vector misalignment of the first vector in the region being scanned.
         /// </summary>
         protected Int32 VectorMisalignment { get; private set; }
+
+        /// <summary>
+        /// Gets the vector overread of the last vector in the region being scanned.
+        /// </summary>
+        protected Int32 VectorOverread { get; private set; }
 
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
         protected Func<Vector<Byte>> VectorCompare { get; private set; }
 
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
         {
             base.Initialize(region: region, constraints: constraints);
 
             this.VectorCompare = this.BuildCompareActions(constraints);
-            this.VectorMisalignment = this.Region.GetByteCount(this.DataTypeSize) % Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset; // - this.VectorMisalignment;
+            this.VectorMisalignment = this.CalculateVectorMisalignment();
+            this.VectorReadBase = region.ReadGroupOffset - this.VectorMisalignment;
+            this.VectorOverread = this.CalculateVectorOverread();
             this.VectorReadOffset = 0;
+            this.RunLengthEncoder.AdjustForMisalignment(this.VectorMisalignment);
         }
 
         /// <summary>
@@ -215,12 +227,44 @@
         }
 
         /// <summary>
-        /// 
+        /// Create a misalignment mask based on the current vector misalignment. The first N misaligned bytes will be set to 0, the rest 0xFF.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A misalignment mask based on the current vector misalignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Int32 CalculateVectorOverRead()
+        protected Vector<Byte> BuildVectorMisalignmentMask()
         {
+            Span<Byte> misalignmentMask = stackalloc Byte[Vectors.VectorSize];
+
+            misalignmentMask.Slice(this.VectorMisalignment, Vectors.VectorSize - this.VectorMisalignment).Fill(0xFF);
+
+            return new Vector<Byte>(misalignmentMask);
+        }
+
+        /// <summary>
+        /// Calculates the misalignment of the base address of the current snapshot region being scanned. This can be used to correct
+        /// the base address to ensure all values can be scanned and fit into vectors as intended.
+        /// </summary>
+        /// <returns>The misalignment of the base address of the current snapshot region being scanned.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Int32 CalculateVectorMisalignment()
+        {
+            Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
+            Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
+            Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
+            UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
+            Int32 vectorOverRead = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
+
+            return vectorOverRead;
+        }
+
+        /// <summary>
+        /// Calculates the number of extra bytes read by the final scan vector of the current snapshot being scanned.
+        /// </summary>
+        /// <returns>The number of extra bytes read by the final scan vector of the current snapshot being scanned.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Int32 CalculateVectorOverread()
+        {
+            // TODO
             Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
             Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
             Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);

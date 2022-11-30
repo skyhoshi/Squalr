@@ -8,16 +8,16 @@
     using System.Numerics;
 
     /// <summary>
-    /// A faster version of SnapshotElementComparer that takes advantage of vectorization/SSE instructions.
+    /// A vector scanner implementation that can handle staggered (ie non data type aligned) vector scans.
     /// </summary>
-    internal unsafe class SnapshotRegionVectorMisalignedScanner : SnapshotRegionVectorScannerBase
+    internal unsafe class SnapshotRegionVectorStaggeredScanner : SnapshotRegionVectorScannerBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnapshotRegionVectorMisalignedScanner" /> class.
+        /// Initializes a new instance of the <see cref="SnapshotRegionVectorStaggeredScanner" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionVectorMisalignedScanner() : base()
+        public SnapshotRegionVectorStaggeredScanner() : base()
         {
         }
 
@@ -77,7 +77,7 @@
                 // Optimization: check all vector results true
                 if (Vector.EqualsAll(runLengthVector, allEqualsVector))
                 {
-                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
+                    this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
                     continue;
                 }
                 // Optimization: check all vector results false
@@ -98,7 +98,7 @@
 
                         if (runLengthResult)
                         {
-                            this.RunLengthEncoder.EncodeBatch(this.DataTypeSize / scanCountPerVector);
+                            this.RunLengthEncoder.EncodeRange(this.DataTypeSize / scanCountPerVector);
                         }
                         else
                         {

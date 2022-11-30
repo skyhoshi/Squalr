@@ -1,6 +1,5 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers
 {
-    using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections.Generic;
@@ -73,17 +72,19 @@
             return this.ResultRegions;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EncodeBatch(Int32 advanceByteCount)
+        public void AdjustForMisalignment(Int32 misalignmentOffset)
         {
-            this.RunLength += advanceByteCount;
-            this.IsEncoding = true;
+            this.RunLengthEncodeOffset -= misalignmentOffset;
         }
 
+        /// <summary>
+        /// Increases the run length encode by the provided byte count. If not currently encoding a region, encoding will begin.
+        /// </summary>
+        /// <param name="advanceByteCount">The byte count by which the run length encode is incremented.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EncodeOne()
+        public void EncodeRange(Int32 advanceByteCount)
         {
-            this.RunLength++;
+            this.RunLength += advanceByteCount;
             this.IsEncoding = true;
         }
 

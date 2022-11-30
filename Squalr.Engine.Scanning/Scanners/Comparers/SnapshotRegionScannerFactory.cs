@@ -23,20 +23,17 @@
         /// <returns>The resulting regions, if any.</returns>
         public static ISnapshotRegionScanner AquireScannerInstance(SnapshotRegion region, ScanConstraints constraints)
         {
-            if (Vectors.HasVectorSupport && region.GetByteCount(constraints.ElementType.Size) >= Vectors.VectorSize)
+            if (region.Range == 1)
+            {
+                return snapshotRegionSingleElementScannerPool.Get();
+            }
+            else if (Vectors.HasVectorSupport && region.ReadGroup.RegionSize >= Vectors.VectorSize)
             {
                 return SnapshotRegionScannerFactory.CreateVectorScannerInstance(region, constraints);
             }
             else
             {
-                if (region.GetAlignedElementCount(constraints.Alignment) <= 1)
-                {
-                    return snapshotRegionSingleElementScannerPool.Get();
-                }
-                else
-                {
-                    return snapshotRegionIterativeScannerPool.Get();
-                }
+                return snapshotRegionIterativeScannerPool.Get();
             }
         }
 
@@ -59,7 +56,7 @@
                     }
                     else
                     {
-                        return snapshotRegionVectorMisalignedScannerPool.Get();
+                        return snapshotRegionVectorStaggeredScannerPool.Get();
                     }
             }
         }
@@ -100,13 +97,13 @@
             return instance;
         });
 
-        private static readonly ObjectPool<SnapshotRegionVectorMisalignedScanner> snapshotRegionVectorMisalignedScannerPool = new ObjectPool<SnapshotRegionVectorMisalignedScanner>(() =>
+        private static readonly ObjectPool<SnapshotRegionVectorStaggeredScanner> snapshotRegionVectorStaggeredScannerPool = new ObjectPool<SnapshotRegionVectorStaggeredScanner>(() =>
         {
-            SnapshotRegionVectorMisalignedScanner instance = new SnapshotRegionVectorMisalignedScanner();
+            SnapshotRegionVectorStaggeredScanner instance = new SnapshotRegionVectorStaggeredScanner();
 
             instance.SetDisposeCallback(() =>
             {
-                snapshotRegionVectorMisalignedScannerPool.Return(instance);
+                snapshotRegionVectorStaggeredScannerPool.Return(instance);
             });
 
             return instance;

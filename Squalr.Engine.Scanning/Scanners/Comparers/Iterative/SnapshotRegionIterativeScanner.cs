@@ -42,7 +42,7 @@
             {
                 if (this.ElementCompare())
                 {
-                    this.RunLengthEncoder.EncodeBatch((Int32)constraints.Alignment);
+                    this.RunLengthEncoder.EncodeRange((Int32)constraints.Alignment);
                 }
                 else
                 {

@@ -107,7 +107,7 @@
                 // Optimization: check all vector results true (vector of 0xFF's, which is how SSE/AVX instructions store true)
                 if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
                 {
-                    this.RunLengthEncoder.EncodeBatch(Vectors.VectorSize);
+                    this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
                     continue;
                 }
 
@@ -129,7 +129,7 @@
                     // Vector result was true
                     else
                     {
-                        this.RunLengthEncoder.EncodeBatch(this.DataTypeSize);
+                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
                     }
                 }
             }
