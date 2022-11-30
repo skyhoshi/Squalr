@@ -128,7 +128,7 @@
         {
             get
             {
-                return this.SnapshotRegions?.OrderByDescending(region => region.ElementCount);
+                return this.SnapshotRegions?.OrderByDescending(region => region.Range);
             }
         }
 

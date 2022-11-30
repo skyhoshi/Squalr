@@ -201,7 +201,7 @@
 
             this.VectorCompare = this.BuildCompareActions(constraints);
             this.VectorMisalignment = this.Region.GetByteCount(this.DataTypeSize) % Vectors.VectorSize;
-            this.VectorReadBase = this.Region.ReadGroupOffset - this.VectorMisalignment;
+            this.VectorReadBase = this.Region.ReadGroupOffset; // - this.VectorMisalignment;
             this.VectorReadOffset = 0;
         }
 

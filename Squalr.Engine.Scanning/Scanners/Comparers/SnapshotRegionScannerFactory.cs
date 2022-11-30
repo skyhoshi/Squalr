@@ -15,7 +15,8 @@
     internal static class SnapshotRegionScannerFactory
     {
         /// <summary>
-        /// Creates the appropriate scanner class given the current scan constraints.
+        /// Creates the appropriate scanner class given the current scan constraints. Different scanner implementations work best in different scenarios.
+        /// This method will automatically select the best scanner for the given workload.
         /// </summary>
         /// <param name="region">The region to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
@@ -28,7 +29,14 @@
             }
             else
             {
-                return snapshotRegionIterativeScannerPool.Get();
+                if (region.GetAlignedElementCount(constraints.Alignment) <= 1)
+                {
+                    return snapshotRegionSingleElementScannerPool.Get();
+                }
+                else
+                {
+                    return snapshotRegionIterativeScannerPool.Get();
+                }
             }
         }
 
@@ -56,7 +64,19 @@
             }
         }
 
-        private static ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> snapshotRegionVectorArrayOfBytesScannerPool = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
+        private static readonly ObjectPool<SnapshotRegionSingleElementScanner> snapshotRegionSingleElementScannerPool = new ObjectPool<SnapshotRegionSingleElementScanner>(() =>
+        {
+            SnapshotRegionSingleElementScanner instance = new SnapshotRegionSingleElementScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                snapshotRegionSingleElementScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> snapshotRegionVectorArrayOfBytesScannerPool = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
         {
             SnapshotRegionVectorArrayOfBytesScanner instance = new SnapshotRegionVectorArrayOfBytesScanner();
 
@@ -68,7 +88,7 @@
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionVectorFastScanner> snapshotRegionVectorFastScannerPool = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
+        private static readonly ObjectPool<SnapshotRegionVectorFastScanner> snapshotRegionVectorFastScannerPool = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
         {
             SnapshotRegionVectorFastScanner instance = new SnapshotRegionVectorFastScanner();
 
@@ -80,7 +100,7 @@
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionVectorMisalignedScanner> snapshotRegionVectorMisalignedScannerPool = new ObjectPool<SnapshotRegionVectorMisalignedScanner>(() =>
+        private static readonly ObjectPool<SnapshotRegionVectorMisalignedScanner> snapshotRegionVectorMisalignedScannerPool = new ObjectPool<SnapshotRegionVectorMisalignedScanner>(() =>
         {
             SnapshotRegionVectorMisalignedScanner instance = new SnapshotRegionVectorMisalignedScanner();
 
@@ -92,7 +112,7 @@
             return instance;
         });
 
-        private static ObjectPool<SnapshotRegionIterativeScanner> snapshotRegionIterativeScannerPool = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
+        private static readonly ObjectPool<SnapshotRegionIterativeScanner> snapshotRegionIterativeScannerPool = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
         {
             SnapshotRegionIterativeScanner instance = new SnapshotRegionIterativeScanner();
 

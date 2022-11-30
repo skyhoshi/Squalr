@@ -63,7 +63,7 @@
             Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
             Vector<Byte> runLengthVector;
 
-            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += Vectors.VectorSize)
+            for (; this.VectorReadOffset < this.Region.Range; this.VectorReadOffset += Vectors.VectorSize)
             {
                 runLengthVector = Vector<Byte>.Zero;
 

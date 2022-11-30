@@ -31,7 +31,7 @@
         {
             this.Initialize(region : region, constraints: constraints);
 
-            for (; this.VectorReadOffset < this.Region.ElementCount; this.VectorReadOffset += Vectors.VectorSize)
+            for (; this.VectorReadOffset < this.Region.Range; this.VectorReadOffset += Vectors.VectorSize)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 

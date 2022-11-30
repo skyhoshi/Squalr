@@ -24,12 +24,12 @@
         /// </summary>
         /// <param name="readGroup">The read group of this snapshot region.</param>
         /// <param name="readGroupOffset">The base address of this snapshot region.</param>
-        /// <param name="elementCount">The size of this snapshot region.</param>
-        public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 elementCount)
+        /// <param name="range">The size of this snapshot region.</param>
+        public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 range)
         {
             this.ReadGroup = readGroup;
             this.ReadGroupOffset = readGroupOffset;
-            this.ElementCount = elementCount;
+            this.Range = range;
         }
 
         /// <summary>
@@ -43,9 +43,9 @@
         public Int32 ReadGroupOffset { get; private set; }
 
         /// <summary>
-        /// Gets the size of this snapshot region in elements. This is the number of bytes directly contained, but more bytes may be used if tracking data types larger than 1-byte.
+        /// Gets the range of this snapshot region in bytes. This is the number of bytes directly contained, but more bytes may be used if tracking data types larger than 1-byte.
         /// </summary>
-        public Int32 ElementCount { get; private set; }
+        public Int32 Range { get; private set; }
 
         /// <summary>
         /// Gets the size of this region in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
@@ -53,10 +53,11 @@
         /// </summary>
         public Int32 GetByteCount(Int32 dataTypeSize)
         {
-            Int32 readGroupEndBuffer = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
-            Int32 readGroupUsedOverflowBytes = Math.Min(Math.Clamp(dataTypeSize, 1, dataTypeSize), readGroupEndBuffer);
+            Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);
+            Int32 availableSpillOverBytes = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
+            Int32 usedSpillOverBytes = Math.Min(desiredSpillOverBytes, availableSpillOverBytes);
 
-            return this.ElementCount + readGroupUsedOverflowBytes;
+            return this.Range + usedSpillOverBytes;
         }
 
         /// <summary>
@@ -71,24 +72,13 @@
         }
 
         /// <summary>
-        /// Gets the address of the last element contained in this snapshot region.
+        /// Gets the address of the last element contained in this snapshot region (assuming 1-byte alignment).
         /// </summary>
         public UInt64 EndElementAddress
         {
             get
             {
-                return unchecked(this.ReadGroup.BaseAddress + (UInt64)(this.ReadGroupOffset + this.ElementCount));
-            }
-        }
-
-        /// <summary>
-        /// Gets the maximum possible data type size that can safely be read from the underlying readgroup.
-        /// </summary>
-        public Int32 GetMaxAllowedDataTypeSize
-        {
-            get
-            {
-                return unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
+                return unchecked(this.ReadGroup.BaseAddress + (UInt64)(this.ReadGroupOffset + this.Range));
             }
         }
 
@@ -104,7 +94,7 @@
         public Int32 GetAlignedElementCount(MemoryAlignment alignment)
         {
             Int32 alignmentValue = unchecked((Int32)alignment);
-            Int32 elementCount = this.ElementCount / (alignmentValue <= 0 ? 1 : alignmentValue);
+            Int32 elementCount = this.Range / (alignmentValue <= 0 ? 1 : alignmentValue);
 
             return elementCount;
         }
@@ -117,7 +107,7 @@
         {
             Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
 
-            this.ElementCount = Math.Clamp(this.ElementCount, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
+            this.Range = Math.Clamp(this.Range, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
         }
 
         /// <summary>
