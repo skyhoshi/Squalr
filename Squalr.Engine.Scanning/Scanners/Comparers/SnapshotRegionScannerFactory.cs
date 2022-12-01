@@ -2,7 +2,7 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Comparers.Standard;
     using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Constraints;

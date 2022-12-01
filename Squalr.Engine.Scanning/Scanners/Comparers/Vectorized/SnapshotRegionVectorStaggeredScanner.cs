@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;

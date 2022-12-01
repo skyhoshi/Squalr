@@ -1,8 +1,11 @@
-﻿namespace Squalr.Engine.Common.OS
+﻿namespace Squalr.Engine.Common.Hardware
 {
     using System;
     using System.Numerics;
 
+    /// <summary>
+    /// A class containing convenience methods and properties for hardware vectors.
+    /// </summary>
     public static class Vectors
     {
         public static Vector<Byte> QuarterZeros { get; private set; }
@@ -11,9 +14,9 @@
 
         static Vectors()
         {
-            Byte[] quarterZeros = new Byte[Vectors.VectorSize];
-            Byte[] halfZeros = new Byte[Vectors.VectorSize];
-            Byte[] threeFourthsZeros = new Byte[Vectors.VectorSize];
+            Span<Byte> quarterZeros = stackalloc Byte[Vectors.VectorSize];
+            Span<Byte> halfZeros = stackalloc Byte[Vectors.VectorSize];
+            Span<Byte> threeFourthsZeros = stackalloc Byte[Vectors.VectorSize];
 
             for (Int32 index = Vectors.VectorSize / 4; index < Vectors.VectorSize; index++)
             {
@@ -59,7 +62,7 @@
         }
 
         /// <summary>
-        /// A vector with all bits set to 1.
+        /// A vector with all bits set to 1. TODO: Maybe I can make this an extension method for all Vector types?
         /// </summary>
         public static readonly Vector<Byte> AllBits = Vector.OnesComplement(Vector<Byte>.Zero);
     }

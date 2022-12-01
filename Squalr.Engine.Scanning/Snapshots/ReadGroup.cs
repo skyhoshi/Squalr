@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;

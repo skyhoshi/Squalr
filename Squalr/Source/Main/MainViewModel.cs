@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Source.Main
 {
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
