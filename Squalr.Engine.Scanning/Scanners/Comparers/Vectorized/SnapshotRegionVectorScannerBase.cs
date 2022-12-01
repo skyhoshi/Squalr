@@ -893,7 +893,7 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.Zero))
+                                if (Vector.EqualsAll(resultLeft, Vector<Byte>.Zero))
                                 {
                                     return Vector<Byte>.Zero;
                                 }
@@ -908,9 +908,9 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.One))
+                                if (Vector.GreaterThanAll(resultLeft, Vector<Byte>.Zero))
                                 {
-                                    return Vector<Byte>.One;
+                                    return Vector.OnesComplement(Vector<Byte>.Zero);
                                 }
 
                                 Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();

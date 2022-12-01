@@ -46,7 +46,7 @@
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
-            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vector<Byte>.One);
+            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
             this.EncodeScanResults(ref scanResults);
             this.VectorReadOffset += Vectors.VectorSize;
 

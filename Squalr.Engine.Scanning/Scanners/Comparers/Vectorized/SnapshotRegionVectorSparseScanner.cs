@@ -32,9 +32,10 @@
         {
             this.Initialize(region: region, constraints: constraints);
 
-            // This algorithm is mostly the same as SnapshotRegionVectorFastScanner, but with the addition of a sparse mask.
-            // This mask automatically captures all in-between elements. For example, scanning for Byte 0 against <0, 24, 0, 43> with an alignment of 2-bytes would all return true, due to this mask of <0, 255, 0, 255>.
-            // This is good, because the scan results will automatically skip over the unwanted elements. We do NOT want to break this into two separate snapshot regions, since this would be incredibly inefficient.
+            // This algorithm is mostly the same as SnapshotRegionVectorFastScanner. The only difference is that scans are compared against a sparse mask,
+            // This mask automatically captures all in-between elements. For example, scanning for Byte 0 with an alignment of 2-bytes against <0, 24, 0, 43> would all return true, due to this mask of <0, 255, 0, 255>.
+            // Scan results will automatically skip over the unwanted elements based on alignment. In fact, we do NOT want to break this into two separate snapshot regions, since this would be incredibly inefficient.
+            // So in this example, we would return a single snapshot region of size 4, and the scan results would iterate by 2.
 
             Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
@@ -42,21 +43,21 @@
             Vector<Byte> sparseMask = this.BuildSparseMask();
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
-            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, Vector.BitwiseOr(this.VectorCompare(), sparseMask)), scanCount == 1 ? overreadMask : Vector<Byte>.One);
+            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
             this.EncodeScanResults(ref scanResults, ref sparseMask);
             this.VectorReadOffset += Vectors.VectorSize;
 
             // Perform middle scans
             for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
             {
-                scanResults = Vector.BitwiseOr(this.VectorCompare(), sparseMask);
+                scanResults = this.VectorCompare();
                 this.EncodeScanResults(ref scanResults, ref sparseMask);
             }
 
             // Perform final scan, applying the overread mask if applicable.
             if (scanCount > 1)
             {
-                scanResults = Vector.BitwiseAnd(overreadMask, Vector.BitwiseOr(this.VectorCompare(), sparseMask));
+                scanResults = Vector.BitwiseAnd(overreadMask, this.VectorCompare());
                 this.EncodeScanResults(ref scanResults, ref sparseMask);
                 this.VectorReadOffset += Vectors.VectorSize;
             }
@@ -73,6 +74,8 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void EncodeScanResults(ref Vector<Byte> scanResults, ref Vector<Byte> sparseMask)
         {
+            scanResults = Vector.BitwiseOr(scanResults, sparseMask);
+
             // Optimization: check all vector results true
             if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
             {

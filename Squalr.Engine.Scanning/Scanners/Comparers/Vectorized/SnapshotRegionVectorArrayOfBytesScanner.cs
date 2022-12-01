@@ -110,14 +110,12 @@
                     this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
                     continue;
                 }
-
                 // Optimization: check all vector results false
                 else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
                 {
                     this.RunLengthEncoder.FinalizeCurrentEncodeChecked(ByteArraySize);
                     continue;
                 }
-
                 // Otherwise the vector contains a mixture of true and false
                 for (Int32 index = 0; index < Vectors.VectorSize; index += this.DataTypeSize)
                 {
@@ -173,7 +171,7 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.Zero))
+                                if (Vector.EqualsAll(resultLeft, Vector<Byte>.Zero))
                                 {
                                     return Vector<Byte>.Zero;
                                 }
@@ -188,9 +186,9 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.One))
+                                if (Vector.GreaterThanAll(resultLeft, Vector<Byte>.Zero))
                                 {
-                                    return Vector<Byte>.One;
+                                    return Vector.OnesComplement(Vector<Byte>.Zero);
                                 }
 
                                 Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();
@@ -275,7 +273,7 @@
                             {
                                 return () =>
                                 {
-                                    Vector<Byte> result = Vector<Byte>.One;
+                                    Vector<Byte> result = Vectors.AllBits;
 
                                     for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
                                     {
@@ -294,7 +292,7 @@
                             {
                                 return () =>
                                 {
-                                    Vector<Byte> result = Vector<Byte>.One;
+                                    Vector<Byte> result = Vectors.AllBits;
 
                                     for (this.ArrayOfBytesChunkIndex = 0; this.ArrayOfBytesChunkIndex < chunkCount; this.ArrayOfBytesChunkIndex++)
                                     {

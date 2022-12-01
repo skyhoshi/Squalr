@@ -57,6 +57,11 @@
                 return Vector<Byte>.Count;
             }
         }
+
+        /// <summary>
+        /// A vector with all bits set to 1.
+        /// </summary>
+        public static readonly Vector<Byte> AllBits = Vector.OnesComplement(Vector<Byte>.Zero);
     }
     //// End class
 }

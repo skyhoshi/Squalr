@@ -58,7 +58,7 @@
             {
                 Vector<UInt32> z = Vector.AsVectorUInt32(snapshotRegionScanner.CurrentValues);
                 Vector<UInt32> heapRoot = new Vector<UInt32>(this.LowerBounds[0]);
-                Vector<UInt32> P = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(z, heapRoot), this.Two, Vector<UInt32>.One);
+                Vector<UInt32> P = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(z, heapRoot), this.Two, Vector.AsVectorUInt32(Vectors.AllBits));
                 Int32 l = this.L;
 
                 while (l > 1)
@@ -69,7 +69,7 @@
                     }
 
                     Vector<UInt32> YP = new Vector<UInt32>(this.YArray);
-                    Vector<UInt32> Q = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(z, YP), this.Two, Vector<UInt32>.One);
+                    Vector<UInt32> Q = Vector.ConditionalSelect(Vector.GreaterThanOrEqual(z, YP), this.Two, Vector.AsVectorUInt32(Vectors.AllBits));
 
                     P = Vector.Add(Vector.Multiply(P, this.Two), Q);
                     l--;
