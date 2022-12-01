@@ -32,17 +32,28 @@
         {
             this.Initialize(region : region, constraints: constraints);
 
-            // Perform the first (potentially misaligned) vector scan. There should always be 1 scan needed, so no checks required.
+            Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
-            Vector<Byte> scanResults = Vector.BitwiseAnd(misalignmentMask, this.VectorCompare());
+            Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
+
+            // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
+            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vector<Byte>.One);
             this.EncodeScanResults(ref scanResults);
             this.VectorReadOffset += Vectors.VectorSize;
 
-            // Perform remaining scans
-            for (; this.VectorReadOffset < this.Region.Range; this.VectorReadOffset += Vectors.VectorSize)
+            // Perform middle scans
+            for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
             {
                 scanResults = this.VectorCompare();
                 this.EncodeScanResults(ref scanResults);
+            }
+
+            // Perform final scan
+            if (scanCount > 1)
+            {
+                scanResults = Vector.BitwiseAnd(overreadMask, this.VectorCompare());
+                this.EncodeScanResults(ref scanResults);
+                this.VectorReadOffset += Vectors.VectorSize;
             }
 
             this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();

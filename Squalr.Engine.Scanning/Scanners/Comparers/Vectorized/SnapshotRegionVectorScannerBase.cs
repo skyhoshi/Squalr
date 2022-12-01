@@ -170,17 +170,6 @@
         public Int32 AlignmentReadOffset { get; protected set; }
 
         /// <summary>
-        /// Gets the current values at the current vector read index.
-        /// </summary>
-        public UInt64 CurrentAddress
-        {
-            get
-            {
-                return Region.ReadGroup.BaseAddress + unchecked((UInt64)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset));
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the base address from which vectors are read.
         /// </summary>
         protected Int32 VectorReadBase { get; set; }
@@ -241,6 +230,20 @@
         }
 
         /// <summary>
+        /// Create a misalignment mask based on the current vector misalignment. The first N misaligned bytes will be set to 0, the rest 0xFF.
+        /// </summary>
+        /// <returns>A misalignment mask based on the current vector misalignment.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Vector<Byte> BuildVectorOverreadMask()
+        {
+            Span<Byte> overreadMask = stackalloc Byte[Vectors.VectorSize];
+
+            overreadMask.Slice(0, Vectors.VectorSize - this.VectorOverread).Fill(0xFF);
+
+            return new Vector<Byte>(overreadMask);
+        }
+
+        /// <summary>
         /// Calculates the misalignment of the base address of the current snapshot region being scanned. This can be used to correct
         /// the base address to ensure all values can be scanned and fit into vectors as intended.
         /// </summary>
@@ -252,9 +255,9 @@
             Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
             Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
             UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
-            Int32 vectorOverRead = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
+            Int32 vectorMisalignment = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
 
-            return vectorOverRead;
+            return vectorMisalignment;
         }
 
         /// <summary>
@@ -264,14 +267,10 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Int32 CalculateVectorOverread()
         {
-            // TODO
-            Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
-            Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
-            Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
-            UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
-            Int32 vectorOverRead = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
+            Int32 remainingBytes = this.Region.Range % Vectors.VectorSize;
+            Int32 vectorOverread = remainingBytes == 0 ? 0 : (Vectors.VectorSize - remainingBytes);
 
-            return vectorOverRead;
+            return vectorOverread;
         }
 
         /// <summary>
