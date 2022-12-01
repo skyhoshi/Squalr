@@ -12,7 +12,7 @@
     <NoWarn>$(NoWarn);NU1605</NoWarn>
     <SignAssembly>false</SignAssembly>
     <ApplicationManifest>Application.manifest</ApplicationManifest>
-    <AssemblyVersion>2.4.0</AssemblyVersion>
+    <AssemblyVersion>2.4.1</AssemblyVersion>
     <FileVersion>2.4.0</FileVersion>
   </PropertyGroup>
 
