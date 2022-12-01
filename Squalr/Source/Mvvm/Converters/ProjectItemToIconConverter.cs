@@ -52,6 +52,8 @@
                     }
                 case ProjectItemView type when type is ScriptItemView:
                     return Images.Script;
+                case ProjectItemView type when type is InstructionItemView:
+                    return Images.Cpu;
                 default:
                     return Images.CollectValues;
             }

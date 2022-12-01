@@ -37,6 +37,7 @@ namespace Squalr.Engine.Common
         /// <summary>
         /// Gets or sets the mask used during scanning. Not serialized.
         /// </summary>
+        [DataMember]
         public Byte[] Mask { get; set; }
     };
 

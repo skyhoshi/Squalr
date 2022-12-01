@@ -9,16 +9,16 @@
     using System.Runtime.CompilerServices;
 
     /// <summary>
-    /// A fast vectorized snapshot region scanner that is optimized for snapshot regions that can be chunked to fit entirely in a hardware vector.
+    /// A vector scanner implementation that can handle sparse (alignment greater than data type size) vector scans.
     /// </summary>
-    internal unsafe class SnapshotRegionVectorFastScanner : SnapshotRegionVectorScannerBase
+    internal unsafe class SnapshotRegionVectorSparseScanner : SnapshotRegionVectorScannerBase
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegionVectorFastScanner" /> class.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public SnapshotRegionVectorFastScanner() : base()
+        public SnapshotRegionVectorSparseScanner() : base()
         {
         }
 
@@ -30,38 +30,34 @@
         /// <returns>The resulting regions, if any.</returns>
         public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
         {
-            this.Initialize(region : region, constraints: constraints);
+            this.Initialize(region: region, constraints: constraints);
 
-            // This algorithm has three stages:
-            // 1) Scan the first vector of memory, which may contain elements we do not care about. ie <x, x, x, x ... y, y, y, y>,
-            //      where x is data outside the snapshot region (but within the readgroup), and y is within the region we are scanning.
-            //      to solve this, we mask out the x values such that these will always be considered false by our scan
-            // 2) Scan the middle parts of. These will all fit perfectly into vectors
-            // 3) Scan the final vector, if it exists. This may spill outside of the snapshot region (but within the readgroup).
-            //      This works exactly like the first scan, but reversed. ie <y, y, y, y, ... x, x, x, x>, where x values are masked to be false.
-            //      Note: This mask may also be applied to the first scan, if it is also the last scan (ie only 1 scan total for this region).
+            // This algorithm is mostly the same as SnapshotRegionVectorFastScanner, but with the addition of a sparse mask.
+            // This mask automatically captures all in-between elements. For example, scanning for Byte 0 against <0, 24, 0, 43> with an alignment of 2-bytes would all return true, due to this mask of <0, 255, 0, 255>.
+            // This is good, because the scan results will automatically skip over the unwanted elements. We do NOT want to break this into two separate snapshot regions, since this would be incredibly inefficient.
 
             Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
+            Vector<Byte> sparseMask = this.BuildSparseMask();
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
-            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vector<Byte>.One);
-            this.EncodeScanResults(ref scanResults);
+            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, Vector.BitwiseOr(this.VectorCompare(), sparseMask)), scanCount == 1 ? overreadMask : Vector<Byte>.One);
+            this.EncodeScanResults(ref scanResults, ref sparseMask);
             this.VectorReadOffset += Vectors.VectorSize;
 
             // Perform middle scans
             for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
             {
-                scanResults = this.VectorCompare();
-                this.EncodeScanResults(ref scanResults);
+                scanResults = Vector.BitwiseOr(this.VectorCompare(), sparseMask);
+                this.EncodeScanResults(ref scanResults, ref sparseMask);
             }
 
             // Perform final scan, applying the overread mask if applicable.
             if (scanCount > 1)
             {
-                scanResults = Vector.BitwiseAnd(overreadMask, this.VectorCompare());
-                this.EncodeScanResults(ref scanResults);
+                scanResults = Vector.BitwiseAnd(overreadMask, Vector.BitwiseOr(this.VectorCompare(), sparseMask));
+                this.EncodeScanResults(ref scanResults, ref sparseMask);
                 this.VectorReadOffset += Vectors.VectorSize;
             }
 
@@ -75,30 +71,30 @@
         /// </summary>
         /// <param name="scanResults">The scan results to encode.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void EncodeScanResults(ref Vector<Byte> scanResults)
+        protected void EncodeScanResults(ref Vector<Byte> scanResults, ref Vector<Byte> sparseMask)
         {
             // Optimization: check all vector results true
             if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
             {
                 this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
             }
-            // Optimization: check all vector results false
-            else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
+            // Optimization: check all vector results false (ie equal to the sparse mask)
+            else if (Vector.EqualsAll(scanResults, sparseMask))
             {
                 this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
             }
             else
             {
                 // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
+                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += unchecked((Int32)this.Alignment))
                 {
                     if (scanResults[resultIndex] != 0)
                     {
-                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
+                        this.RunLengthEncoder.EncodeRange(unchecked((Int32)this.Alignment));
                     }
                     else
                     {
-                        this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.DataTypeSize);
+                        this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(unchecked((Int32)this.Alignment));
                     }
                 }
             }

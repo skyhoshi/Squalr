@@ -3,7 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.OS;
-    using Squalr.Engine.Scanning.Scanners.Comparers.Iterative;
+    using Squalr.Engine.Scanning.Scanners.Comparers.Standard;
     using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
@@ -50,9 +50,15 @@
                 case ByteArrayType:
                     return snapshotRegionVectorArrayOfBytesScannerPool.Get();
                 default:
-                    if ((Int32)constraints.Alignment == constraints.ElementType.Size)
+                    Int32 alignmentSize = unchecked((Int32)constraints.Alignment);
+
+                    if (alignmentSize == constraints.ElementType.Size)
                     {
                         return snapshotRegionVectorFastScannerPool.Get();
+                    }
+                    else if (alignmentSize > constraints.ElementType.Size)
+                    {
+                        return snapshotRegionVectorSparseScannerPool.Get();
                     }
                     else
                     {
@@ -80,6 +86,18 @@
             instance.SetDisposeCallback(() =>
             {
                 snapshotRegionVectorArrayOfBytesScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorSparseScanner> snapshotRegionVectorSparseScannerPool = new ObjectPool<SnapshotRegionVectorSparseScanner>(() =>
+        {
+            SnapshotRegionVectorSparseScanner instance = new SnapshotRegionVectorSparseScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                snapshotRegionVectorSparseScannerPool.Return(instance);
             });
 
             return instance;

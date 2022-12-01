@@ -1,4 +1,4 @@
-﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Iterative
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Standard
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;

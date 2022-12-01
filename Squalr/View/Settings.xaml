@@ -213,7 +213,7 @@
                                     Text="4 Bytes" />
                                 </WrapPanel>
                                 <WrapPanel Grid.Row="1" Grid.Column="1" Margin="24 0 0 0">
-                                    <RadioButton IsChecked="{Binding c, Mode=TwoWay}" />
+                                    <RadioButton IsChecked="{Binding IsAlignment8, Mode=TwoWay}" />
                                     <TextBlock
                                     Padding="4,0,0,0"
                                     Foreground="{StaticResource SqualrColorWhite}"
