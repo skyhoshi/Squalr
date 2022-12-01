@@ -128,7 +128,7 @@
         {
             get
             {
-                return this.SnapshotRegions?.OrderByDescending(region => region.RegionSize);
+                return this.SnapshotRegions?.OrderByDescending(region => region.Range);
             }
         }
 
@@ -194,8 +194,8 @@
             this.SnapshotRegions?.ForEach(region =>
             {
                 region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += (region.RegionSize + elementSize - 1).ToUInt64();
-                this.ElementCount += region.GetElementCount(this.Alignment).ToUInt64();
+                this.ByteCount += (region.GetByteCount(elementSize)).ToUInt64();
+                this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
             });
         }
 
@@ -229,11 +229,11 @@
                 return false;
             }
 
-            if (address < this.SnapshotRegions[middle].BaseAddress)
+            if (address < this.SnapshotRegions[middle].BaseElementAddress)
             {
                 return this.ContainsAddressHelper(address, (min + middle - 1) / 2, min, middle - 1);
             }
-            else if (address > this.SnapshotRegions[middle].EndAddress)
+            else if (address > this.SnapshotRegions[middle].EndElementAddress)
             {
                 return this.ContainsAddressHelper(address, (middle + 1 + max) / 2, middle + 1, max);
             }
@@ -272,7 +272,7 @@
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetElementCount(this.Alignment).ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetAlignedElementCount(this.Alignment).ToUInt64())
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }

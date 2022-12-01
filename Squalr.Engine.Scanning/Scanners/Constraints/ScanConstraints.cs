@@ -7,12 +7,12 @@
     /// <summary>
     /// Class to define a constraint for certain types of scans.
     /// </summary>
-    public class ScanConstraints : Constraint, INotifyPropertyChanged
+    public class ScanConstraints : IScanConstraint, INotifyPropertyChanged
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraints" /> class.
         /// </summary>
-        public ScanConstraints(Type elementType, Constraint rootConstraint, MemoryAlignment alignment)
+        public ScanConstraints(Type elementType, IScanConstraint rootConstraint, MemoryAlignment alignment)
         {
             this.Alignment = alignment;
             this.RootConstraint = rootConstraint;
@@ -34,24 +34,24 @@
         /// <summary>
         /// Gets the root constraint for this scan constraint set. Usually, this is just a single scan constraint like "> 5".
         /// </summary>
-        public Constraint RootConstraint { get; private set; }
+        public IScanConstraint RootConstraint { get; private set; }
 
         /// <summary>
         /// Sets the element type to which all constraints apply.
         /// </summary>
         /// <param name="elementType">The new element type.</param>
-        public override void SetElementType(ScannableType elementType)
+        public void SetElementType(ScannableType elementType)
         {
             this.ElementType = elementType;
             this.RootConstraint?.SetElementType(elementType);
         }
 
-        public override Boolean IsValid()
+        public Boolean IsValid()
         {
             return this.RootConstraint?.IsValid() ?? false;
         }
 
-        public override Constraint Clone()
+        public IScanConstraint Clone()
         {
             return new ScanConstraints(this.ElementType, this.RootConstraint?.Clone(), this.Alignment);
         }

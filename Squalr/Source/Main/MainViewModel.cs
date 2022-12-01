@@ -36,7 +36,7 @@
 
             if (Vectors.HasVectorSupport)
             {
-                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count + ")");
+                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count * 8 + " bit)");
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");

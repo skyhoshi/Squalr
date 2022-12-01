@@ -74,7 +74,7 @@
                     </MenuItem.Header>
                 </MenuItem>
                 <MenuItem VerticalAlignment="Center"
-                    Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand}"
+                    Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand, Source={StaticResource ViewModelLocator}}"
                     ToolTip="New Scan">
                     <MenuItem.Header>
                         <Image

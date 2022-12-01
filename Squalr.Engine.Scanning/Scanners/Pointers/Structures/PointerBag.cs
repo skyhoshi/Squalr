@@ -85,12 +85,12 @@
                 foreach (Int32 nextRandomOffset in shuffledOffsets)
                 {
                     UInt64 newDestination = nextRandomOffset < 0 ? pointer.Destination.Subtract(-nextRandomOffset, wrapAround: false) : pointer.Destination.Add(nextRandomOffset, wrapAround: false);
-                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseAddress && newDestination <= y.EndAddress).FirstOrDefault();
+                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseElementAddress && newDestination <= y.EndElementAddress).FirstOrDefault();
 
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        Int32 elementCount = snapshotRegion.GetElementCount(currentSnapshot.Alignment);
+                        Int32 elementCount = snapshotRegion.GetAlignedElementCount(currentSnapshot.Alignment);
                         SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount), currentSnapshot.Alignment];
                         UInt64 baseAddress = randomElement.GetBaseAddress(PointerSize.ToSize());
                         Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));

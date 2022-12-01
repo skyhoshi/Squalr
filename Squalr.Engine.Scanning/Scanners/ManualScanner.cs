@@ -53,6 +53,7 @@
                             ConcurrentScanBag resultRegions = new ConcurrentScanBag();
 
                             ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
+                            // ParallelOptions options = ParallelSettings.ParallelSettingsNone.Clone();
                             options.CancellationToken = cancellationToken;
 
                             Parallel.ForEach(
@@ -68,18 +69,20 @@
                                         return;
                                     }
 
-                                    ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.CreateScannerInstance(region: region, constraints: constraints);
-                                    IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
-
-                                    if (!results.IsNullOrEmpty())
+                                    using (ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.AquireScannerInstance(region: region, constraints: constraints))
                                     {
-                                        resultRegions.Add(results);
-                                    }
+                                        IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
 
-                                    // Update progress every N regions
-                                    if (Interlocked.Increment(ref processedPages) % 32 == 0)
-                                    {
-                                        updateProgress((float)processedPages / (float)snapshot.RegionCount * 100.0f);
+                                        if (!results.IsNullOrEmpty())
+                                        {
+                                            resultRegions.Add(results);
+                                        }
+
+                                        // Update progress every N regions
+                                        if (Interlocked.Increment(ref processedPages) % 32 == 0)
+                                        {
+                                            updateProgress((float)processedPages / (float)snapshot.RegionCount * 100.0f);
+                                        }
                                     }
                                 });
                             //// End foreach Region

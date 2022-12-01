@@ -1,6 +1,5 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common;
     using Squalr.Engine.Common.OS;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -85,7 +84,7 @@
         /// </summary>
         /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
         /// <returns>True if a relative comparison can be done for this region.</returns>
-        public Boolean CanCompare(Constraint constraints)
+        public Boolean CanCompare(IScanConstraint constraints)
         {
             if (constraints == null
                 || !constraints.IsValid()

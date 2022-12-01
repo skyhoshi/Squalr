@@ -30,7 +30,7 @@
 
         private const Int32 UnrollSize = 8;
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScannerBase snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
@@ -73,7 +73,7 @@
 
         public UInt32[] GetLowerBounds()
         {
-            IEnumerable<UInt32> lowerBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseAddress.Subtract(this.MaxOffset, wrapAround: false)));
+            IEnumerable<UInt32> lowerBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseElementAddress.Subtract(this.MaxOffset, wrapAround: false)));
 
             while (lowerBounds.Count() % LinearPointerSearchKernel.UnrollSize != 0)
             {
@@ -85,7 +85,7 @@
 
         public UInt32[] GetUpperBounds()
         {
-            IEnumerable<UInt32> upperBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndAddress.Add(this.MaxOffset, wrapAround: false)));
+            IEnumerable<UInt32> upperBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndElementAddress.Add(this.MaxOffset, wrapAround: false)));
 
             while (upperBounds.Count() % LinearPointerSearchKernel.UnrollSize != 0)
             {

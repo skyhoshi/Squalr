@@ -40,7 +40,7 @@
             // Start overwriting any memory that changed with 0s
             foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
             {
-                for (Int32 index = 0; index < region.GetElementCount(alignment); index++)
+                for (Int32 index = 0; index < region.GetAlignedElementCount(alignment); index++)
                 {
                     if (random.NextDouble() <= Intensity)
                     {

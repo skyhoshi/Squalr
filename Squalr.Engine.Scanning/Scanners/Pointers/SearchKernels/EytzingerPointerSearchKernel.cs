@@ -52,7 +52,7 @@
 
         private Vector<UInt32> Two = new Vector<UInt32>(2);
 
-        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScanner snapshotRegionScanner)
+        public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScannerBase snapshotRegionScanner)
         {
             return new Func<Vector<Byte>>(() =>
             {
@@ -92,7 +92,7 @@
         {
             BinaryHeap<UInt32> lowerBoundsHeap = new BinaryHeap<UInt32>();
 
-            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndAddress.Subtract(this.MaxOffset, wrapAround: false))).Prepend(UInt32.MinValue))
+            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndElementAddress.Subtract(this.MaxOffset, wrapAround: false))).Prepend(UInt32.MinValue))
             {
                 lowerBoundsHeap.Insert(next);
             }
@@ -110,7 +110,7 @@
         {
             BinaryHeap<UInt32> upperBoundsHeap = new BinaryHeap<UInt32>();
 
-            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseAddress.Add(this.MaxOffset, wrapAround: false))).Append(UInt32.MaxValue))
+            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseElementAddress.Add(this.MaxOffset, wrapAround: false))).Append(UInt32.MaxValue))
             {
                 upperBoundsHeap.Insert(next);
             }
