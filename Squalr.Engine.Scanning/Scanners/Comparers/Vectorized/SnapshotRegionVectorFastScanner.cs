@@ -44,11 +44,14 @@
             Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
+            Vector<Byte> scanResults;
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
-            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
-            this.EncodeScanResults(ref scanResults);
-            this.VectorReadOffset += Vectors.VectorSize;
+            {
+                scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
+                this.EncodeScanResults(ref scanResults);
+                this.VectorReadOffset += Vectors.VectorSize;
+            }
 
             // Perform middle scans
             for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
@@ -68,40 +71,6 @@
             this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
 
             return this.RunLengthEncoder.GetCollectedRegions();
-        }
-
-        /// <summary>
-        /// Run-length encodes the given scan results into snapshot regions.
-        /// </summary>
-        /// <param name="scanResults">The scan results to encode.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void EncodeScanResults(ref Vector<Byte> scanResults)
-        {
-            // Optimization: check all vector results true
-            if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
-            {
-                this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
-            }
-            // Optimization: check all vector results false
-            else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
-            {
-                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
-            }
-            else
-            {
-                // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
-                {
-                    if (scanResults[resultIndex] != 0)
-                    {
-                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
-                    }
-                    else
-                    {
-                        this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.DataTypeSize);
-                    }
-                }
-            }
         }
     }
     //// End class

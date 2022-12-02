@@ -1,4 +1,8 @@
-﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
+﻿using Squalr.Engine.Common;
+using System.Numerics;
+using System;
+
+namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
     using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -23,6 +27,28 @@
         }
 
         /// <summary>
+        /// Gets a dictionary of sparse masks by scan alignment. This is used for scans where alignment is greater than the data type size.
+        /// </summary>
+        private static readonly Dictionary<MemoryAlignment, Vector<Byte>> SparseMasks = new Dictionary<MemoryAlignment, Vector<Byte>>
+        {
+            // 2-byte aligned
+            {
+                // This will produce a byte pattern of <0x00, 0xFF...> once reinterpreted as a byte vector.
+                MemoryAlignment.Alignment2, Vector.AsVectorByte(new Vector<UInt16>(0xFF00))
+            },
+            // 4-byte aligned
+            {
+                // This will produce a byte pattern of <0x00, 0x00, 0x00, 0xFF...> once reinterpreted as a byte vector.
+                MemoryAlignment.Alignment4, Vector.AsVectorByte(new Vector<UInt32>(0xFF000000))
+            },
+            // 8-byte aligned
+            {
+                // This will produce a byte pattern of <0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF...> once reinterpreted as a byte vector.
+                MemoryAlignment.Alignment8, Vector.AsVectorByte(new Vector<UInt64>(0xFF00000000000000))
+            },
+        };
+
+        /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
         /// <param name="region">The region to scan.</param>
@@ -40,12 +66,15 @@
             Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
-            Vector<Byte> sparseMask = this.BuildSparseMask();
+            Vector<Byte> sparseMask = SnapshotRegionVectorSparseScanner.SparseMasks[this.Alignment];
+            Vector<Byte> scanResults;
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
-            Vector<Byte> scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
-            this.EncodeScanResults(ref scanResults, ref sparseMask);
-            this.VectorReadOffset += Vectors.VectorSize;
+            {
+                scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.VectorCompare()), scanCount == 1 ? overreadMask : Vectors.AllBits);
+                this.EncodeScanResults(ref scanResults, ref sparseMask);
+                this.VectorReadOffset += Vectors.VectorSize;
+            }
 
             // Perform middle scans
             for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
@@ -68,7 +97,7 @@
         }
 
         /// <summary>
-        /// Run-length encodes the given scan results into snapshot regions.
+        /// Run-length encodes the given scan results into snapshot regions, accounting for sparse scan result mask.
         /// </summary>
         /// <param name="scanResults">The scan results to encode.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -101,22 +130,6 @@
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Create a sparse mask based on the current scan alignment. This is used for scans where alignment is greater than the data type size.
-        /// This creates a vector of <0, 255, 0, 255...>, with a total number of elements equal to the hardware vector size.
-        /// </summary>
-        /// <returns>A sparse mask based on the current vector scan alignment.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected Vector<Byte> BuildSparseMask()
-        {
-            Span<UInt16> sparseMask = stackalloc UInt16[Vectors.VectorSize / 2];
-
-            // Unintuitively, this will produce a byte pattern of <0x00, 0xFF...> once reinterpreted as a byte array.
-            sparseMask.Fill(0xFF00);
-
-            return Vector.AsVectorByte(new Vector<UInt16>(sparseMask));
         }
     }
     //// End class

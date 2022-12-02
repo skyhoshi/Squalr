@@ -44,7 +44,7 @@
                 {
                     if (random.NextDouble() <= Intensity)
                     {
-                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index, alignment].GetBaseAddress(ScannableType.Byte.Size), 0);
+                        MemoryWriter.Instance.Write<Int32>(SessionManager.Session.OpenedProcess, region[index, alignment].GetBaseAddress(), 0);
                     }
                 }
             }

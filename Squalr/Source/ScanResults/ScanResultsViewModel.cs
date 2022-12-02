@@ -403,7 +403,7 @@
 
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
-                    UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
+                    UInt64 address = element.GetBaseAddress();
                     String moduleName = String.Empty;
 
                     switch (emulatorType)

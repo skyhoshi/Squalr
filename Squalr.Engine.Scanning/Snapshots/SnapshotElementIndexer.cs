@@ -28,7 +28,7 @@
         /// <summary>
         /// Gets the base address of this element.
         /// </summary>
-        public UInt64 GetBaseAddress(Int32 dataTypeSize)
+        public UInt64 GetBaseAddress()
         {
             return unchecked(this.Region.ReadGroup.BaseAddress + (UInt64)(this.Region.ReadGroupOffset + this.ElementIndex * (Int32)this.Alignment));
         }

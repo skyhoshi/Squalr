@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -165,11 +165,6 @@
         public Int32 VectorReadOffset { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the alignment offset, which is also used for reading the next vector.
-        /// </summary>
-        public Int32 AlignmentReadOffset { get; protected set; }
-
-        /// <summary>
         /// Gets or sets the base address from which vectors are read.
         /// </summary>
         protected Int32 VectorReadBase { get; set; }
@@ -241,6 +236,40 @@
             overreadMask.Slice(0, Vectors.VectorSize - this.VectorOverread).Fill(0xFF);
 
             return new Vector<Byte>(overreadMask);
+        }
+
+        /// <summary>
+        /// Run-length encodes the given scan results into snapshot regions.
+        /// </summary>
+        /// <param name="scanResults">The scan results to encode.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void EncodeScanResults(ref Vector<Byte> scanResults)
+        {
+            // Optimization: check all vector results true
+            if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
+            }
+            // Optimization: check all vector results false
+            else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
+            }
+            else
+            {
+                // Otherwise the vector contains a mixture of true and false
+                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
+                {
+                    if (scanResults[resultIndex] != 0)
+                    {
+                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
+                    }
+                    else
+                    {
+                        this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.DataTypeSize);
+                    }
+                }
+            }
         }
 
         /// <summary>

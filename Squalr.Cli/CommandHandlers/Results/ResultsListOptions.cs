@@ -46,7 +46,7 @@
                         break;
                 }
 
-                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index, ScanSettings.DataType.Size].GetBaseAddress(ScanSettings.DataType.Size)) + "\t|\t" + str);
+                Console.WriteLine(index + "\t|\t" + Conversions.ToHex<UInt64>(results[index, ScanSettings.DataType.Size].GetBaseAddress()) + "\t|\t" + str);
             }
 
             Console.WriteLine();

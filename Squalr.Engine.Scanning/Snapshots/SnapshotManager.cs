@@ -134,12 +134,12 @@
                 // Nulling out the snapshot regions seems to make the GC work a little faster
                 foreach (Snapshot next in this.Snapshots)
                 {
-                    next.SetSnapshotRegions(null);
+                    next?.SetSnapshotRegions(null);
                 }
 
                 foreach (Snapshot next in this.DeletedSnapshots)
                 {
-                    next.SetSnapshotRegions(null);
+                    next?.SetSnapshotRegions(null);
                 }
 
                 this.Snapshots.Clear();
@@ -160,6 +160,11 @@
         /// <param name="snapshot">The snapshot to save.</param>
         public void SaveSnapshot(Snapshot snapshot)
         {
+            if (snapshot == null)
+            {
+                return;
+            }
+
             lock (this.AccessLock)
             {
                 // Remove null snapshot if exists
