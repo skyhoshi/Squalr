@@ -251,6 +251,19 @@
                 Properties.Settings.Default.EmulatorType = (int)value;
             }
         }
+
+        public static Boolean UseMultiThreadScans
+        {
+            get
+            {
+                return Properties.Settings.Default.UseMultiThreadScans;
+            }
+
+            set
+            {
+                Properties.Settings.Default.UseMultiThreadScans = value;
+            }
+        }
     }
     //// End class
 }

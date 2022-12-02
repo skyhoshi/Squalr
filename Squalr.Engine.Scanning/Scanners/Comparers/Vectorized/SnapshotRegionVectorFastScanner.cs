@@ -6,10 +6,10 @@
     using System;
     using System.Collections.Generic;
     using System.Numerics;
-    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// A fast vectorized snapshot region scanner that is optimized for snapshot regions that can be chunked to fit entirely in a hardware vector.
+    /// This scan only works when the alignment size is equal to the data type size.
     /// </summary>
     internal unsafe class SnapshotRegionVectorFastScanner : SnapshotRegionVectorScannerBase
     {

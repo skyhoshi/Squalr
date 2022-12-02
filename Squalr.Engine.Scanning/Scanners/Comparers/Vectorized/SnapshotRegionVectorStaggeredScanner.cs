@@ -10,7 +10,7 @@
     using System.Runtime.CompilerServices;
 
     /// <summary>
-    /// A vector scanner implementation that can handle staggered (alignment less than data type size) vector scans.
+    /// A vector scanner implementation that can handle staggered vector scans (alignment less than data type size).
     /// </summary>
     internal unsafe class SnapshotRegionVectorStaggeredScanner : SnapshotRegionVectorScannerBase
     {

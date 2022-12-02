@@ -1,4 +1,4 @@
-﻿namespace Squalr.Properties
+﻿namespace Squalr.Source.Settings
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
@@ -592,6 +592,22 @@
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether scans should use multi-threading. Mostly for testing purposes, this should almost always be turned on.
+        /// </summary>
+        public Boolean UseMultiThreadScans
+        {
+            get
+            {
+                return ScanSettings.UseMultiThreadScans;
+            }
+
+            set
+            {
+                ScanSettings.UseMultiThreadScans = value;
             }
         }
 

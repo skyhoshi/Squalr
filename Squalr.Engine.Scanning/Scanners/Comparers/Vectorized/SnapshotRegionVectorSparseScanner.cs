@@ -1,9 +1,6 @@
-﻿using Squalr.Engine.Common;
-using System.Numerics;
-using System;
-
-namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
@@ -13,7 +10,7 @@ namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
     using System.Runtime.CompilerServices;
 
     /// <summary>
-    /// A vector scanner implementation that can handle sparse (alignment greater than data type size) vector scans.
+    /// A vector scanner implementation that can handle sparse vector scans (alignment greater than data type size).
     /// </summary>
     internal unsafe class SnapshotRegionVectorSparseScanner : SnapshotRegionVectorScannerBase
     {

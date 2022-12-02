@@ -3,7 +3,7 @@
     using GalaSoft.MvvmLight;
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Properties;
+    using Squalr.Source.Settings;
     using Squalr.View.Dialogs;
     using System;
     using System.Collections;

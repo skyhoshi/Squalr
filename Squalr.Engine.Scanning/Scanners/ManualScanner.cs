@@ -52,8 +52,13 @@
                             Int32 processedPages = 0;
                             ConcurrentScanBag resultRegions = new ConcurrentScanBag();
 
-                            // ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
-                            ParallelOptions options = ParallelSettings.ParallelSettingsNone.Clone();
+                            ParallelOptions options = ScanSettings.UseMultiThreadScans ? ParallelSettings.ParallelSettingsFastest : ParallelSettings.ParallelSettingsNone;
+
+                            if (!ScanSettings.UseMultiThreadScans)
+                            {
+                                Logger.Log(LogLevel.Warn, "Multi-threaded scans are disabled in settings. Scan performance will be significantly decreased.");
+                            }
+
                             options.CancellationToken = cancellationToken;
 
                             Parallel.ForEach(

@@ -6,14 +6,13 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
-    using Squalr.Properties;
     using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
     using Squalr.Source.ProjectExplorer.Dialogs;
     using Squalr.Source.ProjectExplorer.ProjectItems;
-    using Squalr.Source.PropertyViewer;
+    using Squalr.Source.Settings;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
