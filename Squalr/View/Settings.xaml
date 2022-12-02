@@ -250,7 +250,7 @@
                             </Grid>
                             <WrapPanel>
                                 <TextBlock
-                                    Padding="0,0,4,0"
+                                    Padding="0,8,4,0"
                                     Foreground="{StaticResource SqualrColorWhite}"
                                     Text="Scan Range:" />
                             </WrapPanel>
