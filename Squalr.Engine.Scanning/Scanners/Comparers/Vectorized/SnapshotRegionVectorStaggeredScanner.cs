@@ -116,6 +116,12 @@
         {
             this.Initialize(region: region, constraints: constraints);
 
+            // This algorithm is mostly the same as SnapshotRegionVectorFastScanner. The primary difference is that instead of doing one vector comparison, multiple scans must be done per vector to
+            // scan for mis-aligned values. This adds 2 to 8 additional vector scans, based on the alignment and data type. Each of these sub-scans is masked against a stagger mask to create the scan result.
+            // For example, scanning for 4-byte integer 0 with an alignment of 2-bytes against <0, 0, 0, 0, 55, 0, 0, 0, 0, 0> would need to return <255, 0, 0, 0, 255, 255, ..>.
+            // This is accomplished by performing a full vector scan, then masking it against the appropriate stagger mask to extract the relevant scan results for that iteration.
+            // These sub-scans are OR'd together to get a run-length encoded vector of all scan matches.
+
             Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
             Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - (Int32)this.Alignment * scanCountPerVector);
