@@ -102,6 +102,22 @@
                 }
             }
         }
+
+        /// <summary>
+        /// Create a sparse mask based on the current scan alignment. This is used for scans where alignment is greater than the data type size.
+        /// This creates a vector of <0, 255, 0, 255...>, with a total number of elements equal to the hardware vector size.
+        /// </summary>
+        /// <returns>A sparse mask based on the current vector scan alignment.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected Vector<Byte> BuildSparseMask()
+        {
+            Span<UInt16> sparseMask = stackalloc UInt16[Vectors.VectorSize / 2];
+
+            // Unintuitively, this will produce a byte pattern of <0x00, 0xFF...> once reinterpreted as a byte array.
+            sparseMask.Fill(0xFF00);
+
+            return Vector.AsVectorByte(new Vector<UInt16>(sparseMask));
+        }
     }
     //// End class
 }

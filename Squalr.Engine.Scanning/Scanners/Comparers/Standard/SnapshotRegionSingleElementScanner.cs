@@ -20,13 +20,6 @@
         }
 
         /// <summary>
-        /// Finalizes an instance of the <see cref="SnapshotRegionSingleElementScanner" /> class.
-        /// </summary>
-        ~SnapshotRegionSingleElementScanner()
-        {
-        }
-
-        /// <summary>
         /// Performs a scan over the given region, returning the discovered regions.
         /// </summary>
         /// <param name="region">The region to scan.</param>

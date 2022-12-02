@@ -62,7 +62,7 @@
         }
 
         /// <summary>
-        /// A vector with all bits set to 1. TODO: Maybe I can make this an extension method for all Vector types?
+        /// A vector with all bits set to 1. TODO: If C# ever adds support for extension properties, this would be great to offload onto all Vector<T> types.
         /// </summary>
         public static readonly Vector<Byte> AllBits = Vector.OnesComplement(Vector<Byte>.Zero);
     }

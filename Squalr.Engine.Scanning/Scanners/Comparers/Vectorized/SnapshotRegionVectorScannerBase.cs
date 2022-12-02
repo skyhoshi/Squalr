@@ -244,25 +244,6 @@
         }
 
         /// <summary>
-        /// Create a sparse mask based on the current scan alignment. This is used for scans where alignment is greater than the data type size.
-        /// </summary>
-        /// <returns>A sparse mask based on the current vector scan alignment.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected Vector<Byte> BuildSparseMask()
-        {
-            Span<Byte> sparseMask = stackalloc Byte[Vectors.VectorSize];
-
-            sparseMask.Fill(0xFF);
-
-            for (Int32 index = 0; index < Vectors.VectorSize; index += unchecked((Int32)this.Alignment))
-            {
-                sparseMask[index] = 0;
-            }
-
-            return new Vector<Byte>(sparseMask);
-        }
-
-        /// <summary>
         /// Calculates the misalignment of the base address of the current snapshot region being scanned. This can be used to correct
         /// the base address to ensure all values can be scanned and fit into vectors as intended.
         /// </summary>
