@@ -608,6 +608,7 @@
             set
             {
                 ScanSettings.UseMultiThreadScans = value;
+                this.RaisePropertyChanged(nameof(this.UseMultiThreadScans));
             }
         }
 
