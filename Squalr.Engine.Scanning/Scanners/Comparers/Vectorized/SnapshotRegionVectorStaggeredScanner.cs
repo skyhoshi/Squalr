@@ -161,10 +161,17 @@
             Vector<Byte>[] staggeredMasks = SnapshotRegionVectorStaggeredScanner.StaggeredMaskMap[this.DataTypeSize][this.Alignment];
             Vector<Byte> scanResults = Vector<Byte>.Zero;
 
-            for (Int32 alignmentOffset = 0; alignmentOffset < scanCountPerVector && this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; alignmentOffset++)
+            for (Int32 alignmentOffset = 0; alignmentOffset < scanCountPerVector; alignmentOffset++)
             {
                 scanResults = Vector.BitwiseOr(scanResults, Vector.BitwiseAnd(this.VectorCompare(), staggeredMasks[alignmentOffset]));
                 this.VectorReadOffset += unchecked((Int32)this.Alignment);
+
+                // Advance to the expected vector read offset if we run out of bytes
+                if (this.VectorReadOffset >= this.Region.Range - Vectors.VectorSize)
+                {
+                    this.VectorReadOffset += unchecked((Int32)this.Alignment * (scanCountPerVector - alignmentOffset - 1));
+                    break;
+                }
             }
 
             return scanResults;
