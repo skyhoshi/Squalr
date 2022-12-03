@@ -88,22 +88,6 @@
         }
 
         /// <summary>
-        /// Gets or sets the snapshot memory address alignment.
-        /// </summary>
-        public MemoryAlignment Alignment
-        {
-            get
-            {
-                return this.alignment;
-            }
-
-            set
-            {
-                this.alignment = value;
-            }
-        }
-
-        /// <summary>
         /// Gets the read groups in this snapshot, ordered descending by their region size. This is much more performant for multi-threaded access.
         /// </summary>
         public IEnumerable<SnapshotRegion> OptimizedSnapshotRegions
@@ -152,7 +136,7 @@
         /// <summary>
         /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
         /// </summary>
-        public void ComputeElementCount(Int32 elementSize)
+        public void ComputeElementAndByteCounts()
         {
             this.ByteCount = 0;
             this.ElementCount = 0;
@@ -160,8 +144,8 @@
             this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
             {
                 region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += (region.GetElementByteCount(elementSize)).ToUInt64();
-                this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
+                this.ByteCount += region.ElementByteCount.ToUInt64();
+                this.ElementCount += region.AlignedElementCount.ToUInt64();
             });
         }
 

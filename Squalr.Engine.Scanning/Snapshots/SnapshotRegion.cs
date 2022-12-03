@@ -61,6 +61,16 @@
         public UInt64 BaseElementIndex { get; set; }
 
         /// <summary>
+        /// Gets the most recently computed number of bytes contained in this snapshot region.
+        /// </summary>
+        public Int32 ElementByteCount { get; private set; }
+
+        /// <summary>
+        /// Gets the most recently computed number of elements contained in this snapshot region.
+        /// </summary>
+        public Int32 AlignedElementCount { get; private set; }
+
+        /// <summary>
         /// Reads all memory for this memory region.
         /// </summary>
         /// <returns>The bytes read from memory.</returns>
@@ -82,39 +92,19 @@
         /// Gets the size in bytes of all elements contained in this snapshot region, based on the provided element data type size.
         /// </summary>
         /// <param name="dataTypeSize">The data type size of the elements contained by element ranges in this function.</param>
-        /// <returns></returns>
-        public Int32 GetElementByteCount(Int32 dataTypeSize)
+        public void ComputeByteAndElementCounts(Int32 dataTypeSize, MemoryAlignment alignment)
         {
-            Int32 byteCount = 0;
+            this.ElementByteCount = 0;
+            this.AlignedElementCount = 0;
 
             if (this.SnapshotElementRanges != null)
             {
                 foreach (SnapshotElementRange elementRange in this.SnapshotElementRanges)
                 {
-                    byteCount += elementRange.GetByteCount(dataTypeSize);
+                    this.ElementByteCount += elementRange.GetByteCount(dataTypeSize);
+                    this.AlignedElementCount += elementRange.GetAlignedElementCount(alignment);
                 }
             }
-
-            return byteCount;
-        }
-
-        /// <summary>
-        /// Gets the number of elements contained in this snapshot region.
-        /// <param name="alignment">The memory address alignment of each element.</param>
-        /// </summary>
-        public Int32 GetAlignedElementCount(MemoryAlignment alignment)
-        {
-            Int32 elementCount = 0;
-
-            if (this.SnapshotElementRanges != null)
-            {
-                foreach (SnapshotElementRange elementRange in this.SnapshotElementRanges)
-                {
-                    elementCount += elementRange.GetAlignedElementCount(alignment);
-                }
-            }
-
-            return elementCount;
         }
 
         /// <summary>

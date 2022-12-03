@@ -5,6 +5,7 @@
     using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
+    using System.Data;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
@@ -54,19 +55,19 @@
 
                                     // Read the memory for this region
                                     snapshotRegion.ReadAllMemory(process);
+                                    snapshotRegion.ComputeByteAndElementCounts(ScannableType.Byte.Size, MemoryAlignment.Alignment1);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedRegions) % 32 == 0)
                                     {
+                                        // Technically this callback is a data race, but it does not really matter if scan progress is not reported perfectly accurately
                                         updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
                                     }
                                 });
 
-                            // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
-
+                            snapshot.ComputeElementAndByteCounts();
                             stopwatch.Stop();
-                            snapshot.ComputeElementCount(ScannableType.Byte.Size);
 
                             if (withLogging)
                             {

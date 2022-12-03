@@ -64,25 +64,25 @@
                             Parallel.ForEach(
                                 snapshot.SnapshotRegions,
                                 options,
-                                (region) =>
+                                (snapshotRegion) =>
                                 {
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
-                                    if (!region.CanCompare(constraints: constraints))
+                                    if (!snapshotRegion.CanCompare(constraints: constraints))
                                     {
                                         return;
                                     }
 
-                                    region.Align(alignment);
+                                    snapshotRegion.Align(alignment);
 
-                                    ConcurrentScanElementRangeBag discoveredElements = new ConcurrentScanElementRangeBag();
+                                    ConcurrentScanElementRangeBag scanResults = new ConcurrentScanElementRangeBag();
 
                                     // For most workloads, the nested parallel for loop will be ever-so-slightly slower than a regular loop, however this is worth it because
                                     // there are some cases where this saves a significant amount of time, as there may be a small number of snapshot regions with a substantial number of elements.
                                     // This extra parallel loop helps divide that work up among otherwise idle threads.
                                     Parallel.ForEach(
-                                        region,
+                                        snapshotRegion,
                                         options,
                                         (elementRange) =>
                                         {
@@ -92,12 +92,13 @@
 
                                                 if (!results.IsNullOrEmpty())
                                                 {
-                                                    discoveredElements.Add(results);
+                                                    scanResults.Add(results);
                                                 }
                                             }
                                         });
 
-                                    region.SnapshotElementRanges = discoveredElements;
+                                    snapshotRegion.SnapshotElementRanges = scanResults;
+                                    snapshotRegion.ComputeByteAndElementCounts(constraints.ElementType.Size, alignment);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedPages) % 32 == 0)
@@ -108,13 +109,11 @@
                                 });
                             //// End foreach region
 
-                            // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
-
-                            snapshot.Alignment = alignment;
+                            snapshot.ComputeElementAndByteCounts();
                             stopwatch.Stop();
+
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
-                            snapshot.ComputeElementCount(constraints.ElementType.Size);
                             Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
                         }
                         catch (OperationCanceledException ex)
