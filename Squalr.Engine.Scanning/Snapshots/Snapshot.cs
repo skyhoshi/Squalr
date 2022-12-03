@@ -42,7 +42,6 @@
         public Snapshot(String snapshotName, IEnumerable<SnapshotRegion> snapshotRegions)
         {
             this.SnapshotName = snapshotName ?? String.Empty;
-            this.SnapshotRegionIndexLookupTable = new IntervalTree<UInt64, SnapshotRegion>();
             this.SetSnapshotRegions(snapshotRegions);
         }
 
@@ -117,6 +116,12 @@
         {
             get
             {
+                // Build the index lookup table if needed
+                if (this.SnapshotRegionIndexLookupTable == null || this.SnapshotRegionIndexLookupTable.Count <= 0)
+                {
+                    this.BuildLookupTable(alignment);
+                }
+
                 SnapshotRegion region = this.SnapshotRegionIndexLookupTable.QueryOne(elementIndex);
 
                 if (region == null)
@@ -149,14 +154,34 @@
             this.Alignment = alignment;
             this.ByteCount = 0;
             this.ElementCount = 0;
-            this.SnapshotRegionIndexLookupTable.Clear();
+            this.SnapshotRegionIndexLookupTable?.Clear();
 
             this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
             {
                 region.BaseElementIndex = this.ElementCount;
                 this.ByteCount += region.ElementByteCount.ToUInt64();
-                this.ElementCount += region.AlignedElementCount.ToUInt64();
-                this.SnapshotRegionIndexLookupTable.Add(region.BaseElementIndex, region.BaseElementIndex + region.AlignedElementCount.ToUInt64(), region);
+                this.ElementCount += region.TotalElementCount.ToUInt64();
+            });
+        }
+
+        /// <summary>
+        /// Builds the element index lookup table for this snapshot. Used to display scan results.
+        /// </summary>
+        /// <param name="alignment">The alignment of the elements in this snapshot region.</param>
+        private void BuildLookupTable(MemoryAlignment alignment)
+        {
+            if (this.SnapshotRegionIndexLookupTable == null)
+            {
+                this.SnapshotRegionIndexLookupTable = new IntervalTree<UInt64, SnapshotRegion>();
+            }
+            else
+            {
+                this.SnapshotRegionIndexLookupTable.Clear();
+            }
+
+            this.SnapshotRegions?.ForEach(region =>
+            {
+                this.SnapshotRegionIndexLookupTable.Add(region.BaseElementIndex, region.BaseElementIndex + region.TotalElementCount.ToUInt64() - 1, region);
             });
         }
     }
