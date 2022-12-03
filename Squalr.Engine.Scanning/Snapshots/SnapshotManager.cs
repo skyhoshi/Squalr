@@ -7,6 +7,9 @@
     using System.Diagnostics;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// A class for managing snapshot history, allowing users to undo and redo scans.
+    /// </summary>
     public class SnapshotManager
     {
         /// <summary>

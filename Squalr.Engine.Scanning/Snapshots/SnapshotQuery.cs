@@ -8,6 +8,9 @@
     using System.Diagnostics;
     using System.Linq;
 
+    /// <summary>
+    /// A static class for querying snapshots of memory from a target process.
+    /// </summary>
     public static class SnapshotQuery
     {
         [Flags]

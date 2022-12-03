@@ -70,6 +70,11 @@
         /// </summary>
         private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToValue { get; set; }
 
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public override void Initialize(SnapshotElementRange region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);

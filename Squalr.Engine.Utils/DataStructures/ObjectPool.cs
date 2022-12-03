@@ -34,13 +34,15 @@
         /// Takes or creates an object from this pool.
         /// </summary>
         /// <returns>The recycled or created object.</returns>
-        public T Get() => objectPool.TryTake(out T item) ? item : objectGenerator();
+        public T Get() => this.objectPool.TryTake(out T item) ? item : objectGenerator();
 
         /// <summary>
         /// Returns an object back to this pool.
         /// </summary>
         /// <param name="item">The object to return.</param>
-        public void Return(T item) => objectPool.Add(item);
+        public void Return(T item) => this.objectPool.Add(item);
+
+        public void Clear() => this.objectPool.Clear();
     }
     //// End class
 }

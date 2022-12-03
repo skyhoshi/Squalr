@@ -38,6 +38,11 @@
         /// </summary>
         private GCHandle PreviousValuesHandle { get; set; }
 
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public override void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
             base.Initialize(elementRange, constraints);
@@ -50,6 +55,11 @@
             this.InitializePointers();
         }
 
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints. Does not perform any garbace collector pinning.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public void InitializeNoPinning(SnapshotElementRange region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);
