@@ -107,14 +107,14 @@
         };
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.Initialize(region: region, constraints: constraints);
+            this.Initialize(elementRange: elementRange, constraints: constraints);
 
             // This algorithm is mostly the same as SnapshotRegionVectorFastScanner. The primary difference is that instead of doing one vector comparison, multiple scans must be done per vector to
             // scan for mis-aligned values. This adds 2 to 8 additional vector scans, based on the alignment and data type. Each of these sub-scans is masked against a stagger mask to create the scan result.
@@ -122,7 +122,7 @@
             // This is accomplished by performing a full vector scan, then masking it against the appropriate stagger mask to extract the relevant scan results for that iteration.
             // These sub-scans are OR'd together to get a run-length encoded vector of all scan matches.
 
-            Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
+            Int32 scanCount = this.ElementRnage.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
             Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - (Int32)this.Alignment * scanCountPerVector);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
@@ -137,7 +137,7 @@
             }
 
             // Perform middle scans
-            for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += offsetVectorIncrementSize)
+            for (; this.VectorReadOffset < this.ElementRnage.Range - Vectors.VectorSize; this.VectorReadOffset += offsetVectorIncrementSize)
             {
                 scanResults = this.StaggeredVectorScan();
                 this.EncodeScanResults(ref scanResults);
@@ -170,10 +170,11 @@
             for (Int32 alignmentOffset = 0; alignmentOffset < scanCountPerVector; alignmentOffset++)
             {
                 scanResults = Vector.BitwiseOr(scanResults, Vector.BitwiseAnd(this.VectorCompare(), staggeredMasks[alignmentOffset]));
+
                 this.VectorReadOffset += unchecked((Int32)this.Alignment);
 
                 // Advance to the expected vector read offset if we run out of bytes
-                if (this.VectorReadOffset >= this.Region.Range - Vectors.VectorSize)
+                if (this.VectorReadOffset >= this.ElementRnage.Range - Vectors.VectorSize)
                 {
                     this.VectorReadOffset += unchecked((Int32)this.Alignment * (scanCountPerVector - alignmentOffset - 1));
                     break;

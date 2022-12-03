@@ -45,7 +45,7 @@
 
                             // Read memory to get current values for each region
                             Parallel.ForEach(
-                                snapshot.OptimizedReadGroups,
+                                snapshot.OptimizedSnapshotRegions,
                                 options,
                                 (readGroup) =>
                                 {

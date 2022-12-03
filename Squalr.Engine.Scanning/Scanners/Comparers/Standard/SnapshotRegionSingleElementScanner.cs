@@ -20,29 +20,29 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public unsafe override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public unsafe override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.InitializeNoPinning(region: region, constraints: constraints);
+            this.InitializeNoPinning(region: elementRange, constraints: constraints);
 
-            fixed (Byte* currentValuePtr = &region.ReadGroup.CurrentValues[region.ReadGroupOffset])
+            fixed (Byte* currentValuePtr = &elementRange.ReadGroup.CurrentValues[elementRange.RegionOffset])
             {
-                if (region.ReadGroup.PreviousValues != null && region.ReadGroup.PreviousValues.Length > 0)
+                if (elementRange.ReadGroup.PreviousValues != null && elementRange.ReadGroup.PreviousValues.Length > 0)
                 {
-                    fixed (Byte* previousValuePtr = &region.ReadGroup.PreviousValues[region.ReadGroupOffset])
+                    fixed (Byte* previousValuePtr = &elementRange.ReadGroup.PreviousValues[elementRange.RegionOffset])
                     {
                         this.CurrentValuePointer = currentValuePtr;
                         this.PreviousValuePointer = previousValuePtr;
 
                         if (this.ElementCompare())
                         {
-                            return new List<SnapshotRegion>()
+                            return new List<SnapshotElementRange>()
                             {
-                                new SnapshotRegion(region.ReadGroup, region.ReadGroupOffset, region.Range)
+                                new SnapshotElementRange(elementRange.ReadGroup, elementRange.RegionOffset, elementRange.Range)
                             };
                         }
                     }
@@ -53,9 +53,9 @@
 
                     if (this.ElementCompare())
                     {
-                        return new List<SnapshotRegion>()
+                        return new List<SnapshotElementRange>()
                         {
-                            new SnapshotRegion(region.ReadGroup, region.ReadGroupOffset, region.Range)
+                            new SnapshotElementRange(elementRange.ReadGroup, elementRange.RegionOffset, elementRange.Range)
                         };
                     }
                 }

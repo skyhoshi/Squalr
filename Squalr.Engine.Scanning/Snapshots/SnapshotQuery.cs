@@ -21,12 +21,6 @@
         }
 
         /// <summary>
-        /// The size by which to shard read groups. This allows for balanced workloads for parallelized scans.
-        /// Value arbitrarily chosen by testing against a large game with Squalr compiled in Release mode.
-        /// </summary>
-        private static readonly Int32 ShardSize = 0x400000;
-
-        /// <summary>
         /// Gets a snapshot based on the provided mode. Will not read any memory.
         /// </summary>
         /// <param name="snapshotCreationMode">The method of snapshot retrieval.</param>
@@ -61,7 +55,7 @@
             MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
             RegionBoundsHandling boundsHandling = RegionBoundsHandling.Resize;
 
-            List<ReadGroup> readGroups = new List<ReadGroup>();
+            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
                 process,
                 requiredPageFlags,
@@ -74,10 +68,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
+                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups.SelectMany(readGroup => readGroup.Shard(SnapshotQuery.ShardSize)));
+            return new Snapshot(String.Empty, readGroups);
         }
 
         /// <summary>
@@ -93,7 +87,7 @@
             UInt64 startAddress = 0;
             UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(process);
 
-            List<ReadGroup> readGroups = new List<ReadGroup>();
+            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
                 process,
                 requiredPageFlags,
@@ -105,10 +99,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
+                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups.SelectMany(readGroup => readGroup.Shard(SnapshotQuery.ShardSize)));
+            return new Snapshot(String.Empty, readGroups);
         }
 
         /// <summary>
@@ -117,7 +111,7 @@
         /// <returns>The snapshot of memory taken in the target process.</returns>
         private static Snapshot CreateSnapshotFromSettings(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
-            List<ReadGroup> readGroups = new List<ReadGroup>();
+            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages;
 
             if (emulatorType == EmulatorType.Auto)
@@ -165,10 +159,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize));
+                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups.SelectMany(readGroup => readGroup.Shard(SnapshotQuery.ShardSize)));
+            return new Snapshot(String.Empty, readGroups);
         }
 
         /// <summary>
@@ -177,7 +171,7 @@
         /// <returns>The created snapshot.</returns>
         private static Snapshot CreateSnapshotFromModules(Process process, EmulatorType emulatorType)
         {
-            IEnumerable<ReadGroup> moduleGroups;
+            IEnumerable<SnapshotRegion> moduleRegions;
 
             if (emulatorType == EmulatorType.Auto)
             {
@@ -187,15 +181,15 @@
             switch (emulatorType)
             {
                 case EmulatorType.Dolphin:
-                    moduleGroups = MemoryQueryer.Instance.GetDolphinModules(process).Select(region => new ReadGroup(region.BaseAddress, region.RegionSize));
+                    moduleRegions = MemoryQueryer.Instance.GetDolphinModules(process).Select(region => new SnapshotRegion(region.BaseAddress, region.RegionSize));
                     break;
                 case EmulatorType.None:
                 default:
-                    moduleGroups = MemoryQueryer.Instance.GetModules(process).Select(region => new ReadGroup(region.BaseAddress, region.RegionSize));
+                    moduleRegions = MemoryQueryer.Instance.GetModules(process).Select(region => new SnapshotRegion(region.BaseAddress, region.RegionSize));
                     break;
             }
 
-            Snapshot moduleSnapshot = new Snapshot(null, moduleGroups.SelectMany(readGroup => readGroup.Shard(SnapshotQuery.ShardSize)));
+            Snapshot moduleSnapshot = new Snapshot(null, moduleRegions);
 
             return moduleSnapshot;
         }
@@ -219,7 +213,7 @@
                     foreach (NormalizedRegion virtualPage in MemoryQueryer.Instance.GetDolphinHeaps(process))
                     {
                         virtualPage.Align(ScanSettings.Alignment);
-                        dolphinHeaps.Add(new SnapshotRegion(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize)));
+                        dolphinHeaps.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
                     }
 
                     return new Snapshot(String.Empty, dolphinHeaps);
@@ -253,7 +247,7 @@
                         }
 
                         virtualPage.Align(ScanSettings.Alignment);
-                        memoryRegions.Add(new SnapshotRegion(new ReadGroup(virtualPage.BaseAddress, virtualPage.RegionSize)));
+                        memoryRegions.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
                     }
 
                     return new Snapshot(String.Empty, memoryRegions);

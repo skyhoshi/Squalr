@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -182,20 +182,20 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
-        protected Func<Vector<Byte>> VectorCompare { get; private set; }
+        protected Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
         /// Initializes this scanner for the given region and constaints.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        public override void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            base.Initialize(region: region, constraints: constraints);
+            base.Initialize(elementRange: elementRange, constraints: constraints);
 
             this.VectorCompare = this.BuildCompareActions(constraints);
             this.VectorMisalignment = this.CalculateVectorMisalignment();
-            this.VectorReadBase = region.ReadGroupOffset - this.VectorMisalignment;
+            this.VectorReadBase = elementRange.RegionOffset - this.VectorMisalignment;
             this.VectorOverread = this.CalculateVectorOverread();
             this.VectorReadOffset = 0;
             this.RunLengthEncoder.AdjustForMisalignment(this.VectorMisalignment);
@@ -280,11 +280,11 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Int32 CalculateVectorMisalignment()
         {
-            Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
+            Int32 availableByteCount = this.ElementRnage.GetByteCount(this.DataTypeSize);
             Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
             Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
-            UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
-            Int32 vectorMisalignment = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
+            UInt64 vectorEndAddress = unchecked(this.ElementRnage.BaseElementAddress + (UInt64)vectorAlignedByteCount);
+            Int32 vectorMisalignment = vectorEndAddress <= this.ElementRnage.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.ElementRnage.ReadGroup.EndAddress));
 
             return vectorMisalignment;
         }
@@ -296,7 +296,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Int32 CalculateVectorOverread()
         {
-            Int32 remainingBytes = this.Region.Range % Vectors.VectorSize;
+            Int32 remainingBytes = this.ElementRnage.Range % Vectors.VectorSize;
             Int32 vectorOverread = remainingBytes == 0 ? 0 : (Vectors.VectorSize - remainingBytes);
 
             return vectorOverread;

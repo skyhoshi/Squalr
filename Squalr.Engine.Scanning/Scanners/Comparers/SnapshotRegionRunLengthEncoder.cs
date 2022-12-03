@@ -37,22 +37,22 @@
         /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
-        private SnapshotRegion Region { get; set; }
+        private SnapshotElementRange Region { get; set; }
 
         /// <summary>
         /// Gets or sets the list of discovered result regions.
         /// </summary>
-        private IList<SnapshotRegion> ResultRegions { get; set; }
+        private IList<SnapshotElementRange> ResultRegions { get; set; }
 
         /// <summary>
         /// Initializes this run legnth encoder for a given region being scanned and a set of scan constraints.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
-        public void Initialize(SnapshotRegion region)
+        public void Initialize(SnapshotElementRange region)
         {
             this.Region = region;
-            this.ResultRegions = new List<SnapshotRegion>();
-            this.RunLengthEncodeOffset = region?.ReadGroupOffset ?? 0;
+            this.ResultRegions = new List<SnapshotElementRange>();
+            this.RunLengthEncodeOffset = region?.RegionOffset ?? 0;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@
         /// <summary>
         /// Finalizes any leftover snapshot regions and returns them.
         /// </summary>
-        public IList<SnapshotRegion> GetCollectedRegions()
+        public IList<SnapshotElementRange> GetCollectedRegions()
         {
             return this.ResultRegions;
         }
@@ -107,7 +107,7 @@
                 // This is particularly true in "next scans". This check catches any potential errors introduced this way.
                 if (absoluteAddressStart >= this.Region.BaseElementAddress && absoluteAddressEnd <= this.Region.EndElementAddress)
                 {
-                    this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
+                    this.ResultRegions.Add(new SnapshotElementRange(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
                 }
 
                 this.RunLengthEncodeOffset += this.RunLength;
@@ -128,7 +128,7 @@
             // Create the final region if we are still encoding
             if (this.IsEncoding)
             {
-                this.ResultRegions.Add(new SnapshotRegion(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
+                this.ResultRegions.Add(new SnapshotElementRange(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
                 this.RunLengthEncodeOffset += this.RunLength;
                 this.RunLength = 0;
                 this.IsEncoding = false;

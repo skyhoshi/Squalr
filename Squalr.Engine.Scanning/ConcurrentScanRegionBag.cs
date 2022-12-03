@@ -1,12 +1,10 @@
 ﻿namespace Squalr.Engine.Scanning
 {
-    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Scanning.Snapshots;
-    using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
 
-    public class ConcurrentScanBag : ConcurrentBag<IList<SnapshotRegion>>, IEnumerable<SnapshotRegion>
+    public class ConcurrentScanRegionBag : ConcurrentBag<IList<SnapshotRegion>>, IEnumerable<SnapshotRegion>
     {
         IEnumerator<SnapshotRegion> IEnumerable<SnapshotRegion>.GetEnumerator()
         {

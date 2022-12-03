@@ -38,19 +38,19 @@
         /// </summary>
         private GCHandle PreviousValuesHandle { get; set; }
 
-        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        public override void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            base.Initialize(region, constraints);
+            base.Initialize(elementRange, constraints);
 
             // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
-            this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
-            this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
+            this.CurrentValuesHandle = GCHandle.Alloc(this.ElementRnage.ReadGroup.CurrentValues, GCHandleType.Pinned);
+            this.PreviousValuesHandle = GCHandle.Alloc(this.ElementRnage.ReadGroup.PreviousValues, GCHandleType.Pinned);
             this.ElementCompare = this.BuildCompareActions(constraints);
 
             this.InitializePointers();
         }
 
-        public void InitializeNoPinning(SnapshotRegion region, ScanConstraints constraints)
+        public void InitializeNoPinning(SnapshotElementRange region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);
 
@@ -76,9 +76,9 @@
         /// </summary>
         private unsafe void InitializePointers()
         {
-            if (this.Region.ReadGroup.CurrentValues != null && this.Region.ReadGroup.CurrentValues.Length > 0)
+            if (this.ElementRnage.ReadGroup.CurrentValues != null && this.ElementRnage.ReadGroup.CurrentValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ReadGroup.CurrentValues[this.ElementRnage.RegionOffset])
                 {
                     this.CurrentValuePointer = pointerBase;
                 }
@@ -88,9 +88,9 @@
                 this.CurrentValuePointer = null;
             }
 
-            if (this.Region.ReadGroup.PreviousValues != null && this.Region.ReadGroup.PreviousValues.Length > 0)
+            if (this.ElementRnage.ReadGroup.PreviousValues != null && this.ElementRnage.ReadGroup.PreviousValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ReadGroup.PreviousValues[this.ElementRnage.RegionOffset])
                 {
                     this.PreviousValuePointer = pointerBase;
                 }

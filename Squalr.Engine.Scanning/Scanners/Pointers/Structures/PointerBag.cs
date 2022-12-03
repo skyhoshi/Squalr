@@ -84,8 +84,10 @@
                 // Brute force all possible offsets in a random order to find the next path (this guarantees uniform path probabilities)
                 foreach (Int32 nextRandomOffset in shuffledOffsets)
                 {
+                    throw new NotImplementedException();
+                    /*
                     UInt64 newDestination = nextRandomOffset < 0 ? pointer.Destination.Subtract(-nextRandomOffset, wrapAround: false) : pointer.Destination.Add(nextRandomOffset, wrapAround: false);
-                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseElementAddress && newDestination <= y.EndElementAddress).FirstOrDefault();
+                    SnapshotElementRange snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseElementAddress && newDestination <= y.EndElementAddress).FirstOrDefault();
 
                     if (snapshotRegion != null)
                     {
@@ -99,7 +101,7 @@
                         offsets.Add(alignedOffset);
                         found = true;
                         break;
-                    }
+                    }*/
                 }
 
                 if (!found)

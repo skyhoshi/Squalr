@@ -46,21 +46,21 @@
         };
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.Initialize(region: region, constraints: constraints);
+            this.Initialize(elementRange: elementRange, constraints: constraints);
 
             // This algorithm is mostly the same as SnapshotRegionVectorFastScanner. The only difference is that scans are compared against a sparse mask,
             // This mask automatically captures all in-between elements. For example, scanning for Byte 0 with an alignment of 2-bytes against <0, 24, 0, 43> would all return true, due to this mask of <0, 255, 0, 255>.
             // Scan results will automatically skip over the unwanted elements based on alignment. In fact, we do NOT want to break this into two separate snapshot regions, since this would be incredibly inefficient.
             // So in this example, we would return a single snapshot region of size 4, and the scan results would iterate by 2.
 
-            Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
+            Int32 scanCount = this.ElementRnage.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
             Vector<Byte> sparseMask = SnapshotRegionVectorSparseScanner.SparseMasks[this.Alignment];
@@ -74,7 +74,7 @@
             }
 
             // Perform middle scans
-            for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
+            for (; this.VectorReadOffset < this.ElementRnage.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
             {
                 scanResults = this.VectorCompare();
                 this.EncodeScanResults(ref scanResults, ref sparseMask);

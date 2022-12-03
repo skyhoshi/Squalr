@@ -1,141 +1,124 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
-    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Hardware;
+    using Squalr.Engine.Memory;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
 
     /// <summary>
-    /// Defines a region of memory in an external process.
+    /// Defines a segment of process memory, which many snapshot sub regions may read from. This serves as a shared pool of memory, such as to
+    /// minimize the number of calls to the OS to read the memory of a process.
     /// </summary>
-    public class SnapshotRegion
+    public class SnapshotRegion : NormalizedRegion, IEnumerable<SnapshotElementRange>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
         /// </summary>
-        /// <param name="readGroup">The read group of this snapshot region.</param>
-        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
-        /// <param name="regionSize">The size of this snapshot region.</param>
-        public SnapshotRegion(ReadGroup readGroup) : this(readGroup, 0, readGroup?.RegionSize ?? 0)
+        /// <param name="baseAddress">The base address of this memory region.</param>
+        /// <param name="regionSize">The size of this memory region.</param>
+        public SnapshotRegion(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
         /// </summary>
-        /// <param name="readGroup">The read group of this snapshot region.</param>
-        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
-        /// <param name="range">The size of this snapshot region.</param>
-        public SnapshotRegion(ReadGroup readGroup, Int32 readGroupOffset, Int32 range)
+        /// <param name="baseAddress">The base address of this memory region.</param>
+        /// <param name="regionSize">The size of this memory region.</param>
+        public SnapshotRegion(UInt64 baseAddress, Byte[] initialBytes) : base(baseAddress, initialBytes.Length)
         {
-            this.ReadGroup = readGroup;
-            this.ReadGroupOffset = readGroupOffset;
-            this.Range = range;
+            this.CurrentValues = initialBytes;
         }
 
         /// <summary>
-        /// Gets the readgroup from which this snapshot region reads its values.
+        /// Gets the most recently read values.
         /// </summary>
-        public ReadGroup ReadGroup { get; private set; }
+        public unsafe Byte[] CurrentValues { get; private set; }
 
         /// <summary>
-        /// Gets the offset from the base of this snapshot's read group.
+        /// Gets the previously read values.
         /// </summary>
-        public Int32 ReadGroupOffset { get; private set; }
+        public unsafe Byte[] PreviousValues { get; private set; }
 
         /// <summary>
-        /// Gets the range of this snapshot region in bytes. This is the number of bytes directly contained, but more bytes may be used if tracking data types larger than 1-byte.
+        /// Gets the snapshot element ranges in this snapshot. These are elements discovered by scans.
         /// </summary>
-        public Int32 Range { get; private set; }
+        public SnapshotElementRange[] SnapshotElementRanges { get; private set; }
 
         /// <summary>
-        /// Gets the size of this region in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
-        /// Also, this takes into account how much space is available for reading from the underlying read group.
+        /// Reads all memory for this memory region.
         /// </summary>
-        public Int32 GetByteCount(Int32 dataTypeSize)
+        /// <returns>The bytes read from memory.</returns>
+        public unsafe Boolean ReadAllMemory(Process process)
         {
-            Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);
-            Int32 availableSpillOverBytes = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
-            Int32 usedSpillOverBytes = Math.Min(desiredSpillOverBytes, availableSpillOverBytes);
+            this.SetPreviousValues(this.CurrentValues);
+            this.SetCurrentValues(MemoryReader.Instance.ReadBytes(process, this.BaseAddress, this.RegionSize, out bool readSuccess));
 
-            return this.Range + usedSpillOverBytes;
-        }
-
-        /// <summary>
-        /// Gets the address of the first element contained in this snapshot region.
-        /// </summary>
-        public UInt64 BaseElementAddress
-        {
-            get
+            if (!readSuccess)
             {
-                return unchecked(this.ReadGroup.BaseAddress + (UInt64)this.ReadGroupOffset);
+                this.SetPreviousValues(null);
+                this.SetCurrentValues(null);
             }
+
+            return readSuccess;
         }
 
         /// <summary>
-        /// Gets the address of the last element contained in this snapshot region (assuming 1-byte alignment).
+        /// Determines if a relative comparison can be done for this region, ie current and previous values are loaded.
         /// </summary>
-        public UInt64 EndElementAddress
+        /// <param name="constraints">The collection of scan constraints to use in the manual scan.</param>
+        /// <returns>True if a relative comparison can be done for this region.</returns>
+        public Boolean CanCompare(IScanConstraint constraints)
         {
-            get
+            if (constraints == null
+                || !constraints.IsValid()
+                || this.CurrentValues == null
+                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && this.PreviousValues == null)
             {
-                return unchecked(this.ReadGroup.BaseAddress + (UInt64)(this.ReadGroupOffset + this.Range));
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>
-        /// Gets or sets the base index of this snapshot. In other words, the scan results index of the first element of this region.
+        /// Sets the current values of this region.
         /// </summary>
-        public UInt64 BaseElementIndex { get; set; }
-
-        /// <summary>
-        /// Gets the number of elements contained in this snapshot.
-        /// <param name="alignment">The memory address alignment of each element.</param>
-        /// </summary>
-        public Int32 GetAlignedElementCount(MemoryAlignment alignment)
+        /// <param name="newValues">The raw bytes of the values.</param>
+        public void SetCurrentValues(Byte[] newValues)
         {
-            Int32 alignmentValue = unchecked((Int32)alignment);
-            Int32 elementCount = this.Range / (alignmentValue <= 0 ? 1 : alignmentValue);
-
-            return elementCount;
+            this.CurrentValues = newValues;
         }
 
         /// <summary>
-        /// Resize the snapshot region for safe reading given an allowed data type size.
+        /// Sets the previous values of this region.
         /// </summary>
-        /// <param name="dataTypeSize"></param>
-        public void ResizeForSafeReading(Int32 dataTypeSize)
+        /// <param name="newValues">The raw bytes of the values.</param>
+        public void SetPreviousValues(Byte[] newValues)
         {
-            Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
-
-            this.Range = Math.Clamp(this.Range, 0, readGroupSize - this.ReadGroupOffset - dataTypeSize);
+            this.PreviousValues = newValues;
         }
 
         /// <summary>
-        /// Indexer to allow the retrieval of the element at the specified index.
+        /// Gets an enumerator for all snapshot element ranges within this snapshot region.
         /// </summary>
-        /// <param name="index">The index of the snapshot element.</param>
-        /// <returns>Returns the snapshot element at the specified index.</returns>
-        public SnapshotElementIndexer this[Int32 index, MemoryAlignment alignment]
+        /// <returns>An enumerator for all snapshot element ranges within this snapshot region.</returns>
+        public IEnumerator<SnapshotElementRange> GetEnumerator()
         {
-            get
-            {
-                return new SnapshotElementIndexer(region: this, elementIndex: index, alignment: alignment);
-            }
+            return SnapshotElementRanges?.AsEnumerable()?.GetEnumerator();
         }
 
         /// <summary>
-        /// Gets the enumerator for an element reference within this snapshot region.
+        /// Gets an enumerator for all snapshot element ranges within this snapshot region.
         /// </summary>
-        /// <returns>The enumerator for an element reference within this snapshot region.</returns>
-        public IEnumerator<SnapshotElementIndexer> IterateElements(MemoryAlignment alignment)
+        /// <returns>An enumerator for all snapshot element ranges within this snapshot region.</returns>
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            Int32 elementCount = this.GetAlignedElementCount(alignment);
-            SnapshotElementIndexer snapshotElement = new SnapshotElementIndexer(region: this, alignment: alignment);
-
-            for (snapshotElement.ElementIndex = 0; snapshotElement.ElementIndex < elementCount; snapshotElement.ElementIndex++)
-            {
-                yield return snapshotElement;
-            }
+            return SnapshotElementRanges?.GetEnumerator();
         }
     }
     //// End class

@@ -50,7 +50,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentScanBag resultRegions = new ConcurrentScanBag();
+                            ConcurrentScanRegionBag resultRegions = new ConcurrentScanRegionBag();
 
                             ParallelOptions options = ScanSettings.UseMultiThreadScans ? ParallelSettings.ParallelSettingsFastest : ParallelSettings.ParallelSettingsNone;
 
@@ -69,34 +69,40 @@
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
-                                    if (!region.ReadGroup.CanCompare(constraints: constraints))
+                                    if (!region.CanCompare(constraints: constraints))
                                     {
                                         return;
                                     }
 
-                                    using (ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.AquireScannerInstance(region: region, constraints: constraints))
+                                    IList<IList<SnapshotElementRange>> discoveredElements = new List<IList<SnapshotElementRange>>();
+
+                                    foreach (SnapshotElementRange elementRange in region)
                                     {
-                                        IList<SnapshotRegion> results = scanner.ScanRegion(region: region, constraints: constraints);
-
-                                        if (!results.IsNullOrEmpty())
+                                        using (ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.AquireScannerInstance(elementRange: elementRange, constraints: constraints))
                                         {
-                                            resultRegions.Add(results);
-                                        }
+                                            IList<SnapshotElementRange> results = scanner.ScanRegion(elementRange: elementRange, constraints: constraints);
 
-                                        // Update progress every N regions
-                                        if (Interlocked.Increment(ref processedPages) % 32 == 0)
-                                        {
-                                            updateProgress((float)processedPages / (float)snapshot.RegionCount * 100.0f);
+                                            if (!results.IsNullOrEmpty())
+                                            {
+                                                discoveredElements.Add(results);
+                                            }
                                         }
                                     }
+
+                                    // Update progress every N regions
+                                    if (Interlocked.Increment(ref processedPages) % 32 == 0)
+                                    {
+                                        // Technically this callback is a data race, but it does not really matter if scan progress is not reported perfectly accurately
+                                        updateProgress((float)processedPages / (float)snapshot.RegionCount * 100.0f);
+                                    }
                                 });
-                            //// End foreach Region
+                            //// End foreach region
 
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
                             result = new Snapshot(ManualScanner.Name, resultRegions);
-                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType); // Bottleneck!
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             result.ComputeElementCount(constraints.ElementType.Size);

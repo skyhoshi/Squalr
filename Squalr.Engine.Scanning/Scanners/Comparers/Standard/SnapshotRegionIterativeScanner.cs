@@ -20,16 +20,16 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public unsafe override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public unsafe override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.Initialize(region: region, constraints: constraints);
+            this.Initialize(elementRange: elementRange, constraints: constraints);
 
-            Int32 alignedElementCount = region.GetAlignedElementCount(constraints.Alignment);
+            Int32 alignedElementCount = elementRange.GetAlignedElementCount(constraints.Alignment);
 
             for (Int32 index = 0; index < alignedElementCount; index++)
             {

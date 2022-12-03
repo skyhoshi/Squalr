@@ -38,7 +38,7 @@
             Random random = new Random();
 
             // Start overwriting any memory that changed with 0s
-            foreach (SnapshotRegion region in scanTask.Result.SnapshotRegions)
+            foreach (SnapshotElementRange region in scanTask.Result.SnapshotRegions)
             {
                 for (Int32 index = 0; index < region.GetAlignedElementCount(alignment); index++)
                 {

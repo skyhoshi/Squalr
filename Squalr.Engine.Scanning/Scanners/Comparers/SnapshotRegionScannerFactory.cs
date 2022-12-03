@@ -15,21 +15,20 @@
     internal static class SnapshotRegionScannerFactory
     {
         /// <summary>
-        /// Creates the appropriate scanner class given the current scan constraints. Different scanner implementations work best in different scenarios.
-        /// This method will automatically select the best scanner for the given workload.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public static ISnapshotRegionScanner AquireScannerInstance(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public static ISnapshotRegionScanner AquireScannerInstance(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            if (region.Range == 1)
+            if (elementRange.Range == 1)
             {
                 return snapshotRegionSingleElementScannerPool.Get();
             }
-            else if (Vectors.HasVectorSupport && region.ReadGroup.RegionSize >= Vectors.VectorSize)
+            else if (Vectors.HasVectorSupport && elementRange.ReadGroup.RegionSize >= Vectors.VectorSize)
             {
-                return SnapshotRegionScannerFactory.CreateVectorScannerInstance(region, constraints);
+                return SnapshotRegionScannerFactory.CreateVectorScannerInstance(elementRange, constraints);
             }
             else
             {
@@ -38,12 +37,12 @@
         }
 
         /// <summary>
-        /// Creates the appropriate scanner class given the current scan constraints.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public static ISnapshotRegionScanner CreateVectorScannerInstance(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public static ISnapshotRegionScanner CreateVectorScannerInstance(SnapshotElementRange region, ScanConstraints constraints)
         {
             switch (constraints?.ElementType)
             {

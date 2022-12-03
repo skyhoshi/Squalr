@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
+                return new Vector<Byte>(this.ElementRnage.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
+                return new Vector<Byte>(this.ElementRnage.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
 
@@ -49,11 +49,6 @@
         /// Iterator for array of bytes vectorized chunks.
         /// </summary>
         protected Int32 ArrayOfBytesChunkIndex { get; set; }
-
-        /// <summary>
-        /// Gets an action based on the element iterator scan constraint.
-        /// </summary>
-        private Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
         /// Gets a function which determines if this element has changed.
@@ -75,7 +70,7 @@
         /// </summary>
         private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToValue { get; set; }
 
-        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        public override void Initialize(SnapshotElementRange region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);
 
@@ -84,23 +79,23 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
             Int32 ByteArraySize = (this.DataType as ByteArrayType)?.Length ?? 0;
             Byte[] Mask = (this.DataType as ByteArrayType)?.Mask;
 
             if (ByteArraySize <= 0)
             {
-                return new List<SnapshotRegion>();
+                return new List<SnapshotElementRange>();
             }
 
             // Note that array of bytes must increment by 1 per iteration, unlike data type scans which can increment by vector size
-            for (; this.VectorReadOffset <= this.Region.Range - ByteArraySize; this.VectorReadOffset++)
+            for (; this.VectorReadOffset <= this.ElementRnage.Range - ByteArraySize; this.VectorReadOffset++)
             {
                 Vector<Byte> scanResults = this.VectorCompare();
 

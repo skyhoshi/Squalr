@@ -47,7 +47,7 @@
                             stopwatch.Start();
 
                             // Step 1) Create a snapshot of the target address
-                            Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(new ReadGroup(address, pointerSize.ToSize()), 0, pointerSize.ToSize()) });
+                            Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(address, pointerSize.ToSize()) });
 
                             // Step 2) Collect static pointers
                             Snapshot staticPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromModules);

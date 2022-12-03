@@ -41,7 +41,7 @@
                     {
                         parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                        ConcurrentBag<IList<SnapshotRegion>> regions = new ConcurrentBag<IList<SnapshotRegion>>();
+                        ConcurrentBag<IList<SnapshotElementRange>> elementRanges = new ConcurrentBag<IList<SnapshotElementRange>>();
 
                         ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
                         options.CancellationToken = parentTask.CancellationToken;
@@ -56,36 +56,38 @@
                                 // Check for canceled scan
                                 parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                                if (!region.ReadGroup.CanCompare(null))
+                                if (!region.CanCompare(null))
                                 {
                                     return;
                                 }
 
+                                throw new NotImplementedException();
+                                /*
                                 const MemoryAlignment alignment = MemoryAlignment.Alignment4;
                                 ScanConstraints constraints = new ScanConstraints(pointerSize.ToDataType(), null, alignment);
                                 SnapshotRegionVectorFastScanner vectorComparer = new SnapshotRegionVectorFastScanner();
-                                vectorComparer.Initialize(region: region, constraints: constraints);
+                                vectorComparer.Initialize(elementRange: elementRange, constraints: constraints);
 
                                 vectorComparer.SetCustomCompareAction(searchKernel.GetSearchKernel(vectorComparer));
 
                                 // SnapshotElementVectorComparer DEBUG_COMPARER = new SnapshotElementVectorComparer(region: region);
                                 // DEBUG_COMPARER.SetCustomCompareAction(DEBUG_KERNEL.GetSearchKernel(DEBUG_COMPARER));
 
-                                IList<SnapshotRegion> results = vectorComparer.ScanRegion(region: region, constraints: constraints);
+                                IList<SnapshotElementRange> results = vectorComparer.ScanRegion(elementRange: elementRange, constraints: constraints);
 
                                 // When debugging, these results should be the same as the results above
                                 // IList<SnapshotRegion> DEBUG_RESULTS = vectorComparer.Compare();
 
                                 if (!results.IsNullOrEmpty())
                                 {
-                                    regions.Add(results);
-                                }
+                                    elementRanges.Add(results);
+                                }*/
                             });
 
                         // Exit if canceled
                         parentTask.CancellationToken.ThrowIfCancellationRequested();
 
-                        snapshot = new Snapshot(PointerFilter.Name, regions.SelectMany(region => region));
+                        // snapshot = new Snapshot(PointerFilter.Name, elementRanges.SelectMany(region => region));
                     }
                     catch (OperationCanceledException ex)
                     {

@@ -13,9 +13,9 @@
     public class Snapshot : INotifyPropertyChanged
     {
         /// <summary>
-        /// The read groups of this snapshot.
+        /// The snapshot regions of this snapshot.
         /// </summary>
-        private IEnumerable<ReadGroup> readGroups;
+        private IEnumerable<SnapshotRegion> snapshotRegions;
 
         /// <summary>
         /// The snapshot memory address alignment.
@@ -53,18 +53,18 @@
         /// Gets the number of regions contained in this snapshot.
         /// </summary>
         /// <returns>The number of regions contained in this snapshot.</returns>
-        public Int32 RegionCount { get; set; }
+        public Int32 RegionCount { get; private set; }
 
         /// <summary>
         /// Gets the total number of bytes contained in this snapshot.
         /// </summary>
-        public UInt64 ByteCount { get; set; }
+        public UInt64 ByteCount { get; private set; }
 
         /// <summary>
         /// Gets the number of individual elements contained in this snapshot.
         /// </summary>
         /// <returns>The number of individual elements contained in this snapshot.</returns>
-        public UInt64 ElementCount { get; set; }
+        public UInt64 ElementCount { get; private set; }
 
         /// <summary>
         /// Gets the time since the last update was performed on this snapshot.
@@ -74,16 +74,16 @@
         /// <summary>
         /// Gets or sets the read groups of this snapshot.
         /// </summary>
-        public IEnumerable<ReadGroup> ReadGroups
+        public IEnumerable<SnapshotRegion> SnapshotRegions
         {
             get
             {
-                return this.readGroups;
+                return this.snapshotRegions;
             }
 
             set
             {
-                this.readGroups = value;
+                this.snapshotRegions = value;
             }
         }
 
@@ -100,35 +100,18 @@
             set
             {
                 this.alignment = value;
-                this.ReadGroups?.ForEach(readGroup => readGroup?.Align(this.alignment));
+                this.SnapshotRegions?.ForEach(readGroup => readGroup?.Align(this.alignment));
             }
         }
 
         /// <summary>
         /// Gets the read groups in this snapshot, ordered descending by their region size. This is much more performant for multi-threaded access.
         /// </summary>
-        public IEnumerable<ReadGroup> OptimizedReadGroups
-        {
-            get
-            {
-                return this.ReadGroups?.OrderByDescending(readGroup => readGroup.RegionSize);
-            }
-        }
-
-        /// <summary>
-        /// Gets the snapshot regions in this snapshot. These are the same regions from the read groups, except flattened as an array.
-        /// </summary>
-        public SnapshotRegion[] SnapshotRegions { get; private set; }
-
-        /// <summary>
-        /// Gets the snapshot regions in this snapshot, ordered descending by their region size. This is much more performant for multi-threaded access.
-        /// This is very similar to the greedy interval scheduling algorithm, and can result in significant scan speed gains.
-        /// </summary>
         public IEnumerable<SnapshotRegion> OptimizedSnapshotRegions
         {
             get
             {
-                return this.SnapshotRegions?.OrderByDescending(region => region.Range);
+                return this.SnapshotRegions?.OrderByDescending(readGroup => readGroup.RegionSize);
             }
         }
 
@@ -148,9 +131,11 @@
                     return null;
                 }
 
-                SnapshotElementIndexer indexer = region[(elementIndex - region.BaseElementIndex).ToInt32(), this.Alignment];
+                throw new NotImplementedException();
+                // SnapshotElementIndexer indexer = region[(elementIndex - region.SnapshotElementRanges[0].BaseElementIndex).ToInt32(), this.Alignment];
 
-                return indexer;
+                //return indexer;
+                return null;
             }
         }
 
@@ -177,8 +162,7 @@
         /// <param name="snapshotRegions">The snapshot regions to add.</param>
         public void SetSnapshotRegions(IEnumerable<SnapshotRegion> snapshotRegions)
         {
-            this.ReadGroups = snapshotRegions?.Select(x => x.ReadGroup)?.Distinct();
-            this.SnapshotRegions = snapshotRegions?.ToArray();
+            this.SnapshotRegions = snapshotRegions;
             this.TimeSinceLastUpdate = DateTime.Now;
             this.RegionCount = this.SnapshotRegions?.Count() ?? 0;
         }
@@ -193,64 +177,24 @@
 
             this.SnapshotRegions?.ForEach(region =>
             {
-                region.BaseElementIndex = this.ElementCount;
-                this.ByteCount += (region.GetByteCount(elementSize)).ToUInt64();
-                this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
+                throw new NotImplementedException();
+                // region.BaseElementIndex = this.ElementCount;
+                // this.ByteCount += (region.GetByteCount(elementSize)).ToUInt64();
+                // this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
             });
-        }
-
-        /// <summary>
-        /// Determines if an address is contained in this snapshot.
-        /// </summary>
-        /// <param name="address">The address for which we are searching.</param>
-        /// <returns>True if the address is contained.</returns>
-        public Boolean ContainsAddress(UInt64 address)
-        {
-            if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
-            {
-                return false;
-            }
-
-            return this.ContainsAddressHelper(address, this.SnapshotRegions.Length / 2, 0, this.SnapshotRegions.Length);
-        }
-
-        /// <summary>
-        /// Helper function for searching for an address in this snapshot. Binary search that assumes this snapshot has sorted regions.
-        /// </summary>
-        /// <param name="address">The address for which we are searching.</param>
-        /// <param name="middle">The middle region index.</param>
-        /// <param name="min">The lower region index.</param>
-        /// <param name="max">The upper region index.</param>
-        /// <returns>True if the address was found.</returns>
-        private Boolean ContainsAddressHelper(UInt64 address, Int32 middle, Int32 min, Int32 max)
-        {
-            if (middle < 0 || middle == this.SnapshotRegions.Length || max < min)
-            {
-                return false;
-            }
-
-            if (address < this.SnapshotRegions[middle].BaseElementAddress)
-            {
-                return this.ContainsAddressHelper(address, (min + middle - 1) / 2, min, middle - 1);
-            }
-            else if (address > this.SnapshotRegions[middle].EndElementAddress)
-            {
-                return this.ContainsAddressHelper(address, (middle + 1 + max) / 2, middle + 1, max);
-            }
-            else
-            {
-                return true;
-            }
         }
 
         private SnapshotRegion BinaryRegionSearch(UInt64 elementIndex, Int32 elementSize)
         {
+            return null;
+            /*
             if (this.SnapshotRegions == null || this.SnapshotRegions.Length == 0)
             {
                 return null;
             }
 
             return this.BinaryRegionSearchHelper(elementIndex, this.SnapshotRegions.Length / 2, 0, this.SnapshotRegions.Length, elementSize);
+            */
         }
 
         /// <summary>
@@ -263,16 +207,17 @@
         /// <returns>True if the address was found.</returns>
         private SnapshotRegion BinaryRegionSearchHelper(UInt64 elementIndex, Int32 middle, Int32 min, Int32 max, Int32 elementSize)
         {
+            /*
             if (middle < 0 || middle == this.SnapshotRegions.Length || max < min)
             {
                 return null;
             }
 
-            if (elementIndex < this.SnapshotRegions[middle].BaseElementIndex)
+            if (elementIndex < this.SnapshotRegions[middle].SnapshotElementRanges[0].BaseElementAddress)
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (min + middle - 1) / 2, min, middle - 1, elementSize);
             }
-            else if (elementIndex >= this.SnapshotRegions[middle].BaseElementIndex + this.SnapshotRegions[middle].GetAlignedElementCount(this.Alignment).ToUInt64())
+            else if (elementIndex >= this.SnapshotRegions[middle].SnapshotElementRanges[0].BaseElementIndex + this.SnapshotRegions[middle].SnapshotElementRanges[0].GetAlignedElementCount(this.Alignment).ToUInt64())
             {
                 return this.BinaryRegionSearchHelper(elementIndex, (middle + 1 + max) / 2, middle + 1, max, elementSize);
             }
@@ -280,6 +225,9 @@
             {
                 return this.SnapshotRegions[middle];
             }
+            */
+
+            return null;
         }
     }
     //// End class

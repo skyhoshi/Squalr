@@ -23,14 +23,14 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.Initialize(region : region, constraints: constraints);
+            this.Initialize(elementRange: elementRange, constraints: constraints);
 
             // This algorithm has three stages:
             // 1) Scan the first vector of memory, which may contain elements we do not care about. ie <x, x, x, x ... y, y, y, y>,
@@ -41,7 +41,7 @@
             //      This works exactly like the first scan, but reversed. ie <y, y, y, y, ... x, x, x, x>, where x values are masked to be false.
             //      Note: This mask may also be applied to the first scan, if it is also the last scan (ie only 1 scan total for this region).
 
-            Int32 scanCount = this.Region.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
+            Int32 scanCount = this.ElementRnage.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
             Vector<Byte> scanResults;
@@ -54,7 +54,7 @@
             }
 
             // Perform middle scans
-            for (; this.VectorReadOffset < this.Region.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
+            for (; this.VectorReadOffset < this.ElementRnage.Range - Vectors.VectorSize; this.VectorReadOffset += Vectors.VectorSize)
             {
                 scanResults = this.VectorCompare();
                 this.EncodeScanResults(ref scanResults);

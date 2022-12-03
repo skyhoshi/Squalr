@@ -2,7 +2,6 @@
 {
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Hardware;
-    using Squalr.Engine.Scanning.Scanners.Comparers;
     using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
@@ -17,7 +16,8 @@
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
 
-            this.L = 1 + this.Log2(2 + this.BoundsSnapshot.SnapshotRegions.Length + 1); // Final +1 due to inversion
+            throw new NotImplementedException();
+            // this.L = 1 + this.Log2(2 + this.BoundsSnapshot.SnapshotRegions.Length + 1); // Final +1 due to inversion
             this.M = new Vector<UInt32>(unchecked((UInt32)(~(2 * this.L))));
 
             this.Length = 2 << (this.L + 2) - 1;
@@ -92,7 +92,7 @@
         {
             BinaryHeap<UInt32> lowerBoundsHeap = new BinaryHeap<UInt32>();
 
-            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndElementAddress.Subtract(this.MaxOffset, wrapAround: false))).Prepend(UInt32.MinValue))
+            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndAddress.Subtract(this.MaxOffset, wrapAround: false))).Prepend(UInt32.MinValue))
             {
                 lowerBoundsHeap.Insert(next);
             }
@@ -110,7 +110,7 @@
         {
             BinaryHeap<UInt32> upperBoundsHeap = new BinaryHeap<UInt32>();
 
-            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseElementAddress.Add(this.MaxOffset, wrapAround: false))).Append(UInt32.MaxValue))
+            foreach (UInt32 next in this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseAddress.Add(this.MaxOffset, wrapAround: false))).Append(UInt32.MaxValue))
             {
                 upperBoundsHeap.Insert(next);
             }
