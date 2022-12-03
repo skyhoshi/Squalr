@@ -62,7 +62,7 @@
                             options.CancellationToken = cancellationToken;
 
                             Parallel.ForEach(
-                                snapshot.OptimizedSnapshotRegions,
+                                snapshot.SnapshotRegions,
                                 options,
                                 (region) =>
                                 {
@@ -76,20 +76,26 @@
 
                                     region.Align(alignment);
 
-                                    ScanElementRangeBag discoveredElements = new ScanElementRangeBag();
+                                    ConcurrentScanElementRangeBag discoveredElements = new ConcurrentScanElementRangeBag();
 
-                                    foreach (SnapshotElementRange elementRange in region)
-                                    {
-                                        using (ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.AquireScannerInstance(elementRange: elementRange, constraints: constraints))
+                                    // For most workloads, the nested parallel for loop will be ever-so-slightly slower than a regular loop, however this is worth it because
+                                    // there are some cases where this saves a significant amount of time, as there may be a small number of snapshot regions with a substantial number of elements.
+                                    // This extra parallel loop helps divide that work up among otherwise idle threads.
+                                    Parallel.ForEach(
+                                        region,
+                                        options,
+                                        (elementRange) =>
                                         {
-                                            IList<SnapshotElementRange> results = scanner.ScanRegion(elementRange: elementRange, constraints: constraints);
-
-                                            if (!results.IsNullOrEmpty())
+                                            using (ISnapshotRegionScanner scanner = SnapshotRegionScannerFactory.AquireScannerInstance(elementRange: elementRange, constraints: constraints))
                                             {
-                                                discoveredElements.Add(results);
+                                                IList<SnapshotElementRange> results = scanner.ScanRegion(elementRange: elementRange, constraints: constraints);
+
+                                                if (!results.IsNullOrEmpty())
+                                                {
+                                                    discoveredElements.Add(results);
+                                                }
                                             }
-                                        }
-                                    }
+                                        });
 
                                     region.SnapshotElementRanges = discoveredElements;
 
@@ -105,7 +111,7 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+                            snapshot.Alignment = alignment;
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
                             snapshot.ComputeElementCount(constraints.ElementType.Size);

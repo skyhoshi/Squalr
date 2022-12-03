@@ -139,23 +139,6 @@
         }
 
         /// <summary>
-        /// Aligns this snapshot to the provided alignment. If the provided alignment is Auto, the alignment will be set based on the provided data type.
-        /// </summary>
-        /// <param name="alignment">The alignment to set.</param>
-        /// <param name="dataType">The datatype to align to if the alignment is set to Auto.</param>
-        public void AlignAndResolveAuto(MemoryAlignment alignment, ScannableType dataType)
-        {
-            if (dataType is ByteArrayType)
-            {
-                this.Alignment = MemoryAlignment.Alignment1;
-            }
-            else
-            {
-                this.Alignment = alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataType.Size : alignment;
-            }
-        }
-
-        /// <summary>
         /// Adds snapshot regions to the regions contained in this snapshot.
         /// </summary>
         /// <param name="snapshotRegions">The snapshot regions to add.</param>

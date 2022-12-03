@@ -1,9 +1,10 @@
 ﻿namespace Squalr.Engine.Scanning
 {
     using Squalr.Engine.Scanning.Snapshots;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
 
-    public class ScanElementRangeBag : List<IList<SnapshotElementRange>>, IEnumerable<SnapshotElementRange>
+    public class ConcurrentScanElementRangeBag : ConcurrentBag<IList<SnapshotElementRange>>, IEnumerable<SnapshotElementRange>
     {
         IEnumerator<SnapshotElementRange> IEnumerable<SnapshotElementRange>.GetEnumerator()
         {
