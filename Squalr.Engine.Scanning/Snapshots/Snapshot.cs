@@ -100,7 +100,6 @@
             set
             {
                 this.alignment = value;
-                this.SnapshotRegions?.ForEach(readGroup => readGroup?.Align(this.alignment));
             }
         }
 
@@ -175,12 +174,11 @@
             this.ByteCount = 0;
             this.ElementCount = 0;
 
-            this.SnapshotRegions?.ForEach(region =>
+            this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
             {
-                throw new NotImplementedException();
-                // region.BaseElementIndex = this.ElementCount;
-                // this.ByteCount += (region.GetByteCount(elementSize)).ToUInt64();
-                // this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
+                region.BaseElementIndex = this.ElementCount;
+                this.ByteCount += (region.GetElementByteCount(elementSize)).ToUInt64();
+                this.ElementCount += region.GetAlignedElementCount(this.Alignment).ToUInt64();
             });
         }
 

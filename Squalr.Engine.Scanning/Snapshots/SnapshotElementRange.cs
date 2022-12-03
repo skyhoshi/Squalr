@@ -48,19 +48,6 @@
         public Int32 Range { get; private set; }
 
         /// <summary>
-        /// Gets the size of this range in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
-        /// Also, this takes into account how much space is available for reading from the underlying read group.
-        /// </summary>
-        public Int32 GetByteCount(Int32 dataTypeSize)
-        {
-            Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);
-            Int32 availableSpillOverBytes = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
-            Int32 usedSpillOverBytes = Math.Min(desiredSpillOverBytes, availableSpillOverBytes);
-
-            return this.Range + usedSpillOverBytes;
-        }
-
-        /// <summary>
         /// Gets the address of the first element contained in this snapshot region.
         /// </summary>
         public UInt64 BaseElementAddress
@@ -86,6 +73,21 @@
         /// Gets or sets the base index of this snapshot. In other words, the scan results index of the first element of this region.
         /// </summary>
         public UInt64 BaseElementIndex { get; set; }
+
+        /// <summary>
+        /// Gets the size of this range in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
+        /// Also, this takes into account how much space is available for reading from the snapshot region containing this element range.
+        /// </summary>
+        /// <param name="dataTypeSize">The data type size of the elements contained.</param>
+        /// <returns></returns>
+        public Int32 GetByteCount(Int32 dataTypeSize)
+        {
+            Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);
+            Int32 availableSpillOverBytes = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
+            Int32 usedSpillOverBytes = Math.Min(desiredSpillOverBytes, availableSpillOverBytes);
+
+            return this.Range + usedSpillOverBytes;
+        }
 
         /// <summary>
         /// Gets the number of elements contained in this snapshot.

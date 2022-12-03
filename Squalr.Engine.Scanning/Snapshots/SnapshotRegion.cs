@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -22,6 +23,11 @@
         /// <param name="regionSize">The size of this memory region.</param>
         public SnapshotRegion(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
         {
+            // Create one large snapshot element range spanning the entire region by default
+            this.SnapshotElementRanges = new List<SnapshotElementRange>()
+            {
+                new SnapshotElementRange(this)
+            };
         }
 
         /// <summary>
@@ -29,7 +35,7 @@
         /// </summary>
         /// <param name="baseAddress">The base address of this memory region.</param>
         /// <param name="regionSize">The size of this memory region.</param>
-        public SnapshotRegion(UInt64 baseAddress, Byte[] initialBytes) : base(baseAddress, initialBytes.Length)
+        public SnapshotRegion(UInt64 baseAddress, Byte[] initialBytes) : this(baseAddress, initialBytes.Length)
         {
             this.CurrentValues = initialBytes;
         }
@@ -45,9 +51,14 @@
         public unsafe Byte[] PreviousValues { get; private set; }
 
         /// <summary>
-        /// Gets the snapshot element ranges in this snapshot. These are elements discovered by scans.
+        /// Get or set the snapshot element ranges in this snapshot. These are elements discovered by scans.
         /// </summary>
-        public SnapshotElementRange[] SnapshotElementRanges { get; private set; }
+        public IEnumerable<SnapshotElementRange> SnapshotElementRanges { get; set; }
+
+        /// <summary>
+        /// Gets or sets the element index for this snapshot regions in the scan results.
+        /// </summary>
+        public UInt64 BaseElementIndex { get; set; }
 
         /// <summary>
         /// Reads all memory for this memory region.
@@ -65,6 +76,45 @@
             }
 
             return readSuccess;
+        }
+
+        /// <summary>
+        /// Gets the size in bytes of all elements contained in this snapshot region, based on the provided element data type size.
+        /// </summary>
+        /// <param name="dataTypeSize">The data type size of the elements contained by element ranges in this function.</param>
+        /// <returns></returns>
+        public Int32 GetElementByteCount(Int32 dataTypeSize)
+        {
+            Int32 byteCount = 0;
+
+            if (this.SnapshotElementRanges != null)
+            {
+                foreach (SnapshotElementRange elementRange in this.SnapshotElementRanges)
+                {
+                    byteCount += elementRange.GetByteCount(dataTypeSize);
+                }
+            }
+
+            return byteCount;
+        }
+
+        /// <summary>
+        /// Gets the number of elements contained in this snapshot region.
+        /// <param name="alignment">The memory address alignment of each element.</param>
+        /// </summary>
+        public Int32 GetAlignedElementCount(MemoryAlignment alignment)
+        {
+            Int32 elementCount = 0;
+
+            if (this.SnapshotElementRanges != null)
+            {
+                foreach (SnapshotElementRange elementRange in this.SnapshotElementRanges)
+                {
+                    elementCount += elementRange.GetAlignedElementCount(alignment);
+                }
+            }
+
+            return elementCount;
         }
 
         /// <summary>

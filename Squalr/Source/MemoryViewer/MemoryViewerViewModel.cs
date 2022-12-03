@@ -97,8 +97,8 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update()
         {
-            this.RebuildSnapshot();
-            this.ReadMemoryViewerData();
+            // this.RebuildSnapshot();
+            // this.ReadMemoryViewerData();
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Projects.Items;
     using Squalr.Engine.Scanning.Snapshots;
@@ -400,6 +401,12 @@
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
                     SnapshotElementIndexer element = snapshot[index, this.ActiveType.Size];
+
+                    if (element == null)
+                    {
+                        Logger.Log(LogLevel.Error, "Encountered null element. Aborting loading scan results. This is a bug and should be reported.");
+                        break;
+                    }
 
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;

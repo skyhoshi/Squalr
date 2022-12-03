@@ -38,9 +38,9 @@
                     .Create(ManualScanner.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
                     .With(Task<Snapshot>.Run(() =>
                     {
-                        Snapshot result = null;
-
-                        snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
+                        MemoryAlignment alignment = constraints.Alignment == MemoryAlignment.Auto
+                            ? (MemoryAlignment)constraints.ElementType.Size
+                            : constraints.Alignment;
 
                         try
                         {
@@ -74,7 +74,9 @@
                                         return;
                                     }
 
-                                    IList<IList<SnapshotElementRange>> discoveredElements = new List<IList<SnapshotElementRange>>();
+                                    region.Align(alignment);
+
+                                    ScanElementRangeBag discoveredElements = new ScanElementRangeBag();
 
                                     foreach (SnapshotElementRange elementRange in region)
                                     {
@@ -89,6 +91,8 @@
                                         }
                                     }
 
+                                    region.SnapshotElementRanges = discoveredElements;
+
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedPages) % 32 == 0)
                                     {
@@ -101,12 +105,11 @@
                             // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            result = new Snapshot(ManualScanner.Name, resultRegions);
-                            result.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType); // Bottleneck!
+                            snapshot.AlignAndResolveAuto(constraints.Alignment, constraints.ElementType);
                             stopwatch.Stop();
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);
-                            result.ComputeElementCount(constraints.ElementType.Size);
-                            Logger.Log(LogLevel.Info, "Results: " + result.ElementCount + " (" + Conversions.ValueToMetricSize(result.ByteCount) + ")");
+                            snapshot.ComputeElementCount(constraints.ElementType.Size);
+                            Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
                         }
                         catch (OperationCanceledException ex)
                         {
@@ -117,7 +120,7 @@
                             Logger.Log(LogLevel.Error, "Error performing scan", ex);
                         }
 
-                        return result;
+                        return snapshot;
                     }, cancellationToken));
             }
             catch (TaskConflictException ex)

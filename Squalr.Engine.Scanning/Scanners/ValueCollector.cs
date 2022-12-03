@@ -47,13 +47,13 @@
                             Parallel.ForEach(
                                 snapshot.OptimizedSnapshotRegions,
                                 options,
-                                (readGroup) =>
+                                (snapshotRegion) =>
                                 {
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
                                     // Read the memory for this region
-                                    readGroup.ReadAllMemory(process);
+                                    snapshotRegion.ReadAllMemory(process);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedRegions) % 32 == 0)
@@ -74,7 +74,7 @@
                                 Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
                             }
 
-                                return snapshot;
+                            return snapshot;
                         }
                         catch (OperationCanceledException ex)
                         {
