@@ -9,6 +9,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static Squalr.Engine.Common.TrackableTask;
@@ -34,6 +35,9 @@
         {
             try
             {
+                // TODO: This has been updated to scan in-place (ie edit the snapshot that has been provided). It may be worth adding an option
+                // to create a new snapshot.
+
                 return TrackableTask<Snapshot>
                     .Create(ManualScanner.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
                     .With(Task<Snapshot>.Run(() =>
@@ -110,7 +114,11 @@
                             //// End foreach region
 
                             cancellationToken.ThrowIfCancellationRequested();
+
+                            snapshot.SetSnapshotRegions(snapshot.SnapshotRegions?.Where(region => region.TotalElementCount > 0));
                             snapshot.ComputeElementAndByteCounts(alignment);
+                            snapshot.SnapshotName = "Manual Scan";
+
                             stopwatch.Stop();
 
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);

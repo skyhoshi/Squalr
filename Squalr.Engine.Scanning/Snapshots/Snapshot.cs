@@ -18,11 +18,6 @@
         /// </summary>
         private IEnumerable<SnapshotRegion> snapshotRegions;
 
-        /// <summary>
-        /// The snapshot memory address alignment.
-        /// </summary>
-        private MemoryAlignment alignment = MemoryAlignment.Alignment1;
-
         // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -46,9 +41,9 @@
         }
 
         /// <summary>
-        /// Gets the name associated with the method by which this snapshot was generated.
+        /// Gets or sets the name associated with this snapshot. Usually this is the method by which this snapshot was generated.
         /// </summary>
-        public String SnapshotName { get; private set; }
+        public String SnapshotName { get; set; }
 
         /// <summary>
         /// Gets the number of regions contained in this snapshot.
@@ -72,10 +67,13 @@
         /// </summary>
         public DateTime TimeSinceLastUpdate { get; private set; }
 
+        /// <summary>
+        /// Gets the alignment of the elements within this snapshot.
+        /// </summary>
         public MemoryAlignment Alignment { get; private set; }
 
         /// <summary>
-        /// Gets or sets the read groups of this snapshot.
+        /// Gets or sets the snapshot regions contained by this snapshot.
         /// </summary>
         public IEnumerable<SnapshotRegion> SnapshotRegions
         {
