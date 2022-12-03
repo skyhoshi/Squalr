@@ -96,7 +96,7 @@
                     return null;
                 }
 
-                Int32 elementRangeIndex = (elementIndex - elementRange.BaseElementIndex).ToInt32();
+                Int32 elementRangeIndex = localElementIndex - elementRange.SnapshotRegionRelativeIndex;
 
                 SnapshotElementIndexer indexer = new SnapshotElementIndexer(elementRange, alignment, elementRangeIndex);
 
@@ -208,6 +208,7 @@
                 {
                     Int32 elementCount = elementRange.GetAlignedElementCount(alignment);
 
+                    elementRange.SnapshotRegionRelativeIndex = currentElementCount;
                     this.SnapshotElementRangeIndexLookupTable.Add(currentElementCount, currentElementCount + elementCount - 1, elementRange);
                     currentElementCount += elementCount;
                 }

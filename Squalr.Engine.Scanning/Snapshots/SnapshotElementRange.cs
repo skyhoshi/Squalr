@@ -70,9 +70,9 @@
         }
 
         /// <summary>
-        /// Gets or sets the base index of this snapshot. In other words, the scan results index of the first element of this region.
+        /// Gets or sets the base index of this snapshot element, relative to the parent snapshot region base index. Used for indexing scan results.
         /// </summary>
-        public UInt64 BaseElementIndex { get; set; }
+        public Int32 SnapshotRegionRelativeIndex { get; set; }
 
         /// <summary>
         /// Gets the size of this range in bytes. This requires knowing what data type is being tracked, since data types larger than 1 byte will overflow out of this region.
