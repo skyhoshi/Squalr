@@ -28,7 +28,7 @@
         /// <summary>
         /// The number of elements to display on each page.
         /// </summary>
-        private const Int32 PageSize = 64;
+        private const Int32 PageSize = 128;
 
         /// <summary>
         /// Singleton instance of the <see cref="ScanResultsViewModel" /> class.
@@ -269,7 +269,7 @@
         }
 
         /// <summary>
-        /// Gets the total number of addresses found.
+        /// Gets the total number of pages of scan results found.
         /// </summary>
         public UInt64 PageCount
         {
