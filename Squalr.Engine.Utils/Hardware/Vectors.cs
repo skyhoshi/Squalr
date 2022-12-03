@@ -14,6 +14,9 @@
 
         static Vectors()
         {
+            Vectors.HasVectorSupport = Vector.IsHardwareAccelerated;
+            Vectors.VectorSize = Vector<Byte>.Count;
+
             Span<Byte> quarterZeros = stackalloc Byte[Vectors.VectorSize];
             Span<Byte> halfZeros = stackalloc Byte[Vectors.VectorSize];
             Span<Byte> threeFourthsZeros = stackalloc Byte[Vectors.VectorSize];
@@ -41,25 +44,13 @@
         /// <summary>
         /// Gets a value indicating if the archiecture has vector instruction support.
         /// </summary>
-        public static Boolean HasVectorSupport
-        {
-            get
-            {
-                return Vector.IsHardwareAccelerated;
-            }
-        }
+        public static Boolean HasVectorSupport { get; private set; }
 
         /// <summary>
         /// Gets the vector size supported by the current architecture.
         /// If vectors are not supported, returns the lowest common denominator vector size for the architecture.
         /// </summary>
-        public static Int32 VectorSize
-        {
-            get
-            {
-                return Vector<Byte>.Count;
-            }
-        }
+        public static Int32 VectorSize { get; private set; }
 
         /// <summary>
         /// A vector with all bits set to 1. TODO: If C# ever adds support for extension properties, this would be great to offload onto all Vector<T> types.

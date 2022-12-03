@@ -127,11 +127,12 @@
             Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - (Int32)this.Alignment * scanCountPerVector);
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
+            Vector<Byte>[] staggeredMasks = SnapshotRegionVectorStaggeredScanner.StaggeredMaskMap[this.DataTypeSize][this.Alignment];
             Vector<Byte> scanResults;
 
             // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
             {
-                scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.StaggeredVectorScan()), scanCount == 1 ? overreadMask : Vectors.AllBits);
+                scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.StaggeredVectorScan(ref staggeredMasks)), scanCount == 1 ? overreadMask : Vectors.AllBits);
                 this.EncodeScanResults(ref scanResults);
                 this.VectorReadOffset += offsetVectorIncrementSize;
             }
@@ -139,14 +140,14 @@
             // Perform middle scans
             for (; this.VectorReadOffset < this.ElementRnage.Range - Vectors.VectorSize; this.VectorReadOffset += offsetVectorIncrementSize)
             {
-                scanResults = this.StaggeredVectorScan();
+                scanResults = this.StaggeredVectorScan(ref staggeredMasks);
                 this.EncodeScanResults(ref scanResults);
             }
 
             // Perform final scan, applying the overread mask if applicable.
             if (scanCount > 1)
             {
-                scanResults = Vector.BitwiseAnd(overreadMask, this.StaggeredVectorScan());
+                scanResults = Vector.BitwiseAnd(overreadMask, this.StaggeredVectorScan(ref staggeredMasks));
                 this.EncodeScanResults(ref scanResults);
                 this.VectorReadOffset += offsetVectorIncrementSize;
             }
@@ -161,10 +162,9 @@
         /// </summary>
         /// <returns>The staggered scan results vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        Vector<Byte> StaggeredVectorScan()
+        Vector<Byte> StaggeredVectorScan(ref Vector<Byte>[] staggeredMasks)
         {
             Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
-            Vector<Byte>[] staggeredMasks = SnapshotRegionVectorStaggeredScanner.StaggeredMaskMap[this.DataTypeSize][this.Alignment];
             Vector<Byte> scanResults = Vector<Byte>.Zero;
 
             for (Int32 alignmentOffset = 0; alignmentOffset < scanCountPerVector; alignmentOffset++)
