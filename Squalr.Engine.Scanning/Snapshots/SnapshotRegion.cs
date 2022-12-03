@@ -1,6 +1,8 @@
 ﻿namespace Squalr.Engine.Scanning.Snapshots
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.DataStructures;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -8,6 +10,7 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Drawing;
     using System.Linq;
 
     /// <summary>
@@ -24,10 +27,8 @@
         public SnapshotRegion(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
         {
             // Create one large snapshot element range spanning the entire region by default
-            this.SnapshotElementRanges = new List<SnapshotElementRange>()
-            {
-                new SnapshotElementRange(this)
-            };
+            this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
+            this.SnapshotElementRangeIndexLookupTable = new IntervalTree<UInt64, SnapshotElementRange>();
         }
 
         /// <summary>
@@ -71,6 +72,35 @@
         public Int32 AlignedElementCount { get; private set; }
 
         /// <summary>
+        /// Gets or sets a lookup table used for querying scan results quickly.
+        /// </summary>
+        private IntervalTree<UInt64, SnapshotElementRange> SnapshotElementRangeIndexLookupTable { get; set; }
+
+        /// <summary>
+        /// Indexer to allow the retrieval of the element at the specified index. This does NOT index into a region.
+        /// </summary>
+        /// <param name="elementIndex">The index of the snapshot element.</param>
+        /// <returns>Returns the snapshot element at the specified index.</returns>
+        public SnapshotElementIndexer this[UInt64 elementIndex, MemoryAlignment alignment]
+        {
+            get
+            {
+                SnapshotElementRange elementRange = this.SnapshotElementRangeIndexLookupTable.QueryOne(elementIndex);
+
+                if (elementRange == null)
+                {
+                    return null;
+                }
+
+                Int32 elementRangeIndex = (elementIndex - elementRange.BaseElementIndex).ToInt32();
+
+                SnapshotElementIndexer indexer = new SnapshotElementIndexer(elementRange, MemoryAlignment.Alignment1, elementRangeIndex);
+
+                return indexer;
+            }
+        }
+
+        /// <summary>
         /// Reads all memory for this memory region.
         /// </summary>
         /// <returns>The bytes read from memory.</returns>
@@ -96,6 +126,7 @@
         {
             this.ElementByteCount = 0;
             this.AlignedElementCount = 0;
+            this.SnapshotElementRangeIndexLookupTable.Clear();
 
             if (this.SnapshotElementRanges != null)
             {
@@ -103,6 +134,7 @@
                 {
                     this.ElementByteCount += elementRange.GetByteCount(dataTypeSize);
                     this.AlignedElementCount += elementRange.GetAlignedElementCount(alignment);
+                    this.SnapshotElementRangeIndexLookupTable.Add(this.BaseElementIndex, this.BaseElementIndex + (UInt64)this.AlignedElementCount, elementRange);
                 }
             }
         }

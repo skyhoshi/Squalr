@@ -110,7 +110,7 @@
                             //// End foreach region
 
                             cancellationToken.ThrowIfCancellationRequested();
-                            snapshot.ComputeElementAndByteCounts();
+                            snapshot.ComputeElementAndByteCounts(alignment);
                             stopwatch.Stop();
 
                             Logger.Log(LogLevel.Info, "Scan complete in: " + stopwatch.Elapsed);

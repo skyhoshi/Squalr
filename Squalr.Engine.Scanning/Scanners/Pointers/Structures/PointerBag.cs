@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Scanning.Snapshots;
@@ -117,7 +118,7 @@
         private ExtractedPointer ExtractRandomPointer(Snapshot snapshot)
         {
             UInt64 elementIndex = PointerBag.RandInstance.RandomUInt64(0, snapshot.ElementCount);
-            SnapshotElementIndexer extractedElement = snapshot[elementIndex, PointerSize.ToSize()];
+            SnapshotElementIndexer extractedElement = snapshot[elementIndex, MemoryAlignment.Alignment4];
 
             return this.ExtractPointerFromElement(extractedElement);
         }

@@ -49,7 +49,7 @@
                         // ISearchKernel DEBUG_KERNEL = new SpanSearchKernel(DEBUG, RADIUS_DEBUG);
 
                         Parallel.ForEach(
-                            snapshot.OptimizedSnapshotRegions,
+                            snapshot.ReadOptimizedSnapshotRegions,
                             options,
                             (region) =>
                             {

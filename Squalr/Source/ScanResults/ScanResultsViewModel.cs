@@ -346,7 +346,7 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update(Snapshot snapshot)
         {
-            snapshot?.ComputeElementAndByteCounts();
+            snapshot?.ComputeElementAndByteCounts(snapshot.Alignment);
             this.ResultCount = snapshot == null ? 0 : snapshot.ElementCount;
             this.ByteCount = snapshot == null ? 0 : snapshot.ByteCount;
             this.CurrentPage = 0;
@@ -400,7 +400,7 @@
 
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
-                    SnapshotElementIndexer element = snapshot[index, this.ActiveType.Size];
+                    SnapshotElementIndexer element = snapshot[index, snapshot.Alignment];
 
                     if (element == null)
                     {

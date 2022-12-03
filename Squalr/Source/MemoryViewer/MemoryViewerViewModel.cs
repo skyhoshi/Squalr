@@ -138,7 +138,7 @@
             }
             else
             {
-                SnapshotElementIndexer indexer = this.snapshot[0, size];
+                SnapshotElementIndexer indexer = this.snapshot[0, MemoryAlignment.Alignment1];
 
                 if (indexer.HasCurrentValue())
                 {

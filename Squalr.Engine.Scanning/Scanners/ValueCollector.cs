@@ -46,7 +46,7 @@
 
                             // Read memory to get current values for each region
                             Parallel.ForEach(
-                                snapshot.OptimizedSnapshotRegions,
+                                snapshot.ReadOptimizedSnapshotRegions,
                                 options,
                                 (snapshotRegion) =>
                                 {
@@ -66,7 +66,7 @@
                                 });
 
                             cancellationToken.ThrowIfCancellationRequested();
-                            snapshot.ComputeElementAndByteCounts();
+                            snapshot.ComputeElementAndByteCounts(MemoryAlignment.Alignment1);
                             stopwatch.Stop();
 
                             if (withLogging)
