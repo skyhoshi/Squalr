@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Source.Debugger
 {
     using GalaSoft.MvvmLight.Command;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Debuggers;
     using Squalr.Engine.Projects.Items;
@@ -189,12 +190,10 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
-                throw new NotImplementedException();
-                /*
-                BreakpointSize size = Debugger.Instance.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
-                this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatWrites(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
+                Debugger.GetInstance().SetTargetProcess(SessionManager.Session.OpenedProcess);
+                BreakpointSize size = Debugger.GetInstance().SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
+                this.DebuggerCancellationTokenSource = Debugger.GetInstance().FindWhatWrites(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
-                */
             }
         }
 
@@ -210,12 +209,10 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
-                throw new NotImplementedException();
-                /*
-                BreakpointSize size = Debugger.Default.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
-                this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatReads(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
+                Debugger.GetInstance().SetTargetProcess(SessionManager.Session.OpenedProcess);
+                BreakpointSize size = Debugger.GetInstance().SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
+                this.DebuggerCancellationTokenSource = Debugger.GetInstance().FindWhatReads(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
-                */
             }
         }
 
@@ -230,12 +227,10 @@
 
                 AddressItem addressItem = projectItem as AddressItem;
 
-                throw new NotImplementedException();
-                /*
-                BreakpointSize size = Debugger.Default.SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
-                this.DebuggerCancellationTokenSource = Debugger.Default.FindWhatAccesses(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
+                Debugger.GetInstance().SetTargetProcess(SessionManager.Session.OpenedProcess);
+                BreakpointSize size = Debugger.GetInstance().SizeToBreakpointSize((UInt32)Conversions.SizeOf(addressItem.DataType));
+                this.DebuggerCancellationTokenSource = Debugger.GetInstance().FindWhatAccesses(addressItem.CalculatedAddress, size, this.CodeTraceEvent);
                 this.ShowExecute();
-                */
             }
         }
 

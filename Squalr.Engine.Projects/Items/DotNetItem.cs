@@ -1,6 +1,6 @@
 ﻿namespace Squalr.Engine.Projects.Items
 {
-    using Squalr.Engine.Memory;
+    using Squalr.Engine.Memory.Clr;
     using Squalr.Engine.Processes;
     using System;
     using System.Runtime.Serialization;
