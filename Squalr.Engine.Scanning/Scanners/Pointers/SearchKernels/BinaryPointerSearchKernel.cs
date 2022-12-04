@@ -17,8 +17,7 @@
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
 
-            throw new NotImplementedException();
-            // this.PowerOf2Padding = this.Log2((UInt32)this.BoundsSnapshot.SnapshotRegions.Length) << 1;
+            this.PowerOf2Padding = this.Log2((UInt32)this.BoundsSnapshot.SnapshotRegions.Count()) << 1;
 
             this.LowerBounds = this.GetLowerBounds();
             this.UpperBounds = this.GetUpperBounds();

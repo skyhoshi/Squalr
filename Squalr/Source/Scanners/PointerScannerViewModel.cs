@@ -219,7 +219,7 @@
                     this.TargetAddress,
                     (UInt32)this.PointerRadius,
                     this.PointerDepth,
-                    pointerSize.ToAlignment(),
+                    MemoryAlignment.Alignment4,
                     pointerSize,
                     PointerScannerViewModel.PointerScanTaskIdentifier
                 );

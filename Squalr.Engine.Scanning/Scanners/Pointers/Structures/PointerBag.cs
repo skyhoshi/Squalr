@@ -85,24 +85,26 @@
                 // Brute force all possible offsets in a random order to find the next path (this guarantees uniform path probabilities)
                 foreach (Int32 nextRandomOffset in shuffledOffsets)
                 {
-                    throw new NotImplementedException();
-                    /*
                     UInt64 newDestination = nextRandomOffset < 0 ? pointer.Destination.Subtract(-nextRandomOffset, wrapAround: false) : pointer.Destination.Add(nextRandomOffset, wrapAround: false);
-                    SnapshotElementRange snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseElementAddress && newDestination <= y.EndElementAddress).FirstOrDefault();
+                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Where(y => newDestination >= y.BaseAddress && newDestination <= y.EndAddress).FirstOrDefault();
 
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        Int32 elementCount = snapshotRegion.GetAlignedElementCount(currentSnapshot.Alignment);
-                        SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount), currentSnapshot.Alignment];
-                        UInt64 baseAddress = randomElement.GetBaseAddress();
-                        Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
+                        Int32 elementCount = snapshotRegion.TotalElementCount;
+                        SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount).ToUInt64(), currentSnapshot.Alignment];
 
-                        pointer = this.ExtractPointerFromElement(randomElement);
-                        offsets.Add(alignedOffset);
-                        found = true;
-                        break;
-                    }*/
+                        if (randomElement != null)
+                        {
+                            UInt64 baseAddress = randomElement.GetBaseAddress();
+                            Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
+
+                            pointer = this.ExtractPointerFromElement(randomElement);
+                            offsets.Add(alignedOffset);
+                            found = true;
+                            break;
+                        }
+                    }
                 }
 
                 if (!found)
@@ -119,6 +121,12 @@
         {
             UInt64 elementIndex = PointerBag.RandInstance.RandomUInt64(0, snapshot.ElementCount);
             SnapshotElementIndexer extractedElement = snapshot[elementIndex, MemoryAlignment.Alignment4];
+
+            if (extractedElement == null)
+            {
+                Logger.Log(LogLevel.Error, "Unknown error encountered when extracting a pointer.");
+                return new ExtractedPointer(0, 0);
+            }
 
             return this.ExtractPointerFromElement(extractedElement);
         }

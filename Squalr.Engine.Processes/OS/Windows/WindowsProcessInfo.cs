@@ -73,12 +73,6 @@
                 return true;
             }
 
-            if (process.SessionId == 0 || process.BasePriority == 13)
-            {
-                WindowsProcessInfo.SystemProcessCache.Add(process.Id);
-                return true;
-            }
-
             try
             {
                 if (process.PriorityBoostEnabled)
@@ -167,7 +161,7 @@
         /// <returns>An Icon associated with the given process. Returns null if there is no icon.</returns>
         public Icon GetIcon(Process process)
         {
-            Icon icon = null;
+            Icon icon;
 
             if (process == DetachProcess.Instance || WindowsProcessInfo.NoIconProcessCache.Contains(process.Id))
             {

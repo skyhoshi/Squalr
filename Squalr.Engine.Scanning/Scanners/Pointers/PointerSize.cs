@@ -5,19 +5,6 @@
 
     public static class PointerSizeExtensions
     {
-        public static MemoryAlignment ToAlignment(this PointerSize pointerSize)
-        {
-            switch (pointerSize)
-            {
-                case PointerSize.Byte4:
-                    return MemoryAlignment.Alignment4;
-                case PointerSize.Byte8:
-                    return MemoryAlignment.Alignment8;
-                default:
-                    throw new ArgumentException("Unknown pointer size");
-            }
-        }
-
         public static Int32 ToSize(this PointerSize pointerSize)
         {
             switch (pointerSize)

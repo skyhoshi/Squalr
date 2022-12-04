@@ -75,6 +75,7 @@
                                     }
 
                                     updatedStaticPointers = staticValueCollector.Result;
+                                    updatedStaticPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                 }
 
                                 // Step 2) A neat (optional) trick: Scan for unchanged values to filter out dynamic pointers
@@ -87,9 +88,11 @@
                                     {
                                         TrackableTask<Snapshot> heapValueScanner = ManualScanner.Scan(updatedHeapPointers, scanConstraints);
                                         updatedHeapPointers = heapValueScanner.Result;
+                                        updatedHeapPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                     }
 
                                     updatedStaticPointers = staticValueScanner.Result;
+                                    updatedStaticPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                 }
 
                                 Stopwatch levelStopwatch = new Stopwatch();

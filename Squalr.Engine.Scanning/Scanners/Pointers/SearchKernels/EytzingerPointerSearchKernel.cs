@@ -16,8 +16,7 @@
             this.BoundsSnapshot = boundsSnapshot;
             this.MaxOffset = maxOffset;
 
-            throw new NotImplementedException();
-            // this.L = 1 + this.Log2(2 + this.BoundsSnapshot.SnapshotRegions.Length + 1); // Final +1 due to inversion
+            this.L = 1 + this.Log2(2 + this.BoundsSnapshot.SnapshotRegions.Count() + 1); // Final +1 due to inversion
             this.M = new Vector<UInt32>(unchecked((UInt32)(~(2 * this.L))));
 
             this.Length = 2 << (this.L + 2) - 1;
