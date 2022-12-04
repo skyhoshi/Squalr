@@ -9,7 +9,7 @@
     using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
-    /// Collect values for a given snapshot. The values are assigned to a new snapshot.
+    /// Detects whether the target process is an emulator.
     /// </summary>
     public static class EmulatorDetector
     {
@@ -18,6 +18,12 @@
         /// </summary>
         private const String Name = "Emulator Detector";
 
+        /// <summary>
+        /// Creates a task to detect whether the specified process is an emulator.
+        /// </summary>
+        /// <param name="process">The candidate emulator process.</param>
+        /// <param name="taskIdentifier">An optional unique identifier for this task to prevent duplicate task creation.</param>
+        /// <returns>A task to detect whether the specified process is an emulator.</returns>
         public static TrackableTask<EmulatorType> DetectEmulator(Process process, String taskIdentifier = null)
         {
             try
@@ -33,11 +39,10 @@
 
                             EmulatorType detectedEmulator = EmulatorType.None;
 
+                            // TODO: something a bit more accurate.
                             if (process?.MainWindowTitle?.StartsWith("Dolphin") ?? false)
                             {
                                 detectedEmulator = EmulatorType.Dolphin;
-
-                                // TODO: something a bit more accurate.
                             }
 
                             // Exit if canceled
