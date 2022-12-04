@@ -2,10 +2,8 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
-    using System.Data;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;

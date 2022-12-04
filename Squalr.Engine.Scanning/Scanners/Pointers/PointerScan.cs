@@ -2,7 +2,6 @@
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Scanners.Pointers.Structures;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -31,7 +30,7 @@
         /// <param name="alignment">The pointer scan alignment.</param>
         /// <param name="taskIdentifier">The unique identifier to prevent duplicate tasks.</param>
         /// <returns>Atrackable task that returns the scan results.</returns>
-        public static TrackableTask<PointerBag> Scan(Process process, UInt64 address, UInt32 maxOffset, Int32 depth, Int32 alignment, PointerSize pointerSize, String taskIdentifier = null)
+        public static TrackableTask<PointerBag> Scan(Process process, UInt64 address, UInt32 maxOffset, Int32 depth, MemoryAlignment alignment, PointerSize pointerSize, String taskIdentifier = null)
         {
             try
             {
@@ -47,17 +46,20 @@
                             stopwatch.Start();
 
                             // Step 1) Create a snapshot of the target address
-                            Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(address, pointerSize.ToSize()) });
+                            Snapshot targetAddress = new Snapshot(new SnapshotRegion(address, pointerSize.ToSize()));
+                            targetAddress.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
 
                             // Step 2) Collect static pointers
                             Snapshot staticPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromModules);
                             TrackableTask<Snapshot> valueCollector = ValueCollector.CollectValues(process, staticPointers);
                             staticPointers = valueCollector.Result;
+                            staticPointers.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
 
                             // Step 3) Collect heap pointers
                             Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);
                             TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(process, heapPointers);
                             heapPointers = heapValueCollector.Result;
+                            heapPointers.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
 
                             // Step 4) Build levels
                             IList<Level> levels = new List<Level>();

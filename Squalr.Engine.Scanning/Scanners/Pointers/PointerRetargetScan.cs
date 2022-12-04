@@ -48,7 +48,7 @@
                         stopwatch.Start();
 
                         // Step 1) Create a snapshot of the new target address
-                        Snapshot targetAddress = new Snapshot(new SnapshotRegion[] { new SnapshotRegion(newAddress, oldPointerBag.PointerSize.ToSize()) });
+                        Snapshot targetAddress = new Snapshot(new SnapshotRegion(newAddress, oldPointerBag.PointerSize.ToSize()));
 
                         // Step 2) Collect heap pointers
                         Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);

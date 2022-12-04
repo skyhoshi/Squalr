@@ -24,6 +24,14 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
         /// </summary>
+        /// <param name="snapshotRegion">A single snapshot region with which to initialize this snapshot.</param>
+        public Snapshot(SnapshotRegion snapshotRegion) : this(new SnapshotRegion[1] { snapshotRegion })
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Snapshot" /> class.
+        /// </summary>
         /// <param name="snapshotRegions">The regions with which to initialize this snapshot.</param>
         public Snapshot(IEnumerable<SnapshotRegion> snapshotRegions) : this(String.Empty, snapshotRegions)
         {
@@ -156,6 +164,25 @@
 
             this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
             {
+                region.BaseElementIndex = this.ElementCount;
+                this.ByteCount += region.ElementByteCount.ToUInt64();
+                this.ElementCount += region.TotalElementCount.ToUInt64();
+            });
+        }
+
+        /// <summary>
+        /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
+        /// </summary>
+        public void ComputeElementAndByteCountsCascading(Int32 dataTypeSize, MemoryAlignment alignment)
+        {
+            this.Alignment = alignment;
+            this.ByteCount = 0;
+            this.ElementCount = 0;
+            this.SnapshotRegionIndexLookupTable?.Clear();
+
+            this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
+            {
+                region.ComputeByteAndElementCounts(dataTypeSize, alignment);
                 region.BaseElementIndex = this.ElementCount;
                 this.ByteCount += region.ElementByteCount.ToUInt64();
                 this.ElementCount += region.TotalElementCount.ToUInt64();
