@@ -80,7 +80,6 @@
             base.Initialize(region, constraints);
 
             this.SetConstraintFunctions();
-            this.VectorCompare = this.BuildCompareActions(constraints?.RootConstraint);
         }
 
         /// <summary>

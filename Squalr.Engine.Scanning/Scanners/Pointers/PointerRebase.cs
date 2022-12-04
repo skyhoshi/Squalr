@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers
 {
+    using SharpDX;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Scanning.Scanners.Constraints;
@@ -94,13 +95,14 @@
                                 Stopwatch levelStopwatch = new Stopwatch();
                                 levelStopwatch.Start();
 
-                                // Step 3) Rebase heap onto new previous heap
+                                // Step 3) Rebase new heap on to previous heap
                                 if (levelIndex > 0)
                                 {
                                     IVectorPointerSearchKernel heapSearchKernel = PointerSearchKernelFactory.GetSearchKernel(newLevels.Last().HeapPointers, previousPointerBag.MaxOffset, previousPointerBag.PointerSize);
                                     TrackableTask<Snapshot> heapFilterTask = PointerFilter.Filter(pointerScanTask, updatedHeapPointers, heapSearchKernel, previousPointerBag.PointerSize, newLevels.Last().HeapPointers, previousPointerBag.MaxOffset);
 
                                     updatedHeapPointers = heapFilterTask.Result;
+                                    updatedHeapPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                 }
 
                                 // Step 4) Filter static pointers that still point into the updated heap
@@ -108,6 +110,7 @@
                                 TrackableTask<Snapshot> staticFilterTask = PointerFilter.Filter(pointerScanTask, updatedStaticPointers, staticSearchKernel, previousPointerBag.PointerSize, updatedHeapPointers, previousPointerBag.MaxOffset);
 
                                 updatedStaticPointers = staticFilterTask.Result;
+                                updatedStaticPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
 
                                 levelStopwatch.Stop();
                                 Logger.Log(LogLevel.Info, "Pointer rebase from level " + (levelIndex) + " => " + (levelIndex + 1) + " completed in: " + levelStopwatch.Elapsed);

@@ -185,6 +185,11 @@
         protected Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
+        /// Gets an action based on the element iterator scan constraint.
+        /// </summary>
+        protected Func<Vector<Byte>> CustomVectorCompare { get; set; }
+
+        /// <summary>
         /// Initializes this scanner for the given region and constaints.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
@@ -207,7 +212,7 @@
         /// <param name="customCompare"></param>
         public void SetCustomCompareAction(Func<Vector<Byte>> customCompare)
         {
-            this.VectorCompare = customCompare;
+            this.CustomVectorCompare = customCompare;
         }
 
         /// <summary>
@@ -885,6 +890,11 @@
         /// <param name="compareActionValue">The value to use for the scan.</param>
         private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
+            if (this.CustomVectorCompare != null)
+            {
+                return this.CustomVectorCompare;
+            }
+
             switch (constraint)
             {
                 case ScanConstraints scanConstraints:

@@ -54,7 +54,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            ConcurrentScanRegionBag resultRegions = new ConcurrentScanRegionBag();
+                            // ConcurrentScanRegionBag resultRegions = new ConcurrentScanRegionBag(); // Reimplement if we ever decide to reimplement manual scanner creating new snapshots
 
                             ParallelOptions options = ScanSettings.UseMultiThreadScans ? ParallelSettings.ParallelSettingsFastest : ParallelSettings.ParallelSettingsNone;
 

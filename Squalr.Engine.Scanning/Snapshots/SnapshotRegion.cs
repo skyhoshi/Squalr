@@ -39,6 +39,18 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
+        /// </summary>
+        /// <param name="other">The snapshot region from which properties and values are copied.</param>
+        /// <param name="elementRanges">Optional initial snapshot element ranges for this region.</param>
+        public SnapshotRegion(SnapshotRegion other, IEnumerable<SnapshotElementRange> elementRanges = null) : base(other?.BaseAddress ?? 0, other?.RegionSize ?? 0)
+        {
+            this.CurrentValues = other?.CurrentValues;
+            this.PreviousValues = other?.PreviousValues;
+            this.SnapshotElementRanges = elementRanges;
+        }
+
+        /// <summary>
         /// Gets the most recently read values.
         /// </summary>
         public unsafe Byte[] CurrentValues { get; private set; }
@@ -67,6 +79,28 @@
         /// Gets the most recently computed number of elements contained in this snapshot region.
         /// </summary>
         public Int32 TotalElementCount { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether current values have been collected for this snapshot region.
+        /// </summary>
+        public Boolean HasCurrentValues
+        {
+            get
+            {
+                return this.CurrentValues != null && this.CurrentValues.Length > 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether previous values have been collected for this snapshot region.
+        /// </summary>
+        public Boolean HasPreviousValues
+        {
+            get
+            {
+                return this.PreviousValues != null && this.PreviousValues.Length > 0;
+            }
+        }
 
         /// <summary>
         /// Gets or sets a lookup table used for querying scan results quickly.
@@ -151,8 +185,8 @@
         {
             if (constraints == null
                 || !constraints.IsValid()
-                || this.CurrentValues == null
-                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && this.PreviousValues == null)
+                || !this.HasCurrentValues
+                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && !this.HasPreviousValues)
             {
                 return false;
             }
