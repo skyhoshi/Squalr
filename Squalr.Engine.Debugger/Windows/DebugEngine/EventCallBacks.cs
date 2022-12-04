@@ -1,6 +1,7 @@
 ﻿namespace Squalr.Engine.Debuggers.Windows.DebugEngine
 {
     using Microsoft.Diagnostics.Runtime.Interop;
+    using Squalr.Engine.Architecture;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Processes;
     using System;
@@ -163,7 +164,7 @@
             // Disassemble instruction
             Byte[] bytes =  MemoryReader.Instance.ReadBytes(this.TargetProcess, address, 15, out _);
 
-            codeTraceInfo.Instruction = Engine.Architecture.Disassembler.Default.Disassemble(bytes, isProcess32Bit, address).FirstOrDefault();
+            codeTraceInfo.Instruction = CpuArchitecture.GetInstance().GetDisassembler().Disassemble(bytes, isProcess32Bit, address).FirstOrDefault();
 
             // Invoke callbacks
             this.ReadCallback?.Invoke(codeTraceInfo);
@@ -262,8 +263,8 @@
         {
             const UInt64 MaxInstructionSize = 15;
 
-            UInt32 disassemblySize = 0;
-            UInt64 endAddress = 0;
+            UInt32 disassemblySize;
+            UInt64 endAddress;
             UInt64 effectiveAddress = address - MaxInstructionSize - 1;
 
             do
