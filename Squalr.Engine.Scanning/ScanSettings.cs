@@ -5,7 +5,7 @@
 
     public static class ScanSettings
     {
-        public static MemoryAlignment ResolveAuto(MemoryAlignment alignment, Int32 dataTypeSize)
+        public static MemoryAlignment ResolveAutoAlignment(MemoryAlignment alignment, Int32 dataTypeSize)
         {
             return alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataTypeSize : alignment;
         }

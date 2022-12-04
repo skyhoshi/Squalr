@@ -73,12 +73,12 @@
                 MouseOverColor="{StaticResource SqualrColorHighlight}"
                 HighLightColor="{StaticResource SqualrColorHighlight}"
                 StatusBarVisibility="Collapsed"
-                ContextMenu="{Binding Wat}"
                 Stream="{Binding MemoryStream}"
                 AllowAutoHighLightSelectionByte="False"
                 AllowAutoSelectSameByteAtDoubleClick="True"
                 Width="Auto"
                 Height="Auto"/>
+            <!--ContextMenu="{Binding Wat}"-->
             <!--BarChartPanelVisibility="Visible"-->
         </Grid>
         <Border Height="24" Grid.Row="3" Background="{StaticResource SqualrColorFrame}">

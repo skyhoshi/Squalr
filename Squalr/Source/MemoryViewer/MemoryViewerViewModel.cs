@@ -18,7 +18,7 @@
         /// <summary>
         /// Singleton instance of the <see cref="MemoryViewerViewModel" /> class.
         /// </summary>
-        private static Lazy<MemoryViewerViewModel> MemoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
+        private static readonly Lazy<MemoryViewerViewModel> memoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
                 () => { return new MemoryViewerViewModel(); },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -44,8 +44,6 @@
         /// </summary>
         private MemoryViewerViewModel() : base("Memory Viewer")
         {
-            this.RebuildSnapshot();
-
             DockingViewModel.GetInstance().RegisterViewModel(this);
             this.UpdateLoop();
         }
@@ -88,17 +86,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static MemoryViewerViewModel GetInstance()
         {
-            return MemoryViewerViewModel.MemoryViewerViewModelInstance.Value;
-        }
-
-        /// <summary>
-        /// Recieves an update of the active snapshot.
-        /// </summary>
-        /// <param name="snapshot">The active snapshot.</param>
-        public void Update()
-        {
-            // this.RebuildSnapshot();
-            // this.ReadMemoryViewerData();
+            return MemoryViewerViewModel.memoryViewerViewModelInstance.Value;
         }
 
         /// <summary>
@@ -123,12 +111,22 @@
         /// </summary>
         private void ReadMemoryViewerData()
         {
+            if (this.snapshot == null)
+            {
+                return;
+            }
+
             TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
                 SessionManager.Session.OpenedProcess,
                 this.snapshot,
                 withLogging: false);
 
             this.snapshot = valueCollectorTask.Result;
+
+            if (this.snapshot == null)
+            {
+                return;
+            }
 
             Int32 size = (Int32)Math.Min((UInt64)this.viewSize.Length, this.snapshot.ByteCount);
 
@@ -170,7 +168,15 @@
             {
                 while (true)
                 {
-                    this.Update();
+                    this.RebuildSnapshot();
+                    Thread.Sleep(1000);
+                }
+            });
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    this.ReadMemoryViewerData();
                     Thread.Sleep(50);
                 }
             });

@@ -114,7 +114,7 @@
 
                     if (SessionManager.Session.OpenedProcess != null)
                     {
-                        if (ScanSettings.EmulatorType == EmulatorType.Auto)
+                        if (ScanSettings.EmulatorType == EmulatorType.AutoDetect)
                         {
                             TrackableTask<EmulatorType> emulatorDector = EmulatorDetector.DetectEmulator(value);
 

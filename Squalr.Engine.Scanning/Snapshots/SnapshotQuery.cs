@@ -117,7 +117,7 @@
             List<SnapshotRegion> snapshotRegions = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages;
 
-            if (emulatorType == EmulatorType.Auto)
+            if (emulatorType == EmulatorType.AutoDetect)
             {
                 Logger.Log(LogLevel.Warn, "CreateSnapshotFromSettings called before the emulator type could be resolved. This may result in inaccurate results.");
             }
@@ -176,7 +176,7 @@
         {
             IEnumerable<SnapshotRegion> moduleRegions;
 
-            if (emulatorType == EmulatorType.Auto)
+            if (emulatorType == EmulatorType.AutoDetect)
             {
                 Logger.Log(LogLevel.Warn, "CreateSnapshotFromModules called before the emulator type could be resolved. This may result in inaccurate results.");
             }
@@ -204,7 +204,7 @@
         /// <returns>The created snapshot.</returns>
         private static Snapshot CreateSnapshotFromHeaps(Process process, EmulatorType emulatorType)
         {
-            if (emulatorType == EmulatorType.Auto)
+            if (emulatorType == EmulatorType.AutoDetect)
             {
                 Logger.Log(LogLevel.Warn, "CreateSnapshotFromHeaps called before the emulator type could be resolved. This may result in inaccurate results.");
             }

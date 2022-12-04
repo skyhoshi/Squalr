@@ -8,7 +8,7 @@
     [DataContract]
     public enum EmulatorType
     {
-        Auto,
+        AutoDetect,
         None,
         Dolphin,
     }

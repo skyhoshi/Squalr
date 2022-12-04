@@ -35,7 +35,7 @@
         {
             get
             {
-                return ScanSettings.ResolveAuto(this.alignment, this.ElementType.Size);
+                return ScanSettings.ResolveAutoAlignment(this.alignment, this.ElementType.Size);
             }
 
             private set

@@ -545,12 +545,12 @@
         {
             get
             {
-                return ScanSettings.EmulatorType == EmulatorType.Auto;
+                return ScanSettings.EmulatorType == EmulatorType.AutoDetect;
             }
 
             set
             {
-                ScanSettings.EmulatorType = EmulatorType.Auto;
+                ScanSettings.EmulatorType = EmulatorType.AutoDetect;
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeAuto));
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeNone));
                 this.RaisePropertyChanged(nameof(this.IsEmulatorTypeDolphin));
