@@ -3,11 +3,14 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Net;
 
     /// <summary>
     /// A class to contain the discovered pointers from a pointer scan.
@@ -63,7 +66,7 @@
         /// Gets a random pointer from the pointer collection.
         /// </summary>
         /// <returns>A random discovered pointer, or null if unable to find one.</returns>
-        public Pointer GetRandomPointer(Int32 levelIndex)
+        public Pointer GetRandomPointer(Process targetProcess, Int32 levelIndex)
         {
             if (levelIndex >= this.Levels.Count || this.Levels[levelIndex].StaticPointers == null)
             {
@@ -114,7 +117,10 @@
                 }
             }
 
-            return new Pointer(pointerBase, this.PointerSize, offsets.ToArray());
+            String moduleName;
+            pointerBase = MemoryQueryer.Instance.AddressToModule(targetProcess, pointerBase, out moduleName);
+
+            return new Pointer(moduleName, pointerBase, this.PointerSize, offsets.ToArray());
         }
 
         private ExtractedPointer ExtractRandomPointer(Snapshot snapshot)

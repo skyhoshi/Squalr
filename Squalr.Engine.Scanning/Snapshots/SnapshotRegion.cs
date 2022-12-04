@@ -47,7 +47,7 @@
         {
             this.CurrentValues = other?.CurrentValues;
             this.PreviousValues = other?.PreviousValues;
-            this.SnapshotElementRanges = elementRanges?.ToArray();  // TODO: Temp ToArray to test pointer scan glitchyness
+            this.SnapshotElementRanges = elementRanges;
         }
 
         /// <summary>

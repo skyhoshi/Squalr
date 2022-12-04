@@ -45,7 +45,7 @@
         public Snapshot(String snapshotName, IEnumerable<SnapshotRegion> snapshotRegions)
         {
             this.SnapshotName = snapshotName ?? String.Empty;
-            this.SetSnapshotRegions(snapshotRegions?.ToArray());  // TODO: Temp ToArray to test pointer scan glitchyness
+            this.SetSnapshotRegions(snapshotRegions);
         }
 
         /// <summary>
