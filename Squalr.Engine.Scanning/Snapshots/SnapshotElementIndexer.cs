@@ -30,7 +30,7 @@
         /// </summary>
         public UInt64 GetBaseAddress()
         {
-            return unchecked(this.ElementRange.ReadGroup.BaseAddress + (UInt64)(this.ElementRange.RegionOffset + this.ElementIndex * (Int32)this.Alignment));
+            return unchecked(this.ElementRange.ParentRegion.BaseAddress + (UInt64)(this.ElementRange.RegionOffset + this.ElementIndex * (Int32)this.Alignment));
         }
 
         /// <summary>
@@ -50,7 +50,7 @@
 
         public Object LoadCurrentValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.ElementRange.ReadGroup.CurrentValues[this.ElementRange.RegionOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
+            fixed (Byte* pointerBase = &this.ElementRange.ParentRegion.CurrentValues[this.ElementRange.RegionOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
                 return LoadValues(dataType, pointerBase);
             }
@@ -58,7 +58,7 @@
 
         public Object LoadPreviousValue(ScannableType dataType)
         {
-            fixed (Byte* pointerBase = &this.ElementRange.ReadGroup.PreviousValues[this.ElementRange.RegionOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
+            fixed (Byte* pointerBase = &this.ElementRange.ParentRegion.PreviousValues[this.ElementRange.RegionOffset + this.ElementIndex * unchecked((Int32)this.Alignment)])
             {
                 return LoadValues(dataType, pointerBase);
             }
@@ -120,7 +120,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Boolean HasCurrentValue()
         {
-            if (this.ElementRange.ReadGroup.CurrentValues.IsNullOrEmpty())
+            if (this.ElementRange.ParentRegion.CurrentValues.IsNullOrEmpty())
             {
                 return false;
             }
@@ -135,7 +135,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Boolean HasPreviousValue()
         {
-            if (this.ElementRange.ReadGroup.PreviousValues.IsNullOrEmpty())
+            if (this.ElementRange.ParentRegion.PreviousValues.IsNullOrEmpty())
             {
                 return false;
             }

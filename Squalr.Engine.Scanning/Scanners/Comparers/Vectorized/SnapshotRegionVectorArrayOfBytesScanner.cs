@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.ElementRnage.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.ElementRnage.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.ArrayOfBytesChunkIndex * Vectors.VectorSize)));
             }
         }
 

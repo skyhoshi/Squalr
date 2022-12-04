@@ -26,7 +26,7 @@
             {
                 return snapshotRegionSingleElementScannerPool.Get();
             }
-            else if (Vectors.HasVectorSupport && elementRange.ReadGroup.RegionSize >= Vectors.VectorSize)
+            else if (Vectors.HasVectorSupport && elementRange.ParentRegion.RegionSize >= Vectors.VectorSize)
             {
                 return SnapshotRegionScannerFactory.CreateVectorScannerInstance(elementRange, constraints);
             }

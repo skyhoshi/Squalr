@@ -58,7 +58,7 @@
             MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
             RegionBoundsHandling boundsHandling = RegionBoundsHandling.Resize;
 
-            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
+            List<SnapshotRegion> snapshotRegions = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
                 process,
                 requiredPageFlags,
@@ -71,10 +71,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
+                snapshotRegions.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups);
+            return new Snapshot(String.Empty, snapshotRegions);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@
             UInt64 startAddress = 0;
             UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(process);
 
-            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
+            List<SnapshotRegion> snapshotRegions = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages = MemoryQueryer.Instance.GetVirtualPages(
                 process,
                 requiredPageFlags,
@@ -102,10 +102,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
+                snapshotRegions.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups);
+            return new Snapshot(String.Empty, snapshotRegions);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@
         /// <returns>The snapshot of memory taken in the target process.</returns>
         private static Snapshot CreateSnapshotFromSettings(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
-            List<SnapshotRegion> readGroups = new List<SnapshotRegion>();
+            List<SnapshotRegion> snapshotRegions = new List<SnapshotRegion>();
             IEnumerable<NormalizedRegion> virtualPages;
 
             if (emulatorType == EmulatorType.Auto)
@@ -162,10 +162,10 @@
             foreach (NormalizedRegion virtualPage in virtualPages)
             {
                 virtualPage.Align(ScanSettings.Alignment);
-                readGroups.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
+                snapshotRegions.Add(new SnapshotRegion(virtualPage.BaseAddress, virtualPage.RegionSize));
             }
 
-            return new Snapshot(String.Empty, readGroups);
+            return new Snapshot(String.Empty, snapshotRegions);
         }
 
         /// <summary>

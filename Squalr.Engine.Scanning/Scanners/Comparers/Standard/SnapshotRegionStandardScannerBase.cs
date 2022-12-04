@@ -48,8 +48,8 @@
             base.Initialize(elementRange, constraints);
 
             // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
-            this.CurrentValuesHandle = GCHandle.Alloc(this.ElementRnage.ReadGroup.CurrentValues, GCHandleType.Pinned);
-            this.PreviousValuesHandle = GCHandle.Alloc(this.ElementRnage.ReadGroup.PreviousValues, GCHandleType.Pinned);
+            this.CurrentValuesHandle = GCHandle.Alloc(this.ElementRnage.ParentRegion.CurrentValues, GCHandleType.Pinned);
+            this.PreviousValuesHandle = GCHandle.Alloc(this.ElementRnage.ParentRegion.PreviousValues, GCHandleType.Pinned);
             this.ElementCompare = this.BuildCompareActions(constraints);
 
             this.InitializePointers();
@@ -86,9 +86,9 @@
         /// </summary>
         private unsafe void InitializePointers()
         {
-            if (this.ElementRnage.ReadGroup.CurrentValues != null && this.ElementRnage.ReadGroup.CurrentValues.Length > 0)
+            if (this.ElementRnage.ParentRegion.CurrentValues != null && this.ElementRnage.ParentRegion.CurrentValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.ElementRnage.ReadGroup.CurrentValues[this.ElementRnage.RegionOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ParentRegion.CurrentValues[this.ElementRnage.RegionOffset])
                 {
                     this.CurrentValuePointer = pointerBase;
                 }
@@ -98,9 +98,9 @@
                 this.CurrentValuePointer = null;
             }
 
-            if (this.ElementRnage.ReadGroup.PreviousValues != null && this.ElementRnage.ReadGroup.PreviousValues.Length > 0)
+            if (this.ElementRnage.ParentRegion.PreviousValues != null && this.ElementRnage.ParentRegion.PreviousValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.ElementRnage.ReadGroup.PreviousValues[this.ElementRnage.RegionOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ParentRegion.PreviousValues[this.ElementRnage.RegionOffset])
                 {
                     this.PreviousValuePointer = pointerBase;
                 }

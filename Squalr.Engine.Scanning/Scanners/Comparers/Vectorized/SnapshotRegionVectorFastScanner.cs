@@ -34,10 +34,10 @@
 
             // This algorithm has three stages:
             // 1) Scan the first vector of memory, which may contain elements we do not care about. ie <x, x, x, x ... y, y, y, y>,
-            //      where x is data outside the snapshot region (but within the readgroup), and y is within the region we are scanning.
+            //      where x is data outside the element range (but within the snapshot region), and y is within the region we are scanning.
             //      to solve this, we mask out the x values such that these will always be considered false by our scan
             // 2) Scan the middle parts of. These will all fit perfectly into vectors
-            // 3) Scan the final vector, if it exists. This may spill outside of the snapshot region (but within the readgroup).
+            // 3) Scan the final vector, if it exists. This may spill outside of the element range (but within the snapshot region).
             //      This works exactly like the first scan, but reversed. ie <y, y, y, y, ... x, x, x, x>, where x values are masked to be false.
             //      Note: This mask may also be applied to the first scan, if it is also the last scan (ie only 1 scan total for this region).
 

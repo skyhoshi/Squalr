@@ -12,30 +12,28 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotElementRange" /> class.
         /// </summary>
-        /// <param name="readGroup">The read group of this snapshot region.</param>
-        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
-        /// <param name="regionSize">The size of this snapshot region.</param>
-        public SnapshotElementRange(SnapshotRegion readGroup) : this(readGroup, 0, readGroup?.RegionSize ?? 0)
+        /// <param name="parentRegion">The parent region of this snapshot element range.</param>
+        public SnapshotElementRange(SnapshotRegion parentRegion) : this(parentRegion, 0, parentRegion?.RegionSize ?? 0)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotElementRange" /> class.
         /// </summary>
-        /// <param name="readGroup">The read group of this snapshot region.</param>
-        /// <param name="readGroupOffset">The base address of this snapshot region.</param>
+        /// <param name="parentRegion">The parent region of this snapshot element range.</param>
+        /// <param name="regionOffset">The base address of this snapshot region.</param>
         /// <param name="range">The size of this snapshot region.</param>
-        public SnapshotElementRange(SnapshotRegion readGroup, Int32 readGroupOffset, Int32 range)
+        public SnapshotElementRange(SnapshotRegion parentRegion, Int32 regionOffset, Int32 range)
         {
-            this.ReadGroup = readGroup;
-            this.RegionOffset = readGroupOffset;
+            this.ParentRegion = parentRegion;
+            this.RegionOffset = regionOffset;
             this.Range = range;
         }
 
         /// <summary>
         /// Gets the snapshot region from which this element range reads its values.
         /// </summary>
-        public SnapshotRegion ReadGroup { get; private set; }
+        public SnapshotRegion ParentRegion { get; private set; }
 
         /// <summary>
         /// Gets the offset from the base of the snapshot region that contains this element range.
@@ -54,7 +52,7 @@
         {
             get
             {
-                return unchecked(this.ReadGroup.BaseAddress + (UInt64)this.RegionOffset);
+                return unchecked(this.ParentRegion.BaseAddress + (UInt64)this.RegionOffset);
             }
         }
 
@@ -65,7 +63,7 @@
         {
             get
             {
-                return unchecked(this.ReadGroup.BaseAddress + (UInt64)(this.RegionOffset + this.Range));
+                return unchecked(this.ParentRegion.BaseAddress + (UInt64)(this.RegionOffset + this.Range));
             }
         }
 
@@ -83,7 +81,7 @@
         public Int32 GetByteCount(Int32 dataTypeSize)
         {
             Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);
-            Int32 availableSpillOverBytes = unchecked((Int32)(this.ReadGroup.EndAddress - this.EndElementAddress));
+            Int32 availableSpillOverBytes = unchecked((Int32)(this.ParentRegion.EndAddress - this.EndElementAddress));
             Int32 usedSpillOverBytes = Math.Min(desiredSpillOverBytes, availableSpillOverBytes);
 
             return this.Range + usedSpillOverBytes;
@@ -107,9 +105,9 @@
         /// <param name="dataTypeSize"></param>
         public void ResizeForSafeReading(Int32 dataTypeSize)
         {
-            Int32 readGroupSize = this.ReadGroup?.RegionSize ?? 0;
+            Int32 parentRegionSize = this.ParentRegion?.RegionSize ?? 0;
 
-            this.Range = Math.Clamp(this.Range, 0, readGroupSize - this.RegionOffset - dataTypeSize);
+            this.Range = Math.Clamp(this.Range, 0, parentRegionSize - this.RegionOffset - dataTypeSize);
         }
 
         /// <summary>

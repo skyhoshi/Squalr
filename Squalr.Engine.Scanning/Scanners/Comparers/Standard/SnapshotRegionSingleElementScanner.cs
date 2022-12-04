@@ -29,11 +29,11 @@
         {
             this.InitializeNoPinning(region: elementRange, constraints: constraints);
 
-            fixed (Byte* currentValuePtr = &elementRange.ReadGroup.CurrentValues[elementRange.RegionOffset])
+            fixed (Byte* currentValuePtr = &elementRange.ParentRegion.CurrentValues[elementRange.RegionOffset])
             {
-                if (elementRange.ReadGroup.PreviousValues != null && elementRange.ReadGroup.PreviousValues.Length > 0)
+                if (elementRange.ParentRegion.PreviousValues != null && elementRange.ParentRegion.PreviousValues.Length > 0)
                 {
-                    fixed (Byte* previousValuePtr = &elementRange.ReadGroup.PreviousValues[elementRange.RegionOffset])
+                    fixed (Byte* previousValuePtr = &elementRange.ParentRegion.PreviousValues[elementRange.RegionOffset])
                     {
                         this.CurrentValuePointer = currentValuePtr;
                         this.PreviousValuePointer = previousValuePtr;
@@ -42,7 +42,7 @@
                         {
                             return new List<SnapshotElementRange>()
                             {
-                                new SnapshotElementRange(elementRange.ReadGroup, elementRange.RegionOffset, elementRange.Range)
+                                new SnapshotElementRange(elementRange.ParentRegion, elementRange.RegionOffset, elementRange.Range)
                             };
                         }
                     }
@@ -55,7 +55,7 @@
                     {
                         return new List<SnapshotElementRange>()
                         {
-                            new SnapshotElementRange(elementRange.ReadGroup, elementRange.RegionOffset, elementRange.Range)
+                            new SnapshotElementRange(elementRange.ParentRegion, elementRange.RegionOffset, elementRange.Range)
                         };
                     }
                 }

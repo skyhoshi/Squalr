@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.ElementRnage.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.ElementRnage.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -284,7 +284,7 @@
             Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
             Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
             UInt64 vectorEndAddress = unchecked(this.ElementRnage.BaseElementAddress + (UInt64)vectorAlignedByteCount);
-            Int32 vectorMisalignment = vectorEndAddress <= this.ElementRnage.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.ElementRnage.ReadGroup.EndAddress));
+            Int32 vectorMisalignment = vectorEndAddress <= this.ElementRnage.ParentRegion.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.ElementRnage.ParentRegion.EndAddress));
 
             return vectorMisalignment;
         }

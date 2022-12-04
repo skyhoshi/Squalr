@@ -37,7 +37,7 @@
         /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
-        private SnapshotElementRange Region { get; set; }
+        private SnapshotElementRange ElementRange { get; set; }
 
         /// <summary>
         /// Gets or sets the list of discovered result regions.
@@ -50,7 +50,7 @@
         /// <param name="region">The parent region that contains this element.</param>
         public void Initialize(SnapshotElementRange region)
         {
-            this.Region = region;
+            this.ElementRange = region;
             this.ResultRegions = new List<SnapshotElementRange>();
             this.RunLengthEncodeOffset = region?.RegionOffset ?? 0;
         }
@@ -60,7 +60,7 @@
         /// </summary>
         public void Dispose()
         {
-            this.Region = null;
+            this.ElementRange = null;
             this.ResultRegions = null;
         }
 
@@ -100,14 +100,14 @@
             if (this.IsEncoding)
             {
                 // Run length is in bytes, but snapshot regions need to know total number of elements, which depends on the data type and alignment
-                UInt64 absoluteAddressStart = this.Region.ReadGroup.BaseAddress + (UInt64)this.RunLengthEncodeOffset;
+                UInt64 absoluteAddressStart = this.ElementRange.ParentRegion.BaseAddress + (UInt64)this.RunLengthEncodeOffset;
                 UInt64 absoluteAddressEnd = absoluteAddressStart + (UInt64)this.RunLength;
 
                 // Vector comparisons can produce some false positives since vectors can load values outside of the original snapshot range. This can result in next scans actually increasing the result count.
                 // This is particularly true in "next scans". This check catches any potential errors introduced this way.
-                if (absoluteAddressStart >= this.Region.BaseElementAddress && absoluteAddressEnd <= this.Region.EndElementAddress)
+                if (absoluteAddressStart >= this.ElementRange.BaseElementAddress && absoluteAddressEnd <= this.ElementRange.EndElementAddress)
                 {
-                    this.ResultRegions.Add(new SnapshotElementRange(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
+                    this.ResultRegions.Add(new SnapshotElementRange(this.ElementRange.ParentRegion, this.RunLengthEncodeOffset, this.RunLength));
                 }
 
                 this.RunLengthEncodeOffset += this.RunLength;
@@ -128,7 +128,7 @@
             // Create the final region if we are still encoding
             if (this.IsEncoding)
             {
-                this.ResultRegions.Add(new SnapshotElementRange(this.Region.ReadGroup, this.RunLengthEncodeOffset, this.RunLength));
+                this.ResultRegions.Add(new SnapshotElementRange(this.ElementRange.ParentRegion, this.RunLengthEncodeOffset, this.RunLength));
                 this.RunLengthEncodeOffset += this.RunLength;
                 this.RunLength = 0;
                 this.IsEncoding = false;

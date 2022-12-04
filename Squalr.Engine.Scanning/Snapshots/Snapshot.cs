@@ -96,7 +96,7 @@
         {
             get
             {
-                return this.SnapshotRegions?.OrderByDescending(readGroup => readGroup.RegionSize);
+                return this.SnapshotRegions?.OrderByDescending(snapshotRegion => snapshotRegion.RegionSize);
             }
         }
 
