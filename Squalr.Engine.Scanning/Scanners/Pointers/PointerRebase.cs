@@ -71,7 +71,7 @@
                                     }
 
                                     updatedStaticPointers = staticValueCollector.Result;
-                                    updatedStaticPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
+                                    updatedStaticPointers.SetAlignmentCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                 }
 
                                 Stopwatch levelStopwatch = new Stopwatch();
@@ -84,7 +84,7 @@
                                     TrackableTask<Snapshot> heapFilterTask = PointerFilter.Filter(pointerScanTask, updatedHeapPointers, heapSearchKernel, previousPointerBag.PointerSize, newLevels.Last().HeapPointers, previousPointerBag.MaxOffset);
 
                                     updatedHeapPointers = heapFilterTask.Result;
-                                    updatedHeapPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
+                                    updatedHeapPointers.SetAlignmentCascading(previousPointerBag.PointerSize.ToSize(), alignment);
                                 }
 
                                 // Step 3) Filter static pointers that still point into the updated heap
@@ -92,7 +92,7 @@
                                 TrackableTask<Snapshot> staticFilterTask = PointerFilter.Filter(pointerScanTask, updatedStaticPointers, staticSearchKernel, previousPointerBag.PointerSize, updatedHeapPointers, previousPointerBag.MaxOffset);
 
                                 updatedStaticPointers = staticFilterTask.Result;
-                                updatedStaticPointers.ComputeElementAndByteCountsCascading(previousPointerBag.PointerSize.ToSize(), alignment);
+                                updatedStaticPointers.SetAlignmentCascading(previousPointerBag.PointerSize.ToSize(), alignment);
 
                                 levelStopwatch.Stop();
                                 Logger.Log(LogLevel.Info, "Pointer rebase from level " + (levelIndex) + " => " + (levelIndex + 1) + " completed in: " + levelStopwatch.Elapsed);

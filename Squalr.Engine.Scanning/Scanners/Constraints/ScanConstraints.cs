@@ -9,6 +9,8 @@
     /// </summary>
     public class ScanConstraints : IScanConstraint, INotifyPropertyChanged
     {
+        private MemoryAlignment alignment;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ScanConstraints" /> class.
         /// </summary>
@@ -29,7 +31,18 @@
         /// <summary>
         /// Gets or sets the enforced memory alignment.
         /// </summary>
-        public MemoryAlignment Alignment { get; private set; }
+        public MemoryAlignment Alignment
+        {
+            get
+            {
+                return ScanSettings.ResolveAuto(this.alignment, this.ElementType.Size);
+            }
+
+            private set
+            {
+                this.alignment = value;
+            }
+        }
 
         /// <summary>
         /// Gets the root constraint for this scan constraint set. Usually, this is just a single scan constraint like "> 5".

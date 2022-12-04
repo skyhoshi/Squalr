@@ -5,6 +5,11 @@
 
     public static class ScanSettings
     {
+        public static MemoryAlignment ResolveAuto(MemoryAlignment alignment, Int32 dataTypeSize)
+        {
+            return alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataTypeSize : alignment;
+        }
+
         public static Int32 ResultReadInterval
         {
             get

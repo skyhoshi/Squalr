@@ -269,7 +269,14 @@
                 return;
             }
 
-            MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
+            try
+            {
+                MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error writing value to memory.", ex);
+            }
         }
     }
     //// End class

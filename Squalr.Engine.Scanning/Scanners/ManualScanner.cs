@@ -42,10 +42,6 @@
                     .Create(ManualScanner.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
                     .With(Task<Snapshot>.Run(() =>
                     {
-                        MemoryAlignment alignment = constraints.Alignment == MemoryAlignment.Auto
-                            ? (MemoryAlignment)constraints.ElementType.Size
-                            : constraints.Alignment;
-
                         try
                         {
                             cancellationToken.ThrowIfCancellationRequested();
@@ -78,7 +74,7 @@
                                         return;
                                     }
 
-                                    snapshotRegion.Align(alignment);
+                                    snapshotRegion.Align(constraints.Alignment);
 
                                     ConcurrentScanElementRangeBag scanResults = new ConcurrentScanElementRangeBag();
 
@@ -102,7 +98,7 @@
                                         });
 
                                     snapshotRegion.SnapshotElementRanges = scanResults;
-                                    snapshotRegion.ComputeByteAndElementCounts(constraints.ElementType.Size, alignment);
+                                    snapshotRegion.SetAlignment(constraints.Alignment, constraints.ElementType.Size);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedPages) % 32 == 0)
@@ -115,8 +111,8 @@
 
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            snapshot.SetSnapshotRegions(snapshot.SnapshotRegions?.Where(region => region.TotalElementCount > 0));
-                            snapshot.ComputeElementAndByteCounts(alignment);
+                            snapshot.SetSnapshotRegions(snapshot.SnapshotRegions?.Where(region => region.HasCurrentValues && region.TotalElementCount > 0));
+                            snapshot.SetAlignment(constraints.Alignment);
                             snapshot.SnapshotName = "Manual Scan";
 
                             stopwatch.Stop();

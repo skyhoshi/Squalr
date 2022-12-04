@@ -1,10 +1,12 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static Squalr.Engine.Common.TrackableTask;
@@ -43,7 +45,6 @@
                             options.CancellationToken = cancellationToken;
 
                             // Read memory to get current values for each region
-                            /*
                             Parallel.ForEach(
                                 snapshot.ReadOptimizedSnapshotRegions,
                                 options,
@@ -54,7 +55,6 @@
 
                                     // Read the memory for this region
                                     snapshotRegion.ReadAllMemory(process);
-                                    snapshotRegion.ComputeByteAndElementCounts(ScannableType.Byte.Size, MemoryAlignment.Alignment1);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedRegions) % 32 == 0)
@@ -63,32 +63,15 @@
                                         updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
                                     }
                                 });
-                            */
-                            foreach(SnapshotRegion snapshotRegion in snapshot.ReadOptimizedSnapshotRegions)
-                            {
-                                // Check for canceled scan
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                // Read the memory for this region
-                                snapshotRegion.ReadAllMemory(process);
-                                snapshotRegion.ComputeByteAndElementCounts(ScannableType.Byte.Size, MemoryAlignment.Alignment1);
-
-                                // Update progress every N regions
-                                if (Interlocked.Increment(ref processedRegions) % 32 == 0)
-                                {
-                                    // Technically this callback is a data race, but it does not really matter if scan progress is not reported perfectly accurately
-                                    updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
-                                }
-                            }
 
                             cancellationToken.ThrowIfCancellationRequested();
-                            snapshot.ComputeElementAndByteCounts(MemoryAlignment.Alignment1);
+                            UInt64 byteCount = snapshot.SnapshotRegions.Sum(snapshotRegion => unchecked((UInt64)snapshotRegion.RegionSize));
                             stopwatch.Stop();
 
                             if (withLogging)
                             {
                                 Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
-                                Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                                Logger.Log(LogLevel.Info, Conversions.ValueToMetricSize(byteCount) + " bytes read");
                             }
 
                             return snapshot;

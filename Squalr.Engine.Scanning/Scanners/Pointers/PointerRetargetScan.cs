@@ -49,7 +49,7 @@
 
                         // Step 1) Create a snapshot of the new target address
                         Snapshot targetAddress = new Snapshot(new SnapshotRegion(newAddress, oldPointerBag.PointerSize.ToSize()));
-                        targetAddress.ComputeElementAndByteCountsCascading(oldPointerBag.PointerSize.ToSize(), alignment);
+                        targetAddress.SetAlignmentCascading(oldPointerBag.PointerSize.ToSize(), alignment);
 
                         // Step 2) Collect heap pointers
                         Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);

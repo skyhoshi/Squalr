@@ -47,19 +47,19 @@
 
                             // Step 1) Create a snapshot of the target address
                             Snapshot targetAddress = new Snapshot(new SnapshotRegion(address, pointerSize.ToSize()));
-                            targetAddress.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
+                            targetAddress.SetAlignmentCascading(pointerSize.ToSize(), alignment);
 
                             // Step 2) Collect static pointers
                             Snapshot staticPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromModules);
                             TrackableTask<Snapshot> valueCollector = ValueCollector.CollectValues(process, staticPointers);
                             staticPointers = valueCollector.Result;
-                            staticPointers.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
+                            staticPointers.SetAlignmentCascading(pointerSize.ToSize(), alignment);
 
                             // Step 3) Collect heap pointers
                             Snapshot heapPointers = SnapshotQuery.GetSnapshot(process, SnapshotQuery.SnapshotRetrievalMode.FromHeaps);
                             TrackableTask<Snapshot> heapValueCollector = ValueCollector.CollectValues(process, heapPointers);
                             heapPointers = heapValueCollector.Result;
-                            heapPointers.ComputeElementAndByteCountsCascading(pointerSize.ToSize(), alignment);
+                            heapPointers.SetAlignmentCascading(pointerSize.ToSize(), alignment);
 
                             // Step 4) Build levels
                             IList<Level> levels = new List<Level>();

@@ -346,7 +346,7 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update(Snapshot snapshot)
         {
-            snapshot?.ComputeElementAndByteCounts(snapshot.Alignment);
+            snapshot?.SetAlignment(snapshot.Alignment);
             this.ResultCount = snapshot == null ? 0 : snapshot.ElementCount;
             this.ByteCount = snapshot == null ? 0 : snapshot.ByteCount;
             this.CurrentPage = 0;

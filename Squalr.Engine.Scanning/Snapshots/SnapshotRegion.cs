@@ -160,7 +160,7 @@
         /// Gets the size in bytes of all elements contained in this snapshot region, based on the provided element data type size.
         /// </summary>
         /// <param name="dataTypeSize">The data type size of the elements contained by element ranges in this function.</param>
-        public void ComputeByteAndElementCounts(Int32 dataTypeSize, MemoryAlignment alignment)
+        public void SetAlignment(MemoryAlignment alignment, Int32 dataTypeSize)
         {
             this.ElementByteCount = 0;
             this.TotalElementCount = 0;

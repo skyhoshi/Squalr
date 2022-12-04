@@ -153,9 +153,9 @@
         }
 
         /// <summary>
-        /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
+        /// Sets the alignment of this snapshot. This will cause byte counts and element counts to be recomputed.
         /// </summary>
-        public void ComputeElementAndByteCounts(MemoryAlignment alignment)
+        public void SetAlignment(MemoryAlignment alignment)
         {
             this.Alignment = alignment;
             this.ByteCount = 0;
@@ -171,9 +171,9 @@
         }
 
         /// <summary>
-        /// Determines how many elements are contained in this snapshot, and how many bytes total are contained.
+        /// Sets the alignment of this snapshot. This will cause byte counts and element counts to be recomputed for all snapshot regions within this snapshot.
         /// </summary>
-        public void ComputeElementAndByteCountsCascading(Int32 dataTypeSize, MemoryAlignment alignment)
+        public void SetAlignmentCascading(Int32 dataTypeSize, MemoryAlignment alignment)
         {
             this.Alignment = alignment;
             this.ByteCount = 0;
@@ -182,7 +182,7 @@
 
             this.SnapshotRegions.OrderBy(region => region.BaseAddress)?.ForEach(region =>
             {
-                region.ComputeByteAndElementCounts(dataTypeSize, alignment);
+                region.SetAlignment(alignment, dataTypeSize);
                 region.BaseElementIndex = this.ElementCount;
                 this.ByteCount += region.ElementByteCount.ToUInt64();
                 this.ElementCount += region.TotalElementCount.ToUInt64();
