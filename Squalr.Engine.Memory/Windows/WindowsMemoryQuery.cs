@@ -241,23 +241,24 @@
         /// <returns>A collection of modules in the process.</returns>
         public IEnumerable<NormalizedModule> GetModules(Process process)
         {
-            // Query all modules in the target process
-            IntPtr[] modulePointers = new IntPtr[0];
-            Int32 bytesNeeded = 0;
-            IList<NormalizedModule> modules = new List<NormalizedModule>();
-
             if (process == null)
             {
-                return modules;
+                return new List<NormalizedModule>();
             }
 
-            if (this.ModuleCache.Contains(process.Id) && this.ModuleCache.TryGetValue(process.Id, out modules))
+            if (this.ModuleCache.Contains(process.Id) && this.ModuleCache.TryGetValue(process.Id, out IList<NormalizedModule> outMoudles))
             {
-                return modules;
+                return outMoudles?.SoftClone() ?? new List<NormalizedModule>();
             }
+
+            IList<NormalizedModule> modules = new List<NormalizedModule>();
 
             try
             {
+                // Query all modules in the target process
+                IntPtr[] modulePointers = new IntPtr[0];
+                Int32 bytesNeeded;
+
                 // Determine number of modules
                 if (!NativeMethods.EnumProcessModulesEx(process.Handle, modulePointers, 0, out bytesNeeded, (UInt32)Enumerations.ModuleFilter.ListModulesAll))
                 {

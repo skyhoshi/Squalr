@@ -192,7 +192,8 @@
                     break;
             }
 
-            Snapshot moduleSnapshot = new Snapshot(null, moduleRegions);
+            // IEnumerables are lazy evaluated. Calling ToArray() here will acually force the creation of the snapshot regions now, as intended.
+            Snapshot moduleSnapshot = new Snapshot(null, moduleRegions?.ToArray());
 
             return moduleSnapshot;
         }

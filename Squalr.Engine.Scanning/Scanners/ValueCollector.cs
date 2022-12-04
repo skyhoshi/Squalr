@@ -43,6 +43,7 @@
                             options.CancellationToken = cancellationToken;
 
                             // Read memory to get current values for each region
+                            /*
                             Parallel.ForEach(
                                 snapshot.ReadOptimizedSnapshotRegions,
                                 options,
@@ -62,6 +63,23 @@
                                         updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
                                     }
                                 });
+                            */
+                            foreach(SnapshotRegion snapshotRegion in snapshot.ReadOptimizedSnapshotRegions)
+                            {
+                                // Check for canceled scan
+                                cancellationToken.ThrowIfCancellationRequested();
+
+                                // Read the memory for this region
+                                snapshotRegion.ReadAllMemory(process);
+                                snapshotRegion.ComputeByteAndElementCounts(ScannableType.Byte.Size, MemoryAlignment.Alignment1);
+
+                                // Update progress every N regions
+                                if (Interlocked.Increment(ref processedRegions) % 32 == 0)
+                                {
+                                    // Technically this callback is a data race, but it does not really matter if scan progress is not reported perfectly accurately
+                                    updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
+                                }
+                            }
 
                             cancellationToken.ThrowIfCancellationRequested();
                             snapshot.ComputeElementAndByteCounts(MemoryAlignment.Alignment1);
