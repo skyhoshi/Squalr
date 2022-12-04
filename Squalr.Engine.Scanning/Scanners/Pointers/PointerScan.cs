@@ -81,7 +81,7 @@
 
                             // Step 4) Rebase to filter out unwanted pointers
                             PointerBag newPointerBag = new PointerBag(levels, maxOffset, pointerSize);
-                            TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(process, newPointerBag, readMemory: false, performUnchangedScan: false);
+                            TrackableTask<PointerBag> pointerRebaseTask = PointerRebase.Scan(process, newPointerBag, readMemory: false);
                             PointerBag rebasedPointerBag = pointerRebaseTask.Result;
 
                             // Exit if canceled

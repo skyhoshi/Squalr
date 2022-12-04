@@ -1,5 +1,6 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.SearchKernels
 {
+    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Comparers.Vectorized;
