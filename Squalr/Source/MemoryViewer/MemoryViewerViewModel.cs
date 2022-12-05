@@ -38,7 +38,7 @@
         /// <summary>
         /// 
         /// </summary>
-        NormalizedRegion[] virtualPages;
+        SnapshotRegion[] snapshotRegions;
 
         SnapshotRegion activeRegion;
 
@@ -173,7 +173,7 @@
         {
             get
             {
-                return this.virtualPages?.Length ?? 0;
+                return this.snapshotRegions?.Length ?? 0;
             }
         }
 
@@ -255,7 +255,7 @@
                     UInt64 startAddress = 0;
                     UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(SessionManager.Session.OpenedProcess);
 
-                    this.virtualPages = MemoryQueryer.Instance.GetVirtualPages(
+                    this.snapshotRegions = MemoryQueryer.Instance.GetVirtualPages<SnapshotRegion>(
                         SessionManager.Session.OpenedProcess,
                         requiredPageFlags,
                         excludedPageFlags,

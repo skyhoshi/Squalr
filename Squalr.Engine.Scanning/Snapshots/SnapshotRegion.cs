@@ -20,6 +20,13 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
         /// </summary>
+        public SnapshotRegion() : base()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SnapshotRegion" /> class.
+        /// </summary>
         /// <param name="baseAddress">The base address of this memory region.</param>
         /// <param name="regionSize">The size of this memory region.</param>
         public SnapshotRegion(UInt64 baseAddress, Int32 regionSize) : base(baseAddress, regionSize)
@@ -48,6 +55,19 @@
             this.CurrentValues = other?.CurrentValues;
             this.PreviousValues = other?.PreviousValues;
             this.SnapshotElementRanges = elementRanges;
+        }
+
+        /// <summary>
+        /// Explicitly the range of this region.
+        /// </summary>
+        /// <param name="baseAddress">The base address of the region.</param>
+        /// <param name="regionSize">The size of the region.</param>
+        public override void GenericConstructor(UInt64 baseAddress, Int32 regionSize)
+        {
+            base.GenericConstructor(baseAddress, regionSize);
+
+            // Create one large snapshot element range spanning the entire region by default
+            this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
         }
 
         /// <summary>
