@@ -113,12 +113,9 @@
             set
             {
                 this.currentPage = value;
-                // this.LoadScanResults();
-                this.RaisePropertyChanged(nameof(this.CurrentPage));
-                this.RaisePropertyChanged(nameof(this.CanNavigateFirst));
-                this.RaisePropertyChanged(nameof(this.CanNavigatePrevious));
-                this.RaisePropertyChanged(nameof(this.CanNavigateNext));
-                this.RaisePropertyChanged(nameof(this.CanNavigateLast));
+                this.MemoryStream = null;
+                this.RefreshCurrentView();
+                this.RefreshUIBindings();
             }
         }
 
@@ -173,7 +170,7 @@
         {
             get
             {
-                return this.snapshotRegions?.Length ?? 0;
+                return this.snapshotRegions == null ? 0 : (this.snapshotRegions.Length - 1);
             }
         }
 
@@ -265,7 +262,12 @@
                     break;
             }
 
-            this.RaisePropertyChanged(nameof(this.PageCount));
+            if (this.activeRegion == null)
+            {
+                this.RefreshCurrentView();
+            }
+
+            this.RefreshUIBindings();
         }
 
         /// <summary>
@@ -278,38 +280,48 @@
                 return;
             }
 
-            activeRegion.ReadAllMemory(SessionManager.Session.OpenedProcess);
-            activeRegion.SetAlignment(MemoryAlignment.Alignment1, 1);
+            this.activeRegion.ReadAllMemory(SessionManager.Session.OpenedProcess);
+            this.activeRegion.SetAlignment(MemoryAlignment.Alignment1, 1);
 
-            Int32 size = Math.Min(this.viewSize.Length, activeRegion.ElementByteCount);
-
-            if (size <= 0)
+            if (!this.activeRegion.HasCurrentValues)
             {
                 this.MemoryStream = null;
             }
             else
             {
-                SnapshotElementIndexer indexer = activeRegion[0, MemoryAlignment.Alignment1];
-
-                if (indexer.HasCurrentValue())
+                if (this.MemoryStream == null)
                 {
-                    Byte[] value = indexer.LoadCurrentValue(this.viewSize) as Byte[];
-
-                    if (value != null)
+                    this.MemoryStream = new MemoryStream(this.activeRegion.CurrentValues);
+                }
+                else
+                {
+                    try
                     {
-                        if (this.MemoryStream == null)
-                        {
-                            this.MemoryStream = new MemoryStream(value);
-                        }
-                        else
-                        {
-                            this.MemoryStream.Seek(0, SeekOrigin.Begin);
-                            this.MemoryStream.Write(value, 0, (Int32)this.MemoryStream.Length);
-                            this.RaisePropertyChanged(nameof(this.MemoryStream));
-                        }
+                        this.MemoryStream.Seek(0, SeekOrigin.Begin);
+                        this.MemoryStream.Write(this.activeRegion.CurrentValues, 0, (Int32)this.MemoryStream.Length);
+                        this.RaisePropertyChanged(nameof(this.MemoryStream));
+                    }
+                    catch(Exception ex)
+                    {
                     }
                 }
             }
+        }
+        
+        private void RefreshCurrentView()
+        {
+            this.activeRegion = this.currentPage < (this.snapshotRegions?.Length ?? 0) ? this.snapshotRegions[this.currentPage] : null;
+        }
+
+        private void RefreshUIBindings()
+        {
+            this.RaisePropertyChanged(nameof(this.CurrentPage));
+            this.RaisePropertyChanged(nameof(this.PageCount));
+            this.RaisePropertyChanged(nameof(this.CanNavigateFirst));
+            this.RaisePropertyChanged(nameof(this.CanNavigatePrevious));
+            this.RaisePropertyChanged(nameof(this.CanNavigateNext));
+            this.RaisePropertyChanged(nameof(this.CanNavigateLast));
+            this.RaisePropertyChanged(nameof(this.MemoryStream));
         }
 
         /// <summary>

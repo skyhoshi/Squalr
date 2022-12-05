@@ -76,6 +76,7 @@
                 Stream="{Binding MemoryStream}"
                 AllowAutoHighLightSelectionByte="False"
                 AllowAutoSelectSameByteAtDoubleClick="True"
+                BytePerLine="32"
                 Width="Auto"
                 Height="Auto"/>
             <!--ContextMenu="{Binding Wat}"-->
