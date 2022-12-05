@@ -4,16 +4,16 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Common.OS;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
-    using Squalr.Properties;
     using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
     using Squalr.Source.ProjectExplorer.Dialogs;
     using Squalr.Source.ProjectExplorer.ProjectItems;
-    using Squalr.Source.PropertyViewer;
+    using Squalr.Source.Settings;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -282,7 +282,7 @@
         {
             try
             {
-                SelectProjectDialogViewModel.GetInstance().ShowDialog(System.Windows.Application.Current.MainWindow, (projectPath) =>
+                SelectProjectDialogViewModel.GetInstance().ShowSelectProjectDialog(System.Windows.Application.Current.MainWindow, (projectPath) =>
                 {
                     this.DoOpenProject(projectPath);
                 });
@@ -526,21 +526,7 @@
         {
             String directory = projectItemView.ProjectItem is DirectoryItem ? projectItemView.ProjectItem.FullPath : Path.GetDirectoryName(projectItemView.ProjectItem.FullPath);
 
-            if (Directory.Exists(directory))
-            {
-                try
-                {
-                    Process.Start("explorer.exe", @directory);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(LogLevel.Error, "Error opening file explorer", ex);
-                }
-            }
-            else
-            {
-                Logger.Log(LogLevel.Error, "Unable to open file explorer. Directory does not exist");
-            }
+            OSUtils.OpenPathInFileExplorer(directory);
         }
     }
     //// End class

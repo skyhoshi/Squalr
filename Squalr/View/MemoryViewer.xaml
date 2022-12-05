@@ -55,7 +55,7 @@
                                 Margin="4 0 0 0"
                                 Width="16"
                                 Height="16"
-                                Source="{x:Static content:Images.Increased}"
+                                Source="{x:Static content:Images.RightArrow}"
                                 ToolTip="Add Selected Items" />
                         </StackPanel>
                     </MenuItem.Header>
@@ -64,7 +64,7 @@
         </Border>
         <Grid Grid.Row="1">
             <hexEditor:HexEditor 
-                Background="{StaticResource SqualrColorFrame}"
+                Background="{StaticResource SqualrColorPanel}"
                 Foreground="{StaticResource SqualrColorWhite}"
                 ForegroundHighLightOffSetHeaderColor="{StaticResource SqualrColorWhite}"
                 ForegroundOffSetHeaderColor="{StaticResource SqualrColorWhite}"
@@ -73,16 +73,93 @@
                 MouseOverColor="{StaticResource SqualrColorHighlight}"
                 HighLightColor="{StaticResource SqualrColorHighlight}"
                 StatusBarVisibility="Collapsed"
-                ContextMenu="{Binding Wat}"
                 Stream="{Binding MemoryStream}"
                 AllowAutoHighLightSelectionByte="False"
                 AllowAutoSelectSameByteAtDoubleClick="True"
                 Width="Auto"
                 Height="Auto"/>
+            <!--ContextMenu="{Binding Wat}"-->
             <!--BarChartPanelVisibility="Visible"-->
         </Grid>
-        <Border Height="24" Grid.Row="3" Background="{StaticResource SqualrColorFrame}">
+        <Border Grid.Row="2" Background="{StaticResource SqualrColorFrame}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="196" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Menu
+                    Grid.Column="0"
+                    HorizontalAlignment="Right"
+                    Background="Transparent">
+                    <MenuItem
+                        Command="{Binding FirstPageCommand}"
+                        ToolTip="First Page"
+                        Visibility="{Binding CanNavigateFirst, Converter={StaticResource BooleanToHiddenConverter}}">
+                        <MenuItem.Header>
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.LeftArrows}"
+                                ToolTip="First Page" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                    <MenuItem
+                        Command="{Binding PreviousPageCommand}"
+                        ToolTip="Previous Page"
+                        Visibility="{Binding CanNavigatePrevious, Converter={StaticResource BooleanToHiddenConverter}}">
+                        <MenuItem.Header>
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.LeftArrow}"
+                                ToolTip="Previous Page" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                </Menu>
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="Page: " />
+                    <TextBox HorizontalContentAlignment="Center" Background="{StaticResource SqualrColorPanel}" MinWidth="48" Foreground="{StaticResource SqualrColorWhite}" Text="{Binding CurrentPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text=" of " />
+                    <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="{Binding PageCount}" />
+                </WrapPanel>
+                <Menu
+                    Grid.Column="2"
+                    HorizontalAlignment="Left"
+                    Background="Transparent">
+                    <MenuItem
+                        Command="{Binding NextPageCommand}"
+                        ToolTip="Next Page"
+                        Visibility="{Binding CanNavigateNext, Converter={StaticResource BooleanToHiddenConverter}}">
+                        <MenuItem.Header>
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.RightArrow}"
+                                ToolTip="Next Page" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                    <MenuItem
+                        Command="{Binding LastPageCommand}"
+                        ToolTip="Last Page"
+                        Visibility="{Binding CanNavigateLast, Converter={StaticResource BooleanToHiddenConverter}}">
+                        <MenuItem.Header>
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.RightArrows}"
+                                ToolTip="Last Page" />
+                        </MenuItem.Header>
+                    </MenuItem>
+                </Menu>
+            </Grid>
+        </Border>
+        <Border Grid.Row="3" Background="{StaticResource SqualrColorFrame}">
             <WrapPanel HorizontalAlignment="Center">
+                <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="{Binding ByteCount, Converter={StaticResource ValueToMetricSize}}" />
+                <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text=" - (Count: " />
+                <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="{Binding ResultCount}" />
+                <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text=")" />
             </WrapPanel>
         </Border>
     </Grid>

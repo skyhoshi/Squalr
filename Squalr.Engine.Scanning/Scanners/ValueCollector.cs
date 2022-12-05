@@ -1,11 +1,12 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners
 {
     using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
-    using Squalr.Engine.Processes;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using static Squalr.Engine.Common.TrackableTask;
@@ -45,36 +46,35 @@
 
                             // Read memory to get current values for each region
                             Parallel.ForEach(
-                                snapshot.OptimizedReadGroups,
+                                snapshot?.ReadOptimizedSnapshotRegions,
                                 options,
-                                (readGroup) =>
+                                (snapshotRegion) =>
                                 {
                                     // Check for canceled scan
                                     cancellationToken.ThrowIfCancellationRequested();
 
                                     // Read the memory for this region
-                                    readGroup.ReadAllMemory(process);
+                                    snapshotRegion.ReadAllMemory(process);
 
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedRegions) % 32 == 0)
                                     {
+                                        // Technically this callback is a data race, but it does not really matter if scan progress is not reported perfectly accurately
                                         updateProgress((float)processedRegions / (float)snapshot.RegionCount * 100.0f);
                                     }
                                 });
 
-                            // Exit if canceled
                             cancellationToken.ThrowIfCancellationRequested();
-
+                            UInt64 byteCount = snapshot?.SnapshotRegions?.Sum(snapshotRegion => unchecked((UInt64)snapshotRegion.RegionSize)) ?? 0;
                             stopwatch.Stop();
-                            snapshot.ComputeElementCount(ScannableType.Byte.Size);
 
                             if (withLogging)
                             {
                                 Logger.Log(LogLevel.Info, "Values collected in: " + stopwatch.Elapsed);
-                                Logger.Log(LogLevel.Info, "Results: " + snapshot.ElementCount + " bytes (" + Conversions.ValueToMetricSize(snapshot.ByteCount) + ")");
+                                Logger.Log(LogLevel.Info, Conversions.ValueToMetricSize(byteCount) + " bytes read");
                             }
 
-                                return snapshot;
+                            return snapshot;
                         }
                         catch (OperationCanceledException ex)
                         {

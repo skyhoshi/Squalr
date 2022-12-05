@@ -3,7 +3,6 @@
     using Source.DotNetExplorer;
     using Source.ScanResults;
     using Source.Snapshots;
-    using Squalr.Properties;
     using Squalr.Source.Debugger;
     using Squalr.Source.Editors.DataTypeEditor;
     using Squalr.Source.Editors.HotkeyEditor;
@@ -16,6 +15,7 @@
     using Squalr.Source.ProjectExplorer;
     using Squalr.Source.PropertyViewer;
     using Squalr.Source.Scanning;
+    using Squalr.Source.Settings;
     using System;
     using System.Collections.Generic;
     using System.Windows;

@@ -37,6 +37,7 @@ namespace Squalr.Engine.Common
         /// <summary>
         /// Gets or sets the mask used during scanning. Not serialized.
         /// </summary>
+        [DataMember]
         public Byte[] Mask { get; set; }
     };
 
@@ -46,6 +47,8 @@ namespace Squalr.Engine.Common
     [DataContract]
     public class ScannableType
     {
+        private Int32 size;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ScannableType" /> class.
         /// </summary>
@@ -65,7 +68,7 @@ namespace Squalr.Engine.Common
         /// <summary>
         /// Gets or sets the type wrapped by this class.
         /// </summary>
-        public Type Type { get; set; }
+        public Type Type { get; private set; }
 
         /// <summary>
         /// DataType for an array of bytes.
@@ -229,7 +232,13 @@ namespace Squalr.Engine.Common
         {
             get
             {
-                return Conversions.SizeOf(this);
+                // Conversions.SizeOf() can be expensive if called repeatedly, so only perform this check once.
+                if (this.size == 0)
+                {
+                    this.size = Conversions.SizeOf(this);
+                }
+
+                return this.size;
             }
         }
 

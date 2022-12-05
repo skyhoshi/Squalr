@@ -11,6 +11,7 @@
     /// <summary>
     /// Defines an address that can be added to the project explorer.
     /// </summary>
+    [KnownType(typeof(ByteArrayType))]
     [DataContract]
     public abstract class AddressItem : ProjectItem
     {
@@ -268,7 +269,14 @@
                 return;
             }
 
-            MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
+            try
+            {
+                MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(LogLevel.Error, "Error writing value to memory.", ex);
+            }
         }
     }
     //// End class

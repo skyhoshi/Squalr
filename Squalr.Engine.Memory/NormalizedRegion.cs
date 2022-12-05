@@ -20,9 +20,26 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="NormalizedRegion" /> class.
         /// </summary>
+        public NormalizedRegion()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NormalizedRegion" /> class.
+        /// </summary>
         /// <param name="baseAddress">The base address of the region.</param>
         /// <param name="regionSize">The size of the region.</param>
         public NormalizedRegion(UInt64 baseAddress, Int32 regionSize)
+        {
+            this.GenericConstructor(baseAddress, regionSize);
+        }
+
+        /// <summary>
+        /// Explicitly the range of this region.
+        /// </summary>
+        /// <param name="baseAddress">The base address of the region.</param>
+        /// <param name="regionSize">The size of the region.</param>
+        public virtual void GenericConstructor(UInt64 baseAddress, Int32 regionSize)
         {
             this.BaseAddress = baseAddress;
             this.RegionSize = regionSize;

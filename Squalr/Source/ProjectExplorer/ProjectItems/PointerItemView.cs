@@ -160,6 +160,21 @@
         }
 
         /// <summary>
+        /// Gets or sets the base address of this object. This will be added as an offset from the resolved base identifier.
+        /// </summary>
+        [Browsable(true)]
+        [RefreshProperties(RefreshProperties.All)]
+        [TypeConverter(typeof(AddressConverter))]
+        [SortedCategory(SortedCategory.CategoryType.Advanced), DisplayName("Raw Address"), Description("The raw address, computed from the module address, module offset, and pointer offsets.")]
+        public UInt64 RawAddress
+        {
+            get
+            {
+                return this.PointerItem.CalculatedAddress;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the pointer offsets of this address item.
         /// </summary>
         [Browsable(true)]

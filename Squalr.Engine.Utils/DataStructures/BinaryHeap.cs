@@ -1,10 +1,10 @@
-﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
+﻿namespace Squalr.Engine.Common.DataStructures
 {
     using System;
     using System.Collections;
     using System.Collections.Generic;
 
-    internal class BinaryHeap<T> : IEnumerable<T>
+    public class BinaryHeap<T> : IEnumerable<T>
     {
         /// <summary>
         /// Removes the need to instantiate with an IComparer if the default will suffice.

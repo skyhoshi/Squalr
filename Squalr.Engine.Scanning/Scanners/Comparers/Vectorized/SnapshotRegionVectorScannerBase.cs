@@ -1,7 +1,7 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
     using Squalr.Engine.Common;
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
@@ -30,7 +30,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.CurrentValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -41,7 +41,7 @@
         {
             get
             {
-                return new Vector<Byte>(this.Region.ReadGroup.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset + this.AlignmentReadOffset)));
+                return new Vector<Byte>(this.ElementRnage.ParentRegion.PreviousValues, unchecked((Int32)(this.VectorReadBase + this.VectorReadOffset)));
             }
         }
 
@@ -165,11 +165,6 @@
         public Int32 VectorReadOffset { get; protected set; }
 
         /// <summary>
-        /// Gets or sets the alignment offset, which is also used for reading the next vector.
-        /// </summary>
-        public Int32 AlignmentReadOffset { get; protected set; }
-
-        /// <summary>
         /// Gets or sets the base address from which vectors are read.
         /// </summary>
         protected Int32 VectorReadBase { get; set; }
@@ -187,20 +182,25 @@
         /// <summary>
         /// Gets an action based on the element iterator scan constraint.
         /// </summary>
-        protected Func<Vector<Byte>> VectorCompare { get; private set; }
+        protected Func<Vector<Byte>> VectorCompare { get; set; }
+
+        /// <summary>
+        /// Gets an action based on the element iterator scan constraint.
+        /// </summary>
+        protected Func<Vector<Byte>> CustomVectorCompare { get; set; }
 
         /// <summary>
         /// Initializes this scanner for the given region and constaints.
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        public override void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            base.Initialize(region: region, constraints: constraints);
+            base.Initialize(elementRange: elementRange, constraints: constraints);
 
             this.VectorCompare = this.BuildCompareActions(constraints);
             this.VectorMisalignment = this.CalculateVectorMisalignment();
-            this.VectorReadBase = region.ReadGroupOffset - this.VectorMisalignment;
+            this.VectorReadBase = elementRange.RegionOffset - this.VectorMisalignment;
             this.VectorOverread = this.CalculateVectorOverread();
             this.VectorReadOffset = 0;
             this.RunLengthEncoder.AdjustForMisalignment(this.VectorMisalignment);
@@ -212,7 +212,7 @@
         /// <param name="customCompare"></param>
         public void SetCustomCompareAction(Func<Vector<Byte>> customCompare)
         {
-            this.VectorCompare = customCompare;
+            this.CustomVectorCompare = customCompare;
         }
 
         /// <summary>
@@ -244,6 +244,40 @@
         }
 
         /// <summary>
+        /// Run-length encodes the given scan results into snapshot regions.
+        /// </summary>
+        /// <param name="scanResults">The scan results to encode.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void EncodeScanResults(ref Vector<Byte> scanResults)
+        {
+            // Optimization: check all vector results true
+            if (Vector.GreaterThanAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
+            }
+            // Optimization: check all vector results false
+            else if (Vector.EqualsAll(scanResults, Vector<Byte>.Zero))
+            {
+                this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
+            }
+            else
+            {
+                // Otherwise the vector contains a mixture of true and false
+                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
+                {
+                    if (scanResults[resultIndex] != 0)
+                    {
+                        this.RunLengthEncoder.EncodeRange(this.DataTypeSize);
+                    }
+                    else
+                    {
+                        this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.DataTypeSize);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Calculates the misalignment of the base address of the current snapshot region being scanned. This can be used to correct
         /// the base address to ensure all values can be scanned and fit into vectors as intended.
         /// </summary>
@@ -251,11 +285,11 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Int32 CalculateVectorMisalignment()
         {
-            Int32 availableByteCount = this.Region.GetByteCount(this.DataTypeSize);
+            Int32 availableByteCount = this.ElementRnage.GetByteCount(this.DataTypeSize);
             Int32 vectorRemainder = availableByteCount % Vectors.VectorSize;
             Int32 vectorAlignedByteCount = vectorRemainder <= 0 ? availableByteCount : (availableByteCount - vectorRemainder + Vectors.VectorSize);
-            UInt64 vectorEndAddress = unchecked(this.Region.BaseElementAddress + (UInt64)vectorAlignedByteCount);
-            Int32 vectorMisalignment = vectorEndAddress <= this.Region.ReadGroup.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.Region.ReadGroup.EndAddress));
+            UInt64 vectorEndAddress = unchecked(this.ElementRnage.BaseElementAddress + (UInt64)vectorAlignedByteCount);
+            Int32 vectorMisalignment = vectorEndAddress <= this.ElementRnage.ParentRegion.EndAddress ? 0 : unchecked((Int32)(vectorEndAddress - this.ElementRnage.ParentRegion.EndAddress));
 
             return vectorMisalignment;
         }
@@ -267,7 +301,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Int32 CalculateVectorOverread()
         {
-            Int32 remainingBytes = this.Region.Range % Vectors.VectorSize;
+            Int32 remainingBytes = this.ElementRnage.Range % Vectors.VectorSize;
             Int32 vectorOverread = remainingBytes == 0 ? 0 : (Vectors.VectorSize - remainingBytes);
 
             return vectorOverread;
@@ -856,6 +890,11 @@
         /// <param name="compareActionValue">The value to use for the scan.</param>
         private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
+            if (this.CustomVectorCompare != null)
+            {
+                return this.CustomVectorCompare;
+            }
+
             switch (constraint)
             {
                 case ScanConstraints scanConstraints:
@@ -874,7 +913,7 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.Zero))
+                                if (Vector.EqualsAll(resultLeft, Vector<Byte>.Zero))
                                 {
                                     return Vector<Byte>.Zero;
                                 }
@@ -889,9 +928,9 @@
                                 Vector<Byte> resultLeft = this.BuildCompareActions(operationConstraint.Left).Invoke();
 
                                 // Early exit mechanism to prevent extra comparisons
-                                if (resultLeft.Equals(Vector<Byte>.One))
+                                if (Vector.GreaterThanAll(resultLeft, Vector<Byte>.Zero))
                                 {
-                                    return Vector<Byte>.One;
+                                    return Vector.OnesComplement(Vector<Byte>.Zero);
                                 }
 
                                 Vector<Byte> resultRight = this.BuildCompareActions(operationConstraint.Right).Invoke();

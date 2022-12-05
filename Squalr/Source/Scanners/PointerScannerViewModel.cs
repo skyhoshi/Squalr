@@ -219,7 +219,7 @@
                     this.TargetAddress,
                     (UInt32)this.PointerRadius,
                     this.PointerDepth,
-                    pointerSize.ToSize(),
+                    MemoryAlignment.Alignment4,
                     pointerSize,
                     PointerScannerViewModel.PointerScanTaskIdentifier
                 );
@@ -242,7 +242,6 @@
                     SessionManager.Session.OpenedProcess,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
                     readMemory: true,
-                    performUnchangedScan: true,
                     taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier
                 );
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRebaseTask);
@@ -264,7 +263,7 @@
                 TrackableTask<PointerBag> pointerRetargetScanTask = PointerRetargetScan.Scan(
                     SessionManager.Session.OpenedProcess,
                     this.RetargetAddress,
-                    pointerSize.ToSize(),
+                    MemoryAlignment.Alignment4,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
                     PointerScannerViewModel.PointerScanTaskIdentifier
                 );

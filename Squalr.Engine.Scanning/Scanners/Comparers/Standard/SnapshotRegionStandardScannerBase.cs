@@ -1,4 +1,4 @@
-﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Iterative
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Standard
 {
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
@@ -38,19 +38,29 @@
         /// </summary>
         private GCHandle PreviousValuesHandle { get; set; }
 
-        public override void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
+        public override void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            base.Initialize(region, constraints);
+            base.Initialize(elementRange, constraints);
 
             // The garbage collector can relocate variables at runtime. Since we use unsafe pointers, we need to keep these pinned
-            this.CurrentValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.CurrentValues, GCHandleType.Pinned);
-            this.PreviousValuesHandle = GCHandle.Alloc(this.Region.ReadGroup.PreviousValues, GCHandleType.Pinned);
+            this.CurrentValuesHandle = GCHandle.Alloc(this.ElementRnage.ParentRegion.CurrentValues, GCHandleType.Pinned);
+            this.PreviousValuesHandle = GCHandle.Alloc(this.ElementRnage.ParentRegion.PreviousValues, GCHandleType.Pinned);
             this.ElementCompare = this.BuildCompareActions(constraints);
 
             this.InitializePointers();
         }
 
-        public void InitializeNoPinning(SnapshotRegion region, ScanConstraints constraints)
+        /// <summary>
+        /// Initializes this scanner for the given region and constaints. Does not perform any garbace collector pinning.
+        /// </summary>
+        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
+        public void InitializeNoPinning(SnapshotElementRange region, ScanConstraints constraints)
         {
             base.Initialize(region, constraints);
 
@@ -76,9 +86,9 @@
         /// </summary>
         private unsafe void InitializePointers()
         {
-            if (this.Region.ReadGroup.CurrentValues != null && this.Region.ReadGroup.CurrentValues.Length > 0)
+            if (this.ElementRnage.ParentRegion.CurrentValues != null && this.ElementRnage.ParentRegion.CurrentValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.Region.ReadGroup.CurrentValues[this.Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ParentRegion.CurrentValues[this.ElementRnage.RegionOffset])
                 {
                     this.CurrentValuePointer = pointerBase;
                 }
@@ -88,9 +98,9 @@
                 this.CurrentValuePointer = null;
             }
 
-            if (this.Region.ReadGroup.PreviousValues != null && this.Region.ReadGroup.PreviousValues.Length > 0)
+            if (this.ElementRnage.ParentRegion.PreviousValues != null && this.ElementRnage.ParentRegion.PreviousValues.Length > 0)
             {
-                fixed (Byte* pointerBase = &this.Region.ReadGroup.PreviousValues[this.Region.ReadGroupOffset])
+                fixed (Byte* pointerBase = &this.ElementRnage.ParentRegion.PreviousValues[this.ElementRnage.RegionOffset])
                 {
                     this.PreviousValuePointer = pointerBase;
                 }

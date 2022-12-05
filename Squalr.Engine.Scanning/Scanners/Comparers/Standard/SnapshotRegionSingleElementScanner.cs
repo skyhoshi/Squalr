@@ -1,4 +1,4 @@
-﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Iterative
+﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Standard
 {
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
@@ -20,36 +20,29 @@
         }
 
         /// <summary>
-        /// Finalizes an instance of the <see cref="SnapshotRegionSingleElementScanner" /> class.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        ~SnapshotRegionSingleElementScanner()
-        {
-        }
-
-        /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
-        /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public unsafe override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public unsafe override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.InitializeNoPinning(region: region, constraints: constraints);
+            this.InitializeNoPinning(region: elementRange, constraints: constraints);
 
-            fixed (Byte* currentValuePtr = &region.ReadGroup.CurrentValues[region.ReadGroupOffset])
+            fixed (Byte* currentValuePtr = &elementRange.ParentRegion.CurrentValues[elementRange.RegionOffset])
             {
-                if (region.ReadGroup.PreviousValues != null && region.ReadGroup.PreviousValues.Length > 0)
+                if (elementRange.ParentRegion.PreviousValues != null && elementRange.ParentRegion.PreviousValues.Length > 0)
                 {
-                    fixed (Byte* previousValuePtr = &region.ReadGroup.PreviousValues[region.ReadGroupOffset])
+                    fixed (Byte* previousValuePtr = &elementRange.ParentRegion.PreviousValues[elementRange.RegionOffset])
                     {
                         this.CurrentValuePointer = currentValuePtr;
                         this.PreviousValuePointer = previousValuePtr;
 
                         if (this.ElementCompare())
                         {
-                            return new List<SnapshotRegion>()
+                            return new List<SnapshotElementRange>()
                             {
-                                new SnapshotRegion(region.ReadGroup, region.ReadGroupOffset, region.Range)
+                                new SnapshotElementRange(elementRange.ParentRegion, elementRange.RegionOffset, elementRange.Range)
                             };
                         }
                     }
@@ -60,9 +53,9 @@
 
                     if (this.ElementCompare())
                     {
-                        return new List<SnapshotRegion>()
+                        return new List<SnapshotElementRange>()
                         {
-                            new SnapshotRegion(region.ReadGroup, region.ReadGroupOffset, region.Range)
+                            new SnapshotElementRange(elementRange.ParentRegion, elementRange.RegionOffset, elementRange.Range)
                         };
                     }
                 }

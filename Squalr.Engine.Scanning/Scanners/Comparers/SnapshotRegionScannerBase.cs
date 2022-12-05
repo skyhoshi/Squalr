@@ -22,7 +22,7 @@
         /// <summary>
         /// Gets or sets the parent snapshot region.
         /// </summary>
-        protected SnapshotRegion Region { get; set; }
+        protected SnapshotElementRange ElementRnage { get; set; }
 
         /// <summary>
         /// Gets or sets a snapshot region run length encoder, which is used to create the snapshots from this scan.
@@ -54,10 +54,10 @@
         /// </summary>
         /// <param name="region">The parent region that contains this element.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
-        public virtual void Initialize(SnapshotRegion region, ScanConstraints constraints)
+        public virtual void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            this.RunLengthEncoder.Initialize(region);
-            this.Region = region;
+            this.RunLengthEncoder.Initialize(elementRange);
+            this.ElementRnage = elementRange;
             this.DataType = constraints.ElementType;
             this.DataTypeSize = constraints.ElementType.Size; this.Alignment = this.DataType is ByteArrayType ? MemoryAlignment.Alignment1
                 : (constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment);
@@ -78,7 +78,7 @@
         public virtual void Dispose()
         {
             this.RunLengthEncoder.Dispose();
-            this.Region = null;
+            this.ElementRnage = null;
 
             if (this.OnDispose != null)
             {
@@ -87,12 +87,12 @@
         }
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public abstract IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints);
+        /// <returns>The resulting elements, if any.</returns>
+        public abstract IList<SnapshotElementRange> ScanRegion(SnapshotElementRange region, ScanConstraints constraints);
     }
     //// End class
 }

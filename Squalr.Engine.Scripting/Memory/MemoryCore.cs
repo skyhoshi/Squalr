@@ -11,6 +11,7 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading;
 
     /// <summary>
@@ -116,7 +117,7 @@
             this.PrintDebugTag();
 
             assembly = this.ResolveKeywords(assembly);
-            AssemblerResult result = Assembler.Default.Assemble(assembly, this.Session.OpenedProcess.Is32Bit(), address);
+            AssemblerResult result = CpuArchitecture.GetInstance().GetAssembler().Assemble(assembly, this.Session.OpenedProcess.Is32Bit(), address);
 
             Logger.Log(LogLevel.Info, result.Message, result.InnerMessage);
 
@@ -146,7 +147,7 @@
             }
 
             // Grab instructions at code entry point
-            IEnumerable<Instruction> instructions = Disassembler.Default.Disassemble(originalBytes, this.Session.OpenedProcess.Is32Bit(), address);
+            IEnumerable<Instruction> instructions = CpuArchitecture.GetInstance().GetDisassembler().Disassemble(originalBytes, this.Session.OpenedProcess.Is32Bit(), address);
 
             // Determine size of instructions we need to overwrite
             Int32 replacedInstructionSize = 0;

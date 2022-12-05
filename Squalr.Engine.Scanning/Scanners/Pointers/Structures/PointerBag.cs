@@ -1,12 +1,16 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Pointers.Structures
 {
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Memory;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Net;
 
     /// <summary>
     /// A class to contain the discovered pointers from a pointer scan.
@@ -62,7 +66,7 @@
         /// Gets a random pointer from the pointer collection.
         /// </summary>
         /// <returns>A random discovered pointer, or null if unable to find one.</returns>
-        public Pointer GetRandomPointer(Int32 levelIndex)
+        public Pointer GetRandomPointer(Process targetProcess, Int32 levelIndex)
         {
             if (levelIndex >= this.Levels.Count || this.Levels[levelIndex].StaticPointers == null)
             {
@@ -85,20 +89,24 @@
                 foreach (Int32 nextRandomOffset in shuffledOffsets)
                 {
                     UInt64 newDestination = nextRandomOffset < 0 ? pointer.Destination.Subtract(-nextRandomOffset, wrapAround: false) : pointer.Destination.Add(nextRandomOffset, wrapAround: false);
-                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Select(x => x).Where(y => newDestination >= y.BaseElementAddress && newDestination <= y.EndElementAddress).FirstOrDefault();
+                    SnapshotRegion snapshotRegion = level.HeapPointers.SnapshotRegions.Where(y => newDestination >= y.BaseAddress && newDestination <= y.EndAddress).FirstOrDefault();
 
                     if (snapshotRegion != null)
                     {
                         // We may have sampled an offset that results in a mis-aligned index, so just randomly take an element from this snapshot rather than using the random offset
-                        Int32 elementCount = snapshotRegion.GetAlignedElementCount(currentSnapshot.Alignment);
-                        SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount), currentSnapshot.Alignment];
-                        UInt64 baseAddress = randomElement.GetBaseAddress(PointerSize.ToSize());
-                        Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
+                        Int32 elementCount = snapshotRegion.TotalElementCount;
+                        SnapshotElementIndexer randomElement = snapshotRegion[PointerBag.RandInstance.Next(0, elementCount).ToUInt64(), currentSnapshot.Alignment];
 
-                        pointer = this.ExtractPointerFromElement(randomElement);
-                        offsets.Add(alignedOffset);
-                        found = true;
-                        break;
+                        if (randomElement != null)
+                        {
+                            UInt64 baseAddress = randomElement.GetBaseAddress();
+                            Int32 alignedOffset = pointer.Destination >= baseAddress ? -((Int32)(pointer.Destination - baseAddress)) : ((Int32)(baseAddress - pointer.Destination));
+
+                            pointer = this.ExtractPointerFromElement(randomElement);
+                            offsets.Add(alignedOffset);
+                            found = true;
+                            break;
+                        }
                     }
                 }
 
@@ -109,20 +117,29 @@
                 }
             }
 
-            return new Pointer(pointerBase, this.PointerSize, offsets.ToArray());
+            String moduleName;
+            pointerBase = MemoryQueryer.Instance.AddressToModule(targetProcess, pointerBase, out moduleName);
+
+            return new Pointer(moduleName, pointerBase, this.PointerSize, offsets.ToArray());
         }
 
         private ExtractedPointer ExtractRandomPointer(Snapshot snapshot)
         {
             UInt64 elementIndex = PointerBag.RandInstance.RandomUInt64(0, snapshot.ElementCount);
-            SnapshotElementIndexer extractedElement = snapshot[elementIndex, PointerSize.ToSize()];
+            SnapshotElementIndexer extractedElement = snapshot[elementIndex, MemoryAlignment.Alignment4];
+
+            if (extractedElement == null)
+            {
+                Logger.Log(LogLevel.Error, "Unknown error encountered when extracting a pointer.");
+                return new ExtractedPointer(0, 0);
+            }
 
             return this.ExtractPointerFromElement(extractedElement);
         }
 
         private ExtractedPointer ExtractPointerFromElement(SnapshotElementIndexer element)
         {
-            return new ExtractedPointer(element.GetBaseAddress(PointerSize.ToSize()), element.HasCurrentValue()
+            return new ExtractedPointer(element.GetBaseAddress(), element.HasCurrentValue()
                 ? (this.PointerSize == PointerSize.Byte4 ? (UInt32)element.LoadCurrentValue(PointerSize.ToDataType())
                 : (UInt64)element.LoadCurrentValue(PointerSize.ToDataType())) : 0);
         }

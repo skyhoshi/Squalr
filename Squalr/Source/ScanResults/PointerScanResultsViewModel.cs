@@ -228,11 +228,11 @@
 
         private void ExtractPointer(Int32 levelIndex)
         {
-            Pointer pointer = this.DiscoveredPointers.GetRandomPointer(levelIndex);
+            Pointer pointer = this.DiscoveredPointers.GetRandomPointer(SessionManager.Session.OpenedProcess, levelIndex);
 
             if (pointer != null)
             {
-                PointerItem pointerItem = new PointerItem(SessionManager.Session, pointer.BaseAddress, this.ActiveType, "New Pointer", null, pointer.Offsets);
+                PointerItem pointerItem = new PointerItem(SessionManager.Session, pointer.ModuleOffset, this.ActiveType, "New Pointer", pointer.ModuleName, pointer.Offsets);
                 ProjectExplorerViewModel.GetInstance().AddProjectItems(pointerItem);
             }
         }

@@ -4,6 +4,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Memory;
     using Squalr.Engine.Projects.Items;
     using Squalr.Engine.Scanning.Snapshots;
@@ -27,7 +28,7 @@
         /// <summary>
         /// The number of elements to display on each page.
         /// </summary>
-        private const Int32 PageSize = 64;
+        private const Int32 PageSize = 128;
 
         /// <summary>
         /// Singleton instance of the <see cref="ScanResultsViewModel" /> class.
@@ -268,7 +269,7 @@
         }
 
         /// <summary>
-        /// Gets the total number of addresses found.
+        /// Gets the total number of pages of scan results found.
         /// </summary>
         public UInt64 PageCount
         {
@@ -345,7 +346,7 @@
         /// <param name="snapshot">The active snapshot.</param>
         public void Update(Snapshot snapshot)
         {
-            snapshot?.ComputeElementCount(this.ActiveType.Size);
+            snapshot?.SetAlignment(snapshot.Alignment);
             this.ResultCount = snapshot == null ? 0 : snapshot.ElementCount;
             this.ByteCount = snapshot == null ? 0 : snapshot.ByteCount;
             this.CurrentPage = 0;
@@ -399,11 +400,17 @@
 
                 for (UInt64 index = startIndex; index < endIndex; index++)
                 {
-                    SnapshotElementIndexer element = snapshot[index, this.ActiveType.Size];
+                    SnapshotElementIndexer element = snapshot[index, snapshot.Alignment];
+
+                    if (element == null)
+                    {
+                        Logger.Log(LogLevel.Error, "Encountered null element. Aborting loading scan results. This is a bug and should be reported.");
+                        break;
+                    }
 
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
-                    UInt64 address = element.GetBaseAddress(this.ActiveType.Size);
+                    UInt64 address = element.GetBaseAddress();
                     String moduleName = String.Empty;
 
                     switch (emulatorType)

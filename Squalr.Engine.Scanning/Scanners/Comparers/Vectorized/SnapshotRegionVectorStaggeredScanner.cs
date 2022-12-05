@@ -1,14 +1,16 @@
 ﻿namespace Squalr.Engine.Scanning.Scanners.Comparers.Vectorized
 {
-    using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Common;
+    using Squalr.Engine.Common.Hardware;
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Collections.Generic;
     using System.Numerics;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
-    /// A vector scanner implementation that can handle staggered (ie non data type aligned) vector scans.
+    /// A vector scanner implementation that can handle staggered vector scans (alignment less than data type size).
     /// </summary>
     internal unsafe class SnapshotRegionVectorStaggeredScanner : SnapshotRegionVectorScannerBase
     {
@@ -22,95 +24,164 @@
         }
 
         /// <summary>
-        /// An alignment mask table for computing temporary run length encoding data during scans.
+        /// Gets a dictionary of staggered mask maps. This only needs to store staggered masks for cases where alignment size is less than the data type size.
         /// </summary>
-        private static readonly Vector<Byte>[] AlignmentMaskTable = new Vector<Byte>[8]
+        private static readonly Dictionary<Int32, Dictionary<MemoryAlignment, Vector<Byte>[]>> StaggeredMaskMap = new Dictionary<Int32, Dictionary<MemoryAlignment, Vector<Byte>[]>>
         {
-                new Vector<Byte>(1 << 0),
-                new Vector<Byte>(1 << 1),
-                new Vector<Byte>(1 << 2),
-                new Vector<Byte>(1 << 3),
-                new Vector<Byte>(1 << 4),
-                new Vector<Byte>(1 << 5),
-                new Vector<Byte>(1 << 6),
-                new Vector<Byte>(1 << 7),
+            // Data type size 2
+            {
+                2, new Dictionary<MemoryAlignment, Vector<Byte>[]>
+                {
+                    // 1-byte aligned
+                    {
+                        MemoryAlignment.Alignment1, new Vector<Byte>[2]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt16>(0x00FF)),
+                            Vector.AsVectorByte(new Vector<UInt16>(0xFF00)),
+                        }
+                    },
+                }
+            },
+            // Data type size 4
+            {
+                4, new Dictionary<MemoryAlignment, Vector<Byte>[]>
+                {
+                    // 1-byte aligned
+                    {
+                        MemoryAlignment.Alignment1, new Vector<Byte>[4]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt32>(0x000000FF)),
+                            Vector.AsVectorByte(new Vector<UInt32>(0x0000FF00)),
+                            Vector.AsVectorByte(new Vector<UInt32>(0x00FF0000)),
+                            Vector.AsVectorByte(new Vector<UInt32>(0xFF000000)),
+                        }
+                    },
+                    // 2-byte aligned
+                    {
+                        MemoryAlignment.Alignment2, new Vector<Byte>[2]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt32>(0x0000FFFF)),
+                            Vector.AsVectorByte(new Vector<UInt32>(0xFFFF0000)),
+                        }
+                    },
+                }
+            },
+            // Data type size 8
+            {
+                8, new Dictionary<MemoryAlignment, Vector<Byte>[]>
+                {
+                    // 1-byte aligned
+                    {
+                        MemoryAlignment.Alignment1, new Vector<Byte>[8]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt64>(0x00000000000000FF)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x000000000000FF00)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x0000000000FF0000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x00000000FF000000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x000000FF00000000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x0000FF0000000000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x00FF000000000000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0xFF00000000000000)),
+                        }
+                    },
+                    // 2-byte aligned
+                    {
+                        MemoryAlignment.Alignment2, new Vector<Byte>[4]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt64>(0x000000000000FFFF)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x00000000FFFF0000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0x0000FFFF00000000)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0xFFFF000000000000)),
+                        }
+                    },
+                    // 4-byte aligned
+                    {
+                        MemoryAlignment.Alignment4, new Vector<Byte>[2]
+                        {
+                            Vector.AsVectorByte(new Vector<UInt64>(0x00000000FFFFFFFF)),
+                            Vector.AsVectorByte(new Vector<UInt64>(0xFFFFFFFF00000000)),
+                        }
+                    },
+                }
+            },
         };
 
         /// <summary>
-        /// Performs a scan over the given region, returning the discovered regions.
+        /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
-        /// <param name="region">The region to scan.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The scan constraints.</param>
-        /// <returns>The resulting regions, if any.</returns>
-        public override IList<SnapshotRegion> ScanRegion(SnapshotRegion region, ScanConstraints constraints)
+        /// <returns>The resulting elements, if any.</returns>
+        public override IList<SnapshotElementRange> ScanRegion(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            // This algorithm works as such:
-            // 1) Load a hardware vector of the data type to scan (say 128 bytes => 16 doubles).
-            // 2) Simultaneously scan all 16 doubles (scan result will be true/false).
-            // 3) Store the results in a run length encoding (RLE) vector. Important: this RLE vector is (temporarily) a lie.
-            //      In this case 1-byte alignment would mean there are 7 additional doubles between each of the doubles we just scanned!
-            // 4) For this reason, we maintain an RLE vector and populate the "in-between" values for any alignments.
-            //      ie we may have a RLE vector of < 1111000, 00001111 ... >, which would indicate 4 consecutive successes, 8 consecutive fails, and 4 consecutive successes.
-            // 5) Process the RLE vector to update our RunLength variable, and encode any regions as they complete.
+            this.Initialize(elementRange: elementRange, constraints: constraints);
 
-            // Since this algorithm loads elements into a hardware vector, there are three cases we need to consider:
-            // Case 1) The snapshot readgroup does not fit into a single hardware vector (In which case using this scan class was a mistake, and it will crash)
-            // Case 2) The snapshot region can be broken into chunks that fit perfectly in hardware vectors
-            // Case 3) The snapshot region can fit into a hardware vector, but the base address would not allow the remaining data to fit into a vector
-            //      In this case, we shift the base address to read in some extra data, and ignore the result of these extra scans.
+            // This algorithm is mostly the same as SnapshotRegionVectorFastScanner. The primary difference is that instead of doing one vector comparison, multiple scans must be done per vector to
+            // scan for mis-aligned values. This adds 2 to 8 additional vector scans, based on the alignment and data type. Each of these sub-scans is masked against a stagger mask to create the scan result.
+            // For example, scanning for 4-byte integer 0 with an alignment of 2-bytes against <0, 0, 0, 0, 55, 0, 0, 0, 0, 0> would need to return <255, 0, 0, 0, 255, 255, ..>.
+            // This is accomplished by performing a full vector scan, then masking it against the appropriate stagger mask to extract the relevant scan results for that iteration.
+            // These sub-scans are OR'd together to get a run-length encoded vector of all scan matches.
 
-            Int32 scanCountPerVector = this.DataTypeSize / unchecked((Int32)this.Alignment);
-            Vector<Byte> allEqualsVector = new Vector<Byte>(unchecked((Byte)(1 << unchecked((Byte)scanCountPerVector) - 1)));
-            Vector<Byte> runLengthVector;
+            Int32 scanCount = this.ElementRnage.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
+            Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
+            Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - (Int32)this.Alignment * scanCountPerVector);
+            Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
+            Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
+            Vector<Byte>[] staggeredMasks = SnapshotRegionVectorStaggeredScanner.StaggeredMaskMap[this.DataTypeSize][this.Alignment];
+            Vector<Byte> scanResults;
 
-            for (; this.VectorReadOffset < this.Region.Range; this.VectorReadOffset += Vectors.VectorSize)
+            // Perform the first scan (there should always be at least one). Apply the misalignment mask, and optionally the overread mask if this is also the finals scan.
             {
-                runLengthVector = Vector<Byte>.Zero;
+                scanResults = Vector.BitwiseAnd(Vector.BitwiseAnd(misalignmentMask, this.StaggeredVectorScan(ref staggeredMasks)), scanCount == 1 ? overreadMask : Vectors.AllBits);
+                this.EncodeScanResults(ref scanResults);
+                this.VectorReadOffset += offsetVectorIncrementSize;
+            }
 
-                for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
-                {
-                    Vector<Byte> scanResults = this.VectorCompare();
+            // Perform middle scans
+            for (; this.VectorReadOffset < this.ElementRnage.Range - Vectors.VectorSize; this.VectorReadOffset += offsetVectorIncrementSize)
+            {
+                scanResults = this.StaggeredVectorScan(ref staggeredMasks);
+                this.EncodeScanResults(ref scanResults);
+            }
 
-                    runLengthVector = Vector.BitwiseOr(runLengthVector, Vector.BitwiseAnd(AlignmentMaskTable[alignmentIndex], scanResults));
-                }
-
-                // Optimization: check all vector results true
-                if (Vector.EqualsAll(runLengthVector, allEqualsVector))
-                {
-                    this.RunLengthEncoder.EncodeRange(Vectors.VectorSize);
-                    continue;
-                }
-                // Optimization: check all vector results false
-                else if (Vector.EqualsAll(runLengthVector, Vector<Byte>.Zero))
-                {
-                    this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(Vectors.VectorSize);
-                    continue;
-                }
-
-                // Otherwise the vector contains a mixture of true and false
-                for (Int32 resultIndex = 0; resultIndex < Vectors.VectorSize; resultIndex += this.DataTypeSize)
-                {
-                    Byte runLengthFlags = runLengthVector[resultIndex];
-
-                    for (Int32 alignmentIndex = 0; alignmentIndex < scanCountPerVector; alignmentIndex++)
-                    {
-                        Boolean runLengthResult = (runLengthFlags & unchecked((Byte)(1 << alignmentIndex))) != 0;
-
-                        if (runLengthResult)
-                        {
-                            this.RunLengthEncoder.EncodeRange(this.DataTypeSize / scanCountPerVector);
-                        }
-                        else
-                        {
-                            this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked(this.DataTypeSize / scanCountPerVector);
-                        }
-                    }
-                }
+            // Perform final scan, applying the overread mask if applicable.
+            if (scanCount > 1)
+            {
+                scanResults = Vector.BitwiseAnd(overreadMask, this.StaggeredVectorScan(ref staggeredMasks));
+                this.EncodeScanResults(ref scanResults);
+                this.VectorReadOffset += offsetVectorIncrementSize;
             }
 
             this.RunLengthEncoder.FinalizeCurrentEncodeUnchecked();
 
             return this.RunLengthEncoder.GetCollectedRegions();
+        }
+
+        /// <summary>
+        /// Performs a staggered scan of a given vector.
+        /// </summary>
+        /// <returns>The staggered scan results vector.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        Vector<Byte> StaggeredVectorScan(ref Vector<Byte>[] staggeredMasks)
+        {
+            Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
+            Vector<Byte> scanResults = Vector<Byte>.Zero;
+
+            for (Int32 alignmentOffset = 0; alignmentOffset < scanCountPerVector; alignmentOffset++)
+            {
+                scanResults = Vector.BitwiseOr(scanResults, Vector.BitwiseAnd(this.VectorCompare(), staggeredMasks[alignmentOffset]));
+
+                this.VectorReadOffset += unchecked((Int32)this.Alignment);
+
+                // Advance to the expected vector read offset if we run out of bytes
+                if (this.VectorReadOffset >= this.ElementRnage.Range - Vectors.VectorSize)
+                {
+                    this.VectorReadOffset += unchecked((Int32)this.Alignment * (scanCountPerVector - alignmentOffset - 1));
+                    break;
+                }
+            }
+
+            return scanResults;
         }
     }
     //// End class

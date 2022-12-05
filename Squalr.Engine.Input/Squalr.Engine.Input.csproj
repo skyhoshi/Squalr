@@ -14,9 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpDX" Version="4.1.0-ci217" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.1.0-ci217" />
-    <PackageReference Include="SharpDX.XInput" Version="4.1.0-ci217" />
+    <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
   </ItemGroup>
 
   <ItemGroup>
