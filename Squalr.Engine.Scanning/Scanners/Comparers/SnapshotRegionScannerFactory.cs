@@ -22,11 +22,14 @@
         /// <returns>The resulting elements, if any.</returns>
         public static ISnapshotRegionScanner AquireScannerInstance(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
-            if (elementRange.Range == 1)
+            // This seems like it should save time, but it seems to lose substantial time
+            /*if (unchecked(elementRange.Range == (Int32)constraints.Alignment))
             {
                 return snapshotRegionSingleElementScannerPool.Get();
             }
-            else if (Vectors.HasVectorSupport && elementRange.ParentRegion.RegionSize >= Vectors.VectorSize)
+            else */
+            
+            if (Vectors.HasVectorSupport && elementRange.ParentRegion.RegionSize >= Vectors.VectorSize)
             {
                 return SnapshotRegionScannerFactory.CreateVectorScannerInstance(elementRange, constraints);
             }

@@ -7,6 +7,7 @@
     using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -76,7 +77,7 @@
 
                                     snapshotRegion.Align(constraints.Alignment);
 
-                                    ConcurrentScanElementRangeBag scanResults = new ConcurrentScanElementRangeBag();
+                                    ConcurrentBag<SnapshotElementRange> scanResults = new ConcurrentBag<SnapshotElementRange>();
 
                                     // For most workloads, the nested parallel for loop will be ever-so-slightly slower than a regular loop, however this is worth it because
                                     // there are some cases where this saves a significant amount of time, as there may be a small number of snapshot regions with a substantial number of elements.
@@ -92,7 +93,10 @@
 
                                                 if (!results.IsNullOrEmpty())
                                                 {
-                                                    scanResults.Add(results);
+                                                    foreach (SnapshotElementRange element in results)
+                                                    {
+                                                        scanResults.Add(element);
+                                                    }
                                                 }
                                             }
                                         });
