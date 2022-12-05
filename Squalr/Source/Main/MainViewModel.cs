@@ -11,6 +11,8 @@
     using System.Threading;
     using System.Windows;
     using System.Windows.Input;
+    using GalaSoft.MvvmLight.Command;
+    using Squalr.Source.ChangeLog;
 
     /// <summary>
     /// Main view model.
@@ -40,7 +42,7 @@
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
-            
+
             // this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
         }
 

@@ -146,7 +146,7 @@
                 XmlLayoutSerializer serializer = new XmlLayoutSerializer(dockManager);
                 serializer.Serialize(fileName);
             }
-            catch
+            catch (Exception)
             {
             }
         }

@@ -40,7 +40,7 @@
         <intr:EventTrigger EventName="Loaded">
             <intr:InvokeCommandAction Command="{Binding LoadLayoutCommand}" CommandParameter="{Binding ., ElementName=dockManager}" />
         </intr:EventTrigger>
-        <intr:EventTrigger EventName="Unloaded">
+        <intr:EventTrigger EventName="Closing">
             <intr:InvokeCommandAction Command="{Binding SaveLayoutCommand}" CommandParameter="{Binding ., ElementName=dockManager}" />
         </intr:EventTrigger>
         <intr:EventTrigger EventName="ContentRendered">

@@ -80,12 +80,10 @@
         /// </summary>
         public void DisplayChangeLog(String changeLogText)
         {
-            /*
             this.ChangeLog = changeLogText;
             View.ChangeLog changeLog = new View.ChangeLog();
             changeLog.Owner = Application.Current.MainWindow;
             changeLog.ShowDialog();
-            */
         }
 
         /// <summary>

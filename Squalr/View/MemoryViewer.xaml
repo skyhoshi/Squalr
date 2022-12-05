@@ -73,6 +73,7 @@
                 MouseOverColor="{StaticResource SqualrColorHighlight}"
                 HighLightColor="{StaticResource SqualrColorHighlight}"
                 StatusBarVisibility="Collapsed"
+                OffSetPanelFixedWidthVisual="Fixed"
                 Stream="{Binding MemoryStream}"
                 AllowAutoHighLightSelectionByte="False"
                 AllowAutoSelectSameByteAtDoubleClick="True"
