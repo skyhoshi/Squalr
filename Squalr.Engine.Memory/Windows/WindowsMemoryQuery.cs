@@ -110,6 +110,18 @@
             RegionBoundsHandling regionBoundsHandling,
             EmulatorType emulatorType) where T : NormalizedRegion, new()
         {
+            switch (emulatorType)
+            {
+                case EmulatorType.AutoDetect:
+                    throw new NotImplementedException("Auto detect emulator type not yet supported on GetModules()");
+                case EmulatorType.Dolphin:
+                    return this.GetDolphinVirtualPages<T>(process);
+                case EmulatorType.None:
+                    break;
+                default:
+                    throw new NotImplementedException("Provided emulator type not yet supported on GetModules()");
+            }
+
             MemoryProtectionFlags requiredFlags = 0;
             MemoryProtectionFlags excludedFlags = 0;
 
@@ -740,7 +752,7 @@
             Byte[] layoutMagicWii = { 0xC2, 0x33, 0x9F, 0x3D };
             Byte[] bootCode = { 0x0D, 0x15, 0xEA, 0x5E };
 
-            IEnumerable<T> mappedRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.Dolphin);
+            IEnumerable<T> mappedRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.None);
 
             foreach (T region in mappedRegions)
             {
@@ -781,7 +793,7 @@
             // Try private regions if mapped didn't contain mem2
             if (!mem2Found)
             {
-                IEnumerable<T> privateRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.Dolphin);
+                IEnumerable<T> privateRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.None);
 
                 foreach (T region in privateRegions)
                 {

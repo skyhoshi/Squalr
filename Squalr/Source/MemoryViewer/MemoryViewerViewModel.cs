@@ -42,13 +42,6 @@
 
         SnapshotRegion activeRegion;
 
-        ByteArrayType viewSize = new ByteArrayType(4096);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private UInt64 address = 0x80406F98;
-
         /// <summary>
         /// Prevents a default instance of the <see cref="MemoryViewerViewModel" /> class from being created.
         /// </summary>
@@ -174,21 +167,6 @@
             }
         }
 
-        public UInt64 Address
-        {
-            get
-            {
-                return this.address;
-            }
-
-            set
-            {
-                this.address = value;
-                this.RebuildSnapshot();
-                this.RaisePropertyChanged(nameof(this.Address));
-            }
-        }
-
         /// <summary>
         /// Gets a singleton instance of the <see cref="MemoryViewerViewModel"/> class.
         /// </summary>
@@ -235,32 +213,22 @@
         /// </summary>
         private void RebuildSnapshot()
         {
-            UInt64 effectiveAddress = this.Address;
+            MemoryProtectionEnum requiredPageFlags = 0;
+            MemoryProtectionEnum excludedPageFlags = 0;
+            MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
 
-            switch(SessionManager.Session.DetectedEmulator)
-            {
-                // TODO: Probably do not need special cases for emu, just make sure SnapshotQuery.SnapshotRetrievalMode.FromUserModeMemory returns what we want
-                case EmulatorType.Dolphin:
-                    // effectiveAddress = MemoryQueryer.Instance.EmulatorAddressToRealAddress(SessionManager.Session?.OpenedProcess, this.Address, EmulatorType.Dolphin);
-                    // this.snapshot = SnapshotQuery.CreateSnapshotByAddressRange(SessionManager.Session.OpenedProcess, effectiveAddress, effectiveAddress + (UInt64)this.viewSize.Length);
-                    break;
-                default:
-                    MemoryProtectionEnum requiredPageFlags = 0;
-                    MemoryProtectionEnum excludedPageFlags = 0;
-                    MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
+            UInt64 startAddress = 0;
+            UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(SessionManager.Session.OpenedProcess);
 
-                    UInt64 startAddress = 0;
-                    UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(SessionManager.Session.OpenedProcess);
-
-                    this.snapshotRegions = MemoryQueryer.Instance.GetVirtualPages<SnapshotRegion>(
-                        SessionManager.Session.OpenedProcess,
-                        requiredPageFlags,
-                        excludedPageFlags,
-                        allowedTypeFlags,
-                        startAddress,
-                        endAddress)?.ToArray();
-                    break;
-            }
+            this.snapshotRegions = MemoryQueryer.Instance.GetVirtualPages<SnapshotRegion>(
+                SessionManager.Session.OpenedProcess,
+                requiredPageFlags,
+                excludedPageFlags,
+                allowedTypeFlags,
+                startAddress,
+                endAddress,
+                RegionBoundsHandling.Exclude,
+                SessionManager.Session.DetectedEmulator)?.ToArray();
 
             if (this.activeRegion == null)
             {
@@ -301,8 +269,10 @@
                         this.MemoryStream.Write(this.activeRegion.CurrentValues, 0, (Int32)this.MemoryStream.Length);
                         this.RaisePropertyChanged(nameof(this.MemoryStream));
                     }
-                    catch(Exception ex)
+                    catch(Exception)
                     {
+                        // Supress. Memory stream is not very thread-safe, so the index may change post-seek, causing a write out of bounds exception.
+                        // This will mean stale values for one update cycle, but it seems rare enough to not be a major issue.
                     }
                 }
             }

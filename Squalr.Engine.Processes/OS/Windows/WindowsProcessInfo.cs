@@ -82,7 +82,7 @@
                     return false;
                 }
             }
-            catch
+            catch(Exception)
             {
                 WindowsProcessInfo.SystemProcessCache.Add(process.Id);
                 return true;

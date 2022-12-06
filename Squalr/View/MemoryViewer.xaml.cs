@@ -13,7 +13,7 @@
 
         private void HexEditorSizeChanged(Object sender, SizeChangedEventArgs e)
         {
-            const Double addressColumnSize = 74.0; // True for 8 byte addresses
+            const Double addressColumnSize = 64.0; // True for 8 byte addresses
             const Double seperationBufferSize = 30.0;
             const Double hexColumnSize = 168.0;
             const Double asciiColumnSize = 86.0;
