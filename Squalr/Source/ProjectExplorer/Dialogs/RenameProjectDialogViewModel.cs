@@ -106,6 +106,7 @@
         /// <summary>
         /// Shows the rename project dialog, deleting the project if the dialog result was true.
         /// </summary>
+        /// <param name="owner">The window that owns this dialog.</param>
         /// <param name="projectName">The project name to potentially rename.</param>
         public Boolean ShowDialog(Window owner, String projectName)
         {

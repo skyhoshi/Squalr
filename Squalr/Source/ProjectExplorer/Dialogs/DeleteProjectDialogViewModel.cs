@@ -29,15 +29,6 @@
         {
         }
 
-        /// <summary>
-        /// Gets a singleton instance of the <see cref="DeleteProjectDialogViewModel" /> class.
-        /// </summary>
-        /// <returns>A singleton instance of the class.</returns>
-        public static DeleteProjectDialogViewModel GetInstance()
-        {
-            return DeleteProjectDialogViewModel.deleteProjectDialogViewModelInstance.Value;
-        }
-
         public String ConfirmDeleteText
         {
             get
@@ -73,6 +64,15 @@
             {
                 return this.ConfirmDeleteText == "delete";
             }
+        }
+
+        /// <summary>
+        /// Gets a singleton instance of the <see cref="DeleteProjectDialogViewModel" /> class.
+        /// </summary>
+        /// <returns>A singleton instance of the class.</returns>
+        public static DeleteProjectDialogViewModel GetInstance()
+        {
+            return DeleteProjectDialogViewModel.deleteProjectDialogViewModelInstance.Value;
         }
 
         /// <summary>

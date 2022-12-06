@@ -6,7 +6,10 @@
     using System;
     using System.Threading;
 
-    public class ProcessQuery
+    /// <summary>
+    /// A static class for accessing an <see cref="IProcessQueryer"/> object instance.
+    /// </summary>
+    public static class ProcessQuery
     {
         /// <summary>
         /// Singleton instance of the <see cref="WindowsProcessInfo"/> class.
@@ -15,6 +18,9 @@
             () => { return new WindowsProcessInfo(); },
             LazyThreadSafetyMode.ExecutionAndPublication);
 
+        /// <summary>
+        /// Gets an instance implementing <see cref="IProcessQueryer"/> for querying virtual pages in an external process./>
+        /// </summary>
         public static IProcessQueryer Instance
         {
             get

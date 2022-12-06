@@ -35,7 +35,7 @@
         // TODO: For now we will not expire the TTL icons. This may cause cosmetic bugs. Icons are currently not disposed,
         // so putting a TTL on this would cause a memory leak.
         /// </summary>
-        private static TtlCache<Int32, Icon> IconCache = new TtlCache<Int32, Icon>();
+        private static TtlCache<Int32, Icon> IconCache = new TtlCache<Int32, Icon>(TimeSpan.MaxValue);
 
         /// <summary>
         /// Collection of processes with a window.

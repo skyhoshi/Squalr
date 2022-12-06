@@ -19,7 +19,7 @@
                 Logger.Log(LogLevel.Info, "Attached to process: " + processToOpen.ProcessName + " (" + processToOpen.Id.ToString() + ")");
             }
 
-            DetectedEmulator = EmulatorType.None;
+            this.DetectedEmulator = EmulatorType.None;
             this.OpenedProcess = processToOpen;
 
             this.ListenForProcessDeath();
@@ -53,10 +53,6 @@
         /// It is up to the caller to store and reuse the detected emulator type here.
         /// </summary>
         public EmulatorType DetectedEmulator { get; set; }
-
-        public void Destroy()
-        {
-        }
 
         /// <summary>
         /// Listens for process death and detaches from the process if it closes.
