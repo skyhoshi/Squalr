@@ -12,11 +12,11 @@
     {
         private static readonly ProjectItemToIconConverter ProjectItemToIconConverter = new ProjectItemToIconConverter();
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private ProjectItem projectItem;
 
         private Boolean isSelected;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         [Browsable(false)]
         public virtual FullyObservableCollection<ProjectItem> ChildItems

@@ -19,18 +19,6 @@
     public class PointerScannerViewModel : ToolViewModel
     {
         /// <summary>
-        /// An identifier to ensure only one pointer scan runs at a time.
-        /// </summary>
-        public static readonly String PointerScanTaskIdentifier = Guid.NewGuid().ToString();
-
-        /// <summary>
-        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
-        /// </summary>
-        private static readonly Lazy<PointerScannerViewModel> PointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
-                () => { return new PointerScannerViewModel(); },
-                LazyThreadSafetyMode.ExecutionAndPublication);
-
-        /// <summary>
         /// Gets the default pointer scan depth.
         /// </summary>
         public const Int32 DefaultPointerScanDepth = 3;
@@ -44,6 +32,18 @@
         /// Gets the maximum pointer scan depth.
         /// </summary>
         public const Int32 MaximumPointerScanDepth = 25;
+
+        /// <summary>
+        /// An identifier to ensure only one pointer scan runs at a time.
+        /// </summary>
+        public static readonly String PointerScanTaskIdentifier = Guid.NewGuid().ToString();
+
+        /// <summary>
+        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
+        /// </summary>
+        private static readonly Lazy<PointerScannerViewModel> PointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
+                () => { return new PointerScannerViewModel(); },
+                LazyThreadSafetyMode.ExecutionAndPublication);
 
         private UInt64 retargetAddress;
 

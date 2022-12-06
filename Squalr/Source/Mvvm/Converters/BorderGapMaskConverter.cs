@@ -54,8 +54,7 @@
 
             // Doesn't make sense to have a Grid
             // with 0 as width or height
-            if (borderWidth == 0
-                || borderHeight == 0)
+            if (borderWidth == 0 || borderHeight == 0)
             {
                 return null;
             }
@@ -63,9 +62,10 @@
             // Width of the line to the left of the header
             // to be used to set the width of the first column of the Grid
             Double lineWidth;
+
             if (parameter is string)
             {
-                lineWidth = Double.Parse(((string)parameter), NumberFormatInfo.InvariantInfo);
+                lineWidth = Double.Parse((string)parameter, NumberFormatInfo.InvariantInfo);
             }
             else
             {

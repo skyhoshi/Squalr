@@ -17,7 +17,7 @@
 
         private static readonly DependencyProperty CommandParameterProperty = DependencyProperty.RegisterAttached(
             "CommandParameter",
-            typeof(object),
+            typeof(Object),
             typeof(MouseDoubleClickBehavior),
             new UIPropertyMetadata(null));
 
@@ -38,9 +38,24 @@
             return target.GetValue(CommandParameterProperty);
         }
 
+        public static TreeViewItem ContainerFromItem(this TreeView treeView, Object item)
+        {
+            TreeViewItem containerThatMightContainItem = (TreeViewItem)treeView.ItemContainerGenerator.ContainerFromItem(item);
+
+            if (containerThatMightContainItem != null)
+            {
+                return containerThatMightContainItem;
+            }
+            else
+            {
+                return ContainerFromItem(treeView.ItemContainerGenerator, treeView.Items, item);
+            }
+        }
+
         private static void CommandChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
             Control control = target as Control;
+
             if (control != null)
             {
                 if ((e.NewValue != null) && (e.OldValue == null))
@@ -54,7 +69,7 @@
             }
         }
 
-         private static void OnMouseUp(Object sender, MouseButtonEventArgs e)
+        private static void OnMouseUp(Object sender, MouseButtonEventArgs e)
         {
             Control control = sender as Control;
             DirectoryItemView directoryItemView = control.DataContext as DirectoryItemView;
@@ -79,19 +94,6 @@
                     MouseDoubleClickBehavior.ClickedControls.Invalidate();
                     MouseDoubleClickBehavior.ClickedControls.Add(commandParameter);
                 }
-            }
-        }
-
-        public static TreeViewItem ContainerFromItem(this TreeView treeView, Object item)
-        {
-            TreeViewItem containerThatMightContainItem = (TreeViewItem)treeView.ItemContainerGenerator.ContainerFromItem(item);
-            if (containerThatMightContainItem != null)
-            {
-                return containerThatMightContainItem;
-            }
-            else
-            {
-                return ContainerFromItem(treeView.ItemContainerGenerator, treeView.Items, item);
             }
         }
 

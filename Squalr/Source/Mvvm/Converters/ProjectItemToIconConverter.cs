@@ -45,10 +45,8 @@
                     {
                         return Images.LetterP;
                     }
-                    else
-                    {
-                        return DataTypeToIconConverter.Convert(type.DataType, targetType, parameter, culture);
-                    }
+
+                    return DataTypeToIconConverter.Convert(type.DataType, targetType, parameter, culture);
                 case ProjectItemView type when type is ScriptItemView:
                     return Images.Script;
                 case ProjectItemView type when type is InstructionItemView:

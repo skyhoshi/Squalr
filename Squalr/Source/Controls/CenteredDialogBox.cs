@@ -21,6 +21,16 @@
 
         private static IntPtr windowHook;
 
+        static CenteredDialogBox()
+        {
+            hookProc = new HookProc(MessageBoxHookProc);
+            windowHook = IntPtr.Zero;
+        }
+
+        public delegate IntPtr HookProc(Int32 nCode, IntPtr wParam, IntPtr lParam);
+
+        public delegate void TimerProc(IntPtr hWnd, UInt32 uMsg, UIntPtr nIDEvent, UInt32 dwTime);
+
         private enum CbtHookAction : Int32
         {
             HCBT_MOVESIZE = 0,
@@ -43,31 +53,6 @@
 
             HCBT_SETFOCUS = 9
         }
-
-        [DllImport("user32.dll")]
-        public static extern Int32 UnhookWindowsHookEx(IntPtr idHook);
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr CallNextHookEx(IntPtr idHook, Int32 nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern Boolean GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
-
-        [DllImport("user32.dll")]
-        private static extern Int32 MoveWindow(IntPtr hWnd, Int32 x, Int32 y, Int32 nWidth, Int32 nHeight, Boolean bRepaint);
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr SetWindowsHookEx(Int32 idHook, HookProc lpfn, IntPtr hInstance, Int32 threadId);
-
-        static CenteredDialogBox()
-        {
-            hookProc = new HookProc(MessageBoxHookProc);
-            windowHook = IntPtr.Zero;
-        }
-
-        public delegate IntPtr HookProc(Int32 nCode, IntPtr wParam, IntPtr lParam);
-
-        public delegate void TimerProc(IntPtr hWnd, UInt32 uMsg, UIntPtr nIDEvent, UInt32 dwTime);
 
         /// <summary>
         /// Shows a dialog box with the specified parameters.
@@ -99,6 +84,21 @@
             CenteredDialogBox.Initialize();
             return MessageBox.Show(owner, text, caption, buttons, icon);
         }
+
+        [DllImport("user32.dll")]
+        private static extern Int32 UnhookWindowsHookEx(IntPtr idHook);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CallNextHookEx(IntPtr idHook, Int32 nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern Boolean GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
+
+        [DllImport("user32.dll")]
+        private static extern Int32 MoveWindow(IntPtr hWnd, Int32 x, Int32 y, Int32 nWidth, Int32 nHeight, Boolean bRepaint);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWindowsHookEx(Int32 idHook, HookProc lpfn, IntPtr hInstance, Int32 threadId);
 
         private static void Initialize()
         {
