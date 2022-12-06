@@ -448,7 +448,6 @@
             set
             {
                 // TODO
-
                 this.RaisePropertyChanged(nameof(this.RescanInterval));
             }
         }
@@ -623,12 +622,12 @@
 
         private void ProjectSettingsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-           //  ProjectSettings.Save();
+           // ProjectSettings.Save();
         }
 
         private void ScanSettingsPropertyChanged(Object sender, PropertyChangedEventArgs e)
         {
-            //  ScanSettings.Save();
+            // ScanSettings.Save();
         }
     }
     //// End class

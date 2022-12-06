@@ -21,41 +21,6 @@
 
         private static IntPtr windowHook;
 
-        /// <summary>
-        /// Shows a dialog box with the specified parameters.
-        /// </summary>
-        /// <param name="text">The body text.</param>
-        /// <param name="caption">The window caption.</param>
-        /// <param name="buttons">The buttons choices to display</param>
-        /// <param name="icon">The icon to display.</param>
-        /// <returns>The result based on the button pressed.</returns>
-        public static MessageBoxResult Show(String text, String caption, MessageBoxButton buttons, MessageBoxImage icon)
-        {
-            ownerPtr = new WindowInteropHelper(Application.Current.MainWindow).Handle;
-            CenteredDialogBox.Initialize();
-            return MessageBox.Show(text, caption, buttons, icon);
-        }
-
-        /// <summary>
-        /// Shows a dialog box with the specified parameters.
-        /// </summary>
-        /// <param name="owner">The creator of this messagebox, on which we will center this.</param>
-        /// <param name="text">The body text.</param>
-        /// <param name="caption">The window caption.</param>
-        /// <param name="buttons">The buttons choices to display</param>
-        /// <param name="icon">The icon to display.</param>
-        /// <returns>The result based on the button pressed.</returns>
-        public static MessageBoxResult Show(Window owner, String text, String caption, MessageBoxButton buttons, MessageBoxImage icon)
-        {
-            ownerPtr = new WindowInteropHelper(owner).Handle;
-            CenteredDialogBox.Initialize();
-            return MessageBox.Show(owner, text, caption, buttons, icon);
-        }
-
-        public delegate IntPtr HookProc(Int32 nCode, IntPtr wParam, IntPtr lParam);
-
-        public delegate void TimerProc(IntPtr hWnd, UInt32 uMsg, UIntPtr nIDEvent, UInt32 dwTime);
-
         private enum CbtHookAction : Int32
         {
             HCBT_MOVESIZE = 0,
@@ -89,7 +54,7 @@
         private static extern Boolean GetWindowRect(IntPtr hWnd, ref Rectangle lpRect);
 
         [DllImport("user32.dll")]
-        private static extern Int32 MoveWindow(IntPtr hWnd, Int32 X, Int32 Y, Int32 nWidth, Int32 nHeight, Boolean bRepaint);
+        private static extern Int32 MoveWindow(IntPtr hWnd, Int32 x, Int32 y, Int32 nWidth, Int32 nHeight, Boolean bRepaint);
 
         [DllImport("user32.dll")]
         public static extern IntPtr SetWindowsHookEx(Int32 idHook, HookProc lpfn, IntPtr hInstance, Int32 threadId);
@@ -98,6 +63,41 @@
         {
             hookProc = new HookProc(MessageBoxHookProc);
             windowHook = IntPtr.Zero;
+        }
+
+        public delegate IntPtr HookProc(Int32 nCode, IntPtr wParam, IntPtr lParam);
+
+        public delegate void TimerProc(IntPtr hWnd, UInt32 uMsg, UIntPtr nIDEvent, UInt32 dwTime);
+
+        /// <summary>
+        /// Shows a dialog box with the specified parameters.
+        /// </summary>
+        /// <param name="text">The body text.</param>
+        /// <param name="caption">The window caption.</param>
+        /// <param name="buttons">The buttons choices to display</param>
+        /// <param name="icon">The icon to display.</param>
+        /// <returns>The result based on the button pressed.</returns>
+        public static MessageBoxResult Show(String text, String caption, MessageBoxButton buttons, MessageBoxImage icon)
+        {
+            ownerPtr = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+            CenteredDialogBox.Initialize();
+            return MessageBox.Show(text, caption, buttons, icon);
+        }
+
+        /// <summary>
+        /// Shows a dialog box with the specified parameters.
+        /// </summary>
+        /// <param name="owner">The creator of this messagebox, on which we will center this.</param>
+        /// <param name="text">The body text.</param>
+        /// <param name="caption">The window caption.</param>
+        /// <param name="buttons">The buttons choices to display</param>
+        /// <param name="icon">The icon to display.</param>
+        /// <returns>The result based on the button pressed.</returns>
+        public static MessageBoxResult Show(Window owner, String text, String caption, MessageBoxButton buttons, MessageBoxImage icon)
+        {
+            ownerPtr = new WindowInteropHelper(owner).Handle;
+            CenteredDialogBox.Initialize();
+            return MessageBox.Show(owner, text, caption, buttons, icon);
         }
 
         private static void Initialize()

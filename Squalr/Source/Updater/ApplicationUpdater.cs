@@ -56,7 +56,8 @@
 
                         TrackableTask<Boolean> checkForUpdatesTask = TrackableTask<Boolean>
                             .Create("Checking for Updates", out UpdateProgress updateProgress, out CancellationToken cancellationToken)
-                            .With(Task<Boolean>.Run(() =>
+                            .With(Task<Boolean>.Run(
+                            () =>
                             {
                                 try
                                 {
@@ -91,7 +92,8 @@
 
                         TrackableTask<Boolean> updateTask = TrackableTask<Boolean>
                             .Create("Updating", out updateProgress, out cancellationToken)
-                            .With(Task<Boolean>.Run(() =>
+                            .With(Task<Boolean>.Run(
+                            () =>
                             {
                                 try
                                 {

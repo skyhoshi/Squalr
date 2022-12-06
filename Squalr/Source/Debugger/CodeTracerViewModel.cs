@@ -76,7 +76,7 @@
         public ICommand StopTraceCommand { get; private set; }
 
         /// <summary>
-        /// Gets or sets the command to select scan results.
+        /// Gets the command to select scan results.
         /// </summary>
         public ICommand SelectInstructionCommand { get; private set; }
 
@@ -157,7 +157,7 @@
         /// <param name="codeTraceResult">The code trace result to add to the project explorer.</param>
         private void AddCodeTraceResult(CodeTraceResult codeTraceResult)
         {
-            InstructionItem instructionItem = new InstructionItem(SessionManager.Session, codeTraceResult.Address, "", "nop", new Byte[] { 0x90 });
+            InstructionItem instructionItem = new InstructionItem(SessionManager.Session, codeTraceResult.Address, String.Empty, "nop", new Byte[] { 0x90 });
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(instructionItem);
         }
@@ -174,7 +174,7 @@
             }
 
             IEnumerable<InstructionItem> projectItems = codeTraceResults.Select(
-                codeTraceEvent => new InstructionItem(SessionManager.Session, codeTraceEvent.Address, "", "nop", new Byte[] { 0x90 }));
+                codeTraceEvent => new InstructionItem(SessionManager.Session, codeTraceEvent.Address, String.Empty, "nop", new Byte[] { 0x90 }));
 
             ProjectExplorerViewModel.GetInstance().AddProjectItems(projectItems.ToArray());
         }
@@ -196,7 +196,6 @@
                 this.ShowExecute();
             }
         }
-
 
         private void FindWhatReads(ProjectItemView projectItemView)
         {

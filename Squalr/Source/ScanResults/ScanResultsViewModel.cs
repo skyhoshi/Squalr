@@ -180,7 +180,6 @@
                     }
                 });
 
-
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
             }

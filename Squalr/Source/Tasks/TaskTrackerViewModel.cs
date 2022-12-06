@@ -72,7 +72,7 @@
                 task.OnCanceledEvent += this.RemoveTask;
                 task.OnCompletedEvent += this.RemoveTask;
 
-                lock(this.TaskLock)
+                lock (this.TaskLock)
                 {
                     if (!task.IsCompleted && !task.IsCanceled)
                     {

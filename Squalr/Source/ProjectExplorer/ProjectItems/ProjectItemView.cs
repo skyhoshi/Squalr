@@ -28,7 +28,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the value at this address.
+        /// Gets or sets a value indicating whether this project item has been enabled.
         /// </summary>
         [Browsable(false)]
         public Boolean IsActivated
@@ -95,7 +95,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the value at this address.
+        /// Gets the icon associated with this project icon.
         /// </summary>
         [Browsable(false)]
         public ImageSource ImageSource

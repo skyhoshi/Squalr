@@ -14,7 +14,6 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="DataTypeEditor" /> class.
         /// </summary>
-        /// <param name="offsets">The initial offsets to edit.</param>
         public DataTypeEditor()
         {
             this.InitializeComponent();
@@ -35,13 +34,13 @@
         }
 
         /// <summary>
-        /// Gets or sets a boolean indicating if the modal has been attempted to be closed.
+        /// Gets or sets a value indicating whether the modal has been attempted to be closed.
         /// </summary>
-        private bool HasClosed { get; set; }
+        private Boolean HasClosed { get; set; }
 
-        protected override void OnDeactivated(EventArgs e)
+        protected override void OnDeactivated(EventArgs eventArgs)
         {
-            base.OnDeactivated(e);
+            base.OnDeactivated(eventArgs);
 
             if (!this.HasClosed && this.DialogResult != true)
             {
@@ -51,9 +50,9 @@
             }
         }
 
-        private void DataTypeEditorViewModel_PropertyChanged(Object sender, PropertyChangedEventArgs e)
+        private void DataTypeEditorViewModel_PropertyChanged(Object sender, PropertyChangedEventArgs eventArgs)
         {
-            if (e?.PropertyName == nameof(DataTypeEditorViewModel.DataType))
+            if (eventArgs?.PropertyName == nameof(DataTypeEditorViewModel.DataType))
             {
                 Application.Current.Dispatcher.Invoke(new Action(() =>
                 {

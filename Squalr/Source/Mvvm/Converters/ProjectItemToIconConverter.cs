@@ -1,7 +1,6 @@
 ﻿namespace Squalr.Source.Mvvm.Converters
 {
     using Squalr.Content;
-    using Squalr.Engine.Common;
     using Squalr.Source.ProjectExplorer.ProjectItems;
     using System;
     using System.Globalization;
@@ -14,9 +13,9 @@
     public class ProjectItemToIconConverter : IValueConverter
     {
         /// <summary>
-        /// An instance of <see cref="DataTypeToIconConverter"/>.
+        /// An instance of the <see cref="DataTypeToIconConverter"/> class.
         /// </summary>
-        private static DataTypeToIconConverter DataTypeToIconConverter = new DataTypeToIconConverter();
+        private static readonly DataTypeToIconConverter DataTypeToIconConverter = new DataTypeToIconConverter();
 
         /// <summary>
         /// Converts an Icon to a BitmapSource.

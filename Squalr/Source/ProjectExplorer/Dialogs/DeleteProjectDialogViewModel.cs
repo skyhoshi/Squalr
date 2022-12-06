@@ -78,7 +78,9 @@
         /// <summary>
         /// Shows the delete project dialog, deleting the project if the dialog result was true.
         /// </summary>
+        /// <param name="owner">The window that owns this dialog.</param>
         /// <param name="projectName">The project name to potentially delete.</param>
+        /// <returns>A value indicating whether the project deletion was successful.</returns>
         public Boolean ShowDialog(Window owner, String projectName)
         {
             this.ConfirmDeleteText = String.Empty;

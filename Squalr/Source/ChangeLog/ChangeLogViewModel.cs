@@ -78,6 +78,7 @@
         /// <summary>
         /// Displays the change log to the user if there has been a recent update.
         /// </summary>
+        /// <param name="changeLogText">The changelog text to display.</param>
         public void DisplayChangeLog(String changeLogText)
         {
             this.ChangeLog = changeLogText;

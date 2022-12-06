@@ -32,7 +32,7 @@
         private Boolean supportsMasks;
 
         /// <summary>
-        /// 
+        /// Initializes a new instance of the <see cref="HexDecBoxViewModel" /> class.
         /// </summary>
         public HexDecBoxViewModel()
         {

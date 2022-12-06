@@ -23,6 +23,8 @@
             this.Count = 1;
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public UInt64 Address
         {
             get
@@ -64,8 +66,6 @@
                 this.RaisePropertyChanged(nameof(this.Count));
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Indicates that a given property in this project item has changed.

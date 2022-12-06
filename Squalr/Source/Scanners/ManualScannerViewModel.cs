@@ -133,7 +133,7 @@
         public ICommand SelectUnchangedCommand { get; private set; }
 
         /// <summary>
-        /// Gets the current set of scan constraints added to the manager.
+        /// Gets or sets the current set of scan constraints added to the manager.
         /// </summary>
         public ScanConstraint ActiveConstraint
         {
@@ -150,7 +150,7 @@
         }
 
         /// <summary>
-        /// Gets a value indicating if the current scan constraint requires a value.
+        /// Gets a value indicating whether the current scan constraint requires a value.
         /// </summary>
         public Boolean IsActiveScanConstraintValued
         {
@@ -190,13 +190,12 @@
                 TrackableTask<Snapshot> valueCollectorTask = ValueCollector.CollectValues(
                     SessionManager.Session.OpenedProcess,
                     SessionManager.Session.SnapshotManager.GetActiveSnapshotCreateIfNone(SessionManager.Session.OpenedProcess, SessionManager.Session.DetectedEmulator),
-                    TrackableTask.UniversalIdentifier
-                );
+                    TrackableTask.UniversalIdentifier);
 
                 TaskTrackerViewModel.GetInstance().TrackTask(valueCollectorTask);
 
                 // Perform manual scan on value collection complete
-                valueCollectorTask.OnCompletedEvent += ((completedValueCollectionTask) =>
+                valueCollectorTask.OnCompletedEvent += (completedValueCollectionTask) =>
                 {
                     Snapshot snapshot = valueCollectorTask.Result;
                     TrackableTask<Snapshot> scanTask = ManualScanner.Scan(
@@ -206,7 +205,7 @@
 
                     TaskTrackerViewModel.GetInstance().TrackTask(scanTask);
                     SessionManager.Session.SnapshotManager.SaveSnapshot(scanTask.Result);
-                });
+                };
             }
             catch (TaskConflictException)
             {
@@ -224,9 +223,9 @@
         }
 
         /// <summary>
-        /// Updates the value of the current scan constraint.
+        /// Updates the args of the current scan constraint.
         /// </summary>
-        /// <param name="newValue">The new value of the scan constraint.</param>
+        /// <param name="newArgs">The new args of the scan constraint.</param>
         private void UpdateActiveArgs(Object newArgs)
         {
             this.ActiveConstraint.ConstraintArgs = newArgs;

@@ -85,6 +85,7 @@
             get
             {
                 ProcessList.First().GetIcon();
+
                 // Create a process list with the selected process at the top, and a detach option as the 2nd element
                 return this.ProcessList?.Where(process => process.HasWindow() && (process?.Id ?? 0) != (this.SelectedProcess?.Id ?? 0)).Select(process => process)
                     .PrependIfNotNull(this.SelectedProcess == null ? null : DetachProcess.Instance)

@@ -24,6 +24,13 @@
         public static readonly String PointerScanTaskIdentifier = Guid.NewGuid().ToString();
 
         /// <summary>
+        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
+        /// </summary>
+        private static readonly Lazy<PointerScannerViewModel> PointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
+                () => { return new PointerScannerViewModel(); },
+                LazyThreadSafetyMode.ExecutionAndPublication);
+
+        /// <summary>
         /// Gets the default pointer scan depth.
         /// </summary>
         public const Int32 DefaultPointerScanDepth = 3;
@@ -47,13 +54,6 @@
         private Object rescanValue;
 
         private Int32 pointerDepth;
-
-        /// <summary>
-        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
-        /// </summary>
-        private static Lazy<PointerScannerViewModel> pointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
-                () => { return new PointerScannerViewModel(); },
-                LazyThreadSafetyMode.ExecutionAndPublication);
 
         /// <summary>
         /// Prevents a default instance of the <see cref="PointerScannerViewModel" /> class from being created.
@@ -203,7 +203,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static PointerScannerViewModel GetInstance()
         {
-            return pointerScannerViewModelInstance.Value;
+            return PointerScannerViewModelInstance.Value;
         }
 
         /// <summary>

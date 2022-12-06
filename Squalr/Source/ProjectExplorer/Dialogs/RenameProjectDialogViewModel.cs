@@ -108,6 +108,7 @@
         /// </summary>
         /// <param name="owner">The window that owns this dialog.</param>
         /// <param name="projectName">The project name to potentially rename.</param>
+        /// <returns>A value indicating whether the rename was successful.</returns>
         public Boolean ShowDialog(Window owner, String projectName)
         {
             this.NewProjectName = String.Empty;

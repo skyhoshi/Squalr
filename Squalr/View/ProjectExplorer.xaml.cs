@@ -16,6 +16,8 @@
     /// </summary>
     public partial class ProjectExplorer : UserControl
     {
+        private static readonly PropertyInfo IsSelectionChangeActiveProperty = typeof(TreeView).GetProperty("IsSelectionChangeActive", BindingFlags.NonPublic | BindingFlags.Instance);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectExplorer" /> class.
         /// </summary>
@@ -28,8 +30,6 @@
             // It's shit, but it's a great place to start.
             AllowMultiSelection(ProjectExplorerTreeView);
         }
-
-        private static readonly PropertyInfo IsSelectionChangeActiveProperty = typeof(TreeView).GetProperty("IsSelectionChangeActive", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static void AllowMultiSelection(TreeView treeView)
         {

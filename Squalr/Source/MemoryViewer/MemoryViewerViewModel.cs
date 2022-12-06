@@ -21,7 +21,7 @@
         /// <summary>
         /// Singleton instance of the <see cref="MemoryViewerViewModel" /> class.
         /// </summary>
-        private static readonly Lazy<MemoryViewerViewModel> memoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
+        private static readonly Lazy<MemoryViewerViewModel> MemoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
                 () => { return new MemoryViewerViewModel(); },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -35,12 +35,9 @@
         /// </summary>
         private Int32 currentPage;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        SnapshotRegion[] snapshotRegions;
+        private SnapshotRegion[] snapshotRegions;
 
-        SnapshotRegion activeRegion;
+        private SnapshotRegion activeRegion;
 
         /// <summary>
         /// Prevents a default instance of the <see cref="MemoryViewerViewModel" /> class from being created.
@@ -173,7 +170,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static MemoryViewerViewModel GetInstance()
         {
-            return MemoryViewerViewModel.memoryViewerViewModelInstance.Value;
+            return MemoryViewerViewModel.MemoryViewerViewModelInstance.Value;
         }
 
         /// <summary>
@@ -269,7 +266,7 @@
                         this.MemoryStream.Write(this.activeRegion.CurrentValues, 0, (Int32)this.MemoryStream.Length);
                         this.RaisePropertyChanged(nameof(this.MemoryStream));
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                         // Supress. Memory stream is not very thread-safe, so the index may change post-seek, causing a write out of bounds exception.
                         // This will mean stale values for one update cycle, but it seems rare enough to not be a major issue.

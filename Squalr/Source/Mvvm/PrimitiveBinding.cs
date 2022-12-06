@@ -20,6 +20,8 @@
             this.Value = value;
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         /// <summary>
         /// Gets or sets the primitive value.
         /// </summary>
@@ -36,8 +38,6 @@
                 this.RaisePropertyChanged(nameof(this.Value));
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Indicates that a given property in this project item has changed.

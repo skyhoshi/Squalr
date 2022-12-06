@@ -1,8 +1,7 @@
 ﻿namespace Squalr.Source.Main
 {
-    using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Common.Hardware;
-    using Squalr.Engine.Scanning.Scanners;
+    using Squalr.Engine.Common.Logging;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
     using Squalr.Source.Updater;
@@ -11,8 +10,6 @@
     using System.Threading;
     using System.Windows;
     using System.Windows.Input;
-    using GalaSoft.MvvmLight.Command;
-    using Squalr.Source.ChangeLog;
 
     /// <summary>
     /// Main view model.
@@ -38,7 +35,7 @@
 
             if (Vectors.HasVectorSupport)
             {
-                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + Vector<Byte>.Count * 8 + " bit)");
+                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + (Vector<Byte>.Count * 8) + " bit)");
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
@@ -54,12 +51,24 @@
         /// <summary>
         /// Default layout file for browsing cheats.
         /// </summary>
-        protected override String DefaultLayoutResource { get { return "DefaultLayout.xml"; } }
+        protected override String DefaultLayoutResource
+        {
+            get
+            {
+                return "DefaultLayout.xml";
+            }
+        }
 
         /// <summary>
         /// The save file for the docking layout.
         /// </summary>
-        protected override String LayoutSaveFile { get { return "Layout.xml"; } }
+        protected override String LayoutSaveFile
+        {
+            get
+            {
+                return "Layout.xml";
+            }
+        }
 
         /// <summary>
         /// Gets the singleton instance of the <see cref="MainViewModel" /> class.
@@ -76,8 +85,6 @@
         /// <param name="window">The window to close.</param>
         protected override void Close(Window window)
         {
-            // SolutionExplorerViewModel.GetInstance().DisableAllProjectItems();
-
             base.Close(window);
         }
     }

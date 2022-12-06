@@ -9,19 +9,19 @@
 
     public static class MouseDoubleClickBehavior
     {
-        public static DependencyProperty CommandProperty = DependencyProperty.RegisterAttached(
+        private static readonly DependencyProperty CommandProperty = DependencyProperty.RegisterAttached(
             "Command",
             typeof(ICommand),
             typeof(MouseDoubleClickBehavior),
             new UIPropertyMetadata(CommandChanged));
 
-        public static DependencyProperty CommandParameterProperty = DependencyProperty.RegisterAttached(
+        private static readonly DependencyProperty CommandParameterProperty = DependencyProperty.RegisterAttached(
             "CommandParameter",
             typeof(object),
             typeof(MouseDoubleClickBehavior),
             new UIPropertyMetadata(null));
 
-        private static TtlCache<Object> ClickedControls = new TtlCache<Object>(TimeSpan.FromMilliseconds(500));
+        private static readonly TtlCache<Object> ClickedControls = new TtlCache<Object>(TimeSpan.FromMilliseconds(500));
 
         public static void SetCommand(DependencyObject target, ICommand value)
         {
@@ -114,6 +114,7 @@
                     return recursionResult;
                 }
             }
+
             return null;
         }
     }
