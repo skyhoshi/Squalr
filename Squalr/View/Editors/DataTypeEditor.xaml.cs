@@ -23,18 +23,6 @@
             this.DataTypeEditorViewModel.PropertyChanged += DataTypeEditorViewModel_PropertyChanged;
         }
 
-        protected override void OnDeactivated(EventArgs e)
-        {
-            base.OnDeactivated(e);
-
-            if (!this.HasClosed && this.DialogResult != true)
-            {
-                this.DialogResult = false;
-                this.HasClosed = true;
-                this.Close();
-            }
-        }
-
         /// <summary>
         /// Gets the view model associated with this view.
         /// </summary>
@@ -50,6 +38,18 @@
         /// Gets or sets a boolean indicating if the modal has been attempted to be closed.
         /// </summary>
         private bool HasClosed { get; set; }
+
+        protected override void OnDeactivated(EventArgs e)
+        {
+            base.OnDeactivated(e);
+
+            if (!this.HasClosed && this.DialogResult != true)
+            {
+                this.DialogResult = false;
+                this.HasClosed = true;
+                this.Close();
+            }
+        }
 
         private void DataTypeEditorViewModel_PropertyChanged(Object sender, PropertyChangedEventArgs e)
         {

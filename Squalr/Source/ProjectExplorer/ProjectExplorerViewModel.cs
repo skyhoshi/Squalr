@@ -401,7 +401,7 @@
 
                     for (Int32 appendedNumber = 0; appendedNumber < Int32.MaxValue; appendedNumber++)
                     {
-                        String suffix = (appendedNumber == 0 ? String.Empty : " " + appendedNumber.ToString());
+                        String suffix = appendedNumber == 0 ? String.Empty : " " + appendedNumber.ToString();
                         newProjectDirectory = Path.Combine(SettingsViewModel.GetInstance().ProjectRoot, "New Project" + suffix);
 
                         if (!Directory.Exists(newProjectDirectory))

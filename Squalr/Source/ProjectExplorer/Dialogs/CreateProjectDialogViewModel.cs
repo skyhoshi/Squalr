@@ -29,15 +29,6 @@
         {
         }
 
-        /// <summary>
-        /// Gets a singleton instance of the <see cref="CreateProjectDialogViewModel" /> class.
-        /// </summary>
-        /// <returns>A singleton instance of the class.</returns>
-        public static CreateProjectDialogViewModel GetInstance()
-        {
-            return CreateProjectDialogViewModel.createProjectDialogViewModelInstance.Value;
-        }
-
         public String NewProjectName
         {
             get
@@ -100,6 +91,15 @@
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Gets a singleton instance of the <see cref="CreateProjectDialogViewModel" /> class.
+        /// </summary>
+        /// <returns>A singleton instance of the class.</returns>
+        public static CreateProjectDialogViewModel GetInstance()
+        {
+            return CreateProjectDialogViewModel.createProjectDialogViewModelInstance.Value;
         }
 
         /// <summary>

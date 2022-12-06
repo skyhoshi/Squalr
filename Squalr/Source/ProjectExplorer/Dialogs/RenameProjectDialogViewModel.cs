@@ -30,15 +30,6 @@
         {
         }
 
-        /// <summary>
-        /// Gets a singleton instance of the <see cref="RenameProjectDialogViewModel" /> class.
-        /// </summary>
-        /// <returns>A singleton instance of the class.</returns>
-        public static RenameProjectDialogViewModel GetInstance()
-        {
-            return RenameProjectDialogViewModel.renameProjectDialogViewModelInstance.Value;
-        }
-
         public String NewProjectName
         {
             get
@@ -101,6 +92,15 @@
 
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Gets a singleton instance of the <see cref="RenameProjectDialogViewModel" /> class.
+        /// </summary>
+        /// <returns>A singleton instance of the class.</returns>
+        public static RenameProjectDialogViewModel GetInstance()
+        {
+            return RenameProjectDialogViewModel.renameProjectDialogViewModelInstance.Value;
         }
 
         /// <summary>

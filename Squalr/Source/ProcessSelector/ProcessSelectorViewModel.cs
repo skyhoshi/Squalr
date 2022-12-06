@@ -2,9 +2,13 @@
 {
     using GalaSoft.MvvmLight.Command;
     using Squalr.Content;
-    using Squalr.Engine.Processes;
+    using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
+    using Squalr.Engine.Processes;
+    using Squalr.Engine.Scanning;
+    using Squalr.Engine.Scanning.Scanners;
     using Squalr.Source.Docking;
+    using Squalr.Source.Tasks;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -12,11 +16,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Input;
-    using Squalr.Engine;
-    using Squalr.Source.Tasks;
-    using Squalr.Engine.Scanning.Scanners;
-    using Squalr.Engine.Common;
-    using Squalr.Engine.Scanning;
 
     /// <summary>
     /// View model for the Process Selector.

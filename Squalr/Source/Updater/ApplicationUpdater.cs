@@ -29,7 +29,6 @@
         /// </summary>
         public static void UpdateApp()
         {
-
             if (!SqualrSettings.AutomaticUpdates)
             {
                 Logger.Log(LogLevel.Info, "Automatic updates disabled. Squalr will not check for updates this session.");
@@ -51,7 +50,7 @@
             {
                 try
                 {
-                    using (UpdateManager manager = new UpdateManager(new GithubSource(ApplicationUpdater.GithubRepositoryUrl, "", false)))
+                    using (UpdateManager manager = new UpdateManager(new GithubSource(ApplicationUpdater.GithubRepositoryUrl, String.Empty, false)))
                     {
                         UpdateInfo updates = await manager.CheckForUpdate();
 
@@ -70,7 +69,8 @@
                                 }
 
                                 return true;
-                            }, cancellationToken));
+                            },
+                            cancellationToken));
 
                         TaskTrackerViewModel.GetInstance().TrackTask(checkForUpdatesTask);
 
@@ -104,7 +104,8 @@
                                 }
 
                                 return true;
-                            }, cancellationToken));
+                            },
+                            cancellationToken));
 
                         TaskTrackerViewModel.GetInstance().TrackTask(updateTask);
 

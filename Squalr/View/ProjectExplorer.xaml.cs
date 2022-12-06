@@ -17,7 +17,7 @@
     public partial class ProjectExplorer : UserControl
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Settings" /> class.
+        /// Initializes a new instance of the <see cref="ProjectExplorer" /> class.
         /// </summary>
         public ProjectExplorer()
         {

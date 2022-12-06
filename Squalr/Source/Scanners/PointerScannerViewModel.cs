@@ -221,8 +221,7 @@
                     this.PointerDepth,
                     MemoryAlignment.Alignment4,
                     pointerSize,
-                    PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerScanTask.Result;
             }
@@ -242,8 +241,7 @@
                     SessionManager.Session.OpenedProcess,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
                     readMemory: true,
-                    taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRebaseTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRebaseTask.Result;
             }
@@ -265,8 +263,7 @@
                     this.RetargetAddress,
                     MemoryAlignment.Alignment4,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
-                    PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRetargetScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRetargetScanTask.Result;
             }
