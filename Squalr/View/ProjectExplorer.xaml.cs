@@ -51,7 +51,7 @@
                 if (isShiftSelecting)
                 {
                     // Suppress selection change notification, select all selected items, then restore selection change notifications
-                    Object? isSelectionChangeActive = IsSelectionChangeActiveProperty.GetValue(treeView, null);
+                    Object isSelectionChangeActive = IsSelectionChangeActiveProperty.GetValue(treeView, null);
 
                     IsSelectionChangeActiveProperty.SetValue(treeView, true, null);
                     ProjectExplorer.ShiftSelect(treeView);
@@ -76,7 +76,7 @@
         private static void ReselectPriorSelectedItems(TreeView treeView)
         {
             // Suppress selection change notification, select all selected items, then restore selection change notifications
-            Object? isSelectionChangeActive = IsSelectionChangeActiveProperty.GetValue(treeView, null);
+            Object isSelectionChangeActive = IsSelectionChangeActiveProperty.GetValue(treeView, null);
 
             IsSelectionChangeActiveProperty.SetValue(treeView, true, null);
             ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.ForEach(item => item.IsSelected = true);
