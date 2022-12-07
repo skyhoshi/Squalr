@@ -34,30 +34,32 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Border Grid.Row="0" Background="{StaticResource SqualrColorFrame}">
-            <Menu
-                Grid.Column="1"
-                Padding="0,2,0,2"
-                Background="{StaticResource SqualrColorFrame}"
-                BorderBrush="{StaticResource SqualrColorWhite}"
-                Foreground="{StaticResource SqualrColorWhite}">
-                <MenuItem VerticalAlignment="Center" Command="{Binding GoToAddressCommand}">
-                    <MenuItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <Controls:HexDecBox
-                                x:Name="AddressHexDecBox"
-                                Width="196"
-                                HorizontalAlignment="Left"
-                                BorderThickness="1" />
-                            <Image
-                                Width="16"
-                                Height="16"
-                                Margin="4,0,0,0"
-                                Source="{x:Static content:Images.RightArrow}"
-                                ToolTip="Add Selected Items" />
-                        </StackPanel>
-                    </MenuItem.Header>
-                </MenuItem>
-            </Menu>
+            <WrapPanel>
+                <Controls:HexDecBox
+                    x:Name="AddressHexDecBox"
+                    Width="196"
+                    HorizontalAlignment="Left"
+                    BorderThickness="1" />
+                <Menu
+                    Grid.Column="1"
+                    Padding="0,2,0,2"
+                    Background="{StaticResource SqualrColorFrame}"
+                    BorderBrush="{StaticResource SqualrColorWhite}"
+                    Foreground="{StaticResource SqualrColorWhite}">
+                    <MenuItem VerticalAlignment="Center" Command="{Binding GoToAddressCommand}">
+                        <MenuItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Width="16"
+                                    Height="16"
+                                    Margin="4,0,0,0"
+                                    Source="{x:Static content:Images.RightArrow}"
+                                    ToolTip="Add Selected Items" />
+                            </StackPanel>
+                        </MenuItem.Header>
+                    </MenuItem>
+                </Menu>
+            </WrapPanel>
         </Border>
         <Grid Grid.Row="1">
             <hexEditor:HexEditor
