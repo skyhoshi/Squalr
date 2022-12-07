@@ -267,6 +267,9 @@
     <Compile Update="View\Controls\HexDecBox.xaml.cs">
       <DependentUpon>HexDecBox.xaml</DependentUpon>
     </Compile>
+    <Compile Update="View\Dialogs\CreateProjectDialog - Copy.xaml.cs">
+      <DependentUpon>CreateProjectDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Update="View\Dialogs\CreateProjectDialog.xaml.cs">
       <DependentUpon>CreateProjectDialog.xaml</DependentUpon>
     </Compile>

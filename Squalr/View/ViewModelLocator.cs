@@ -335,6 +335,17 @@
         }
 
         /// <summary>
+        /// Gets the Two Choice Dialog view model.
+        /// </summary>
+        public TwoChoiceDialogViewModel TwoChoiceDialogViewModel
+        {
+            get
+            {
+                return TwoChoiceDialogViewModel.GetInstance();
+            }
+        }
+
+        /// <summary>
         /// Gets the Delete Project Dialog view model.
         /// </summary>
         public DeleteProjectDialogViewModel DeleteProjectDialogViewModel

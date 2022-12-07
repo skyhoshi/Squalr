@@ -45,8 +45,8 @@
                     ProjectExplorerViewModel.GetInstance().SelectedProjectItems = new List<ProjectItemView>();
                 }
 
-                bool isShiftSelecting = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-                bool isControlSelecting = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
+                Boolean isShiftSelecting = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+                Boolean isControlSelecting = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
 
                 if (isShiftSelecting)
                 {
@@ -95,15 +95,15 @@
                 return;
             }
 
-            bool isSelecting = (root == selectedItem) || (root == clickedTreeViewItem);
+            Boolean isSelecting = (root == selectedItem) || (root == clickedTreeViewItem);
 
             ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.Clear();
             ProjectExplorer.SelectRange(root, selectedItem, clickedTreeViewItem, ref isSelecting);
         }
 
-        private static bool SelectRange(DirectoryItemView currentDirectory, ProjectItemView rangeStart, ProjectItemView rangeEnd, ref bool isSelecting)
+        private static Boolean SelectRange(DirectoryItemView currentDirectory, ProjectItemView rangeStart, ProjectItemView rangeEnd, ref Boolean isSelecting)
         {
-            bool selectionComplete = false;
+            Boolean selectionComplete = false;
 
             if (currentDirectory.ChildItems == null)
             {
@@ -114,7 +114,7 @@
             {
                 ProjectItemView projectItemView = projectItem.MappedView as ProjectItemView;
                 DirectoryItemView directoryItemView = projectItemView as DirectoryItemView;
-                bool selectionStarted = false;
+                Boolean selectionStarted = false;
 
                 if (!isSelecting)
                 {

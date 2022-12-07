@@ -6,7 +6,6 @@
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Detects whether the target process is an emulator.

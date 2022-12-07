@@ -265,7 +265,7 @@
 
             foreach (Int32 offset in this.PointerOffsets)
             {
-                bool successReading = false;
+                Boolean successReading = false;
 
                 if (processSession?.OpenedProcess?.Is32Bit() ?? false)
                 {
@@ -304,7 +304,7 @@
 
             foreach (Int32 offset in this.PointerOffsets)
             {
-                bool successReading = false;
+                Boolean successReading = false;
 
                 if (processSession?.OpenedProcess?.Is32Bit() ?? false)
                 {

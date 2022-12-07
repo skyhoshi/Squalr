@@ -7,7 +7,6 @@
     using Squalr.Engine.Common.OS;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
-    using Squalr.Source.Controls;
     using Squalr.Source.Docking;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
@@ -16,7 +15,6 @@
     using Squalr.Source.Settings;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -449,19 +447,11 @@
                 return;
             }
 
-            if (promptUser)
-            {
-                System.Windows.MessageBoxResult result = CenteredDialogBox.Show(
-                    System.Windows.Application.Current.MainWindow,
-                    "Delete selected items?",
-                    "Confirm",
-                    System.Windows.MessageBoxButton.OKCancel,
-                    System.Windows.MessageBoxImage.Warning);
+            System.Windows.Window mainWindow = System.Windows.Application.Current.MainWindow;
 
-                if (result != System.Windows.MessageBoxResult.OK)
-                {
-                    return;
-                }
+            if (promptUser && !TwoChoiceDialogViewModel.GetInstance().ShowDialog(owner: mainWindow, headerText: "Confirm", bodyText: "Delete selected items?", optionOkayText: "Okay", optionCancelText: "Cancel"))
+            {
+                return;
             }
 
             foreach (ProjectItemView projectItemView in this.SelectedProjectItems.ToArray())

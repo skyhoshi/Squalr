@@ -171,7 +171,7 @@
         public unsafe Boolean ReadAllMemory(Process process)
         {
             this.SetPreviousValues(this.CurrentValues);
-            this.SetCurrentValues(MemoryReader.Instance.ReadBytes(process, this.BaseAddress, this.RegionSize, out bool readSuccess));
+            this.SetCurrentValues(MemoryReader.Instance.ReadBytes(process, this.BaseAddress, this.RegionSize, out Boolean readSuccess));
 
             if (!readSuccess)
             {

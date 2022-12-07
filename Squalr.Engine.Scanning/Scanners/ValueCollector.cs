@@ -9,7 +9,6 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Squalr.Engine.Common.TrackableTask;
 
     /// <summary>
     /// Collect values for a given snapshot. The values are assigned to a new snapshot.
@@ -21,7 +20,7 @@
         /// </summary>
         private const String Name = "Value Collector";
 
-        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, bool withLogging = true)
+        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, Boolean withLogging = true)
         {
             try
             {

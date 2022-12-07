@@ -182,7 +182,7 @@
         /// <param name="process">The target process.</param>
         /// <param name="address">The address to check for writability.</param>
         /// <returns>A value indicating whether the given address is writable.</returns>
-        public bool IsAddressWritable(Process process, UInt64 address)
+        public Boolean IsAddressWritable(Process process, UInt64 address)
         {
             MemoryTypeEnum flags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
 
@@ -487,7 +487,7 @@
                         return 0;
                     }
 
-                    bool isWiiExtendedMemory = emulatorAddress >= WiiMemoryBase;
+                    Boolean isWiiExtendedMemory = emulatorAddress >= WiiMemoryBase;
                     UInt64 baseRelativeAddress = emulatorAddress - (isWiiExtendedMemory ? WiiMemoryBase : MemoryBase);
                     IEnumerable<NormalizedRegion> dolphinRegions = this.GetDolphinVirtualPages<NormalizedRegion>(process).OrderByDescending(region => region.BaseAddress);
 
@@ -777,7 +777,7 @@
                 if (region.RegionSize == 0x2000000 && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                 {
                     // Check to see if there is a game id. This should weed out any false positives.
-                    bool readSuccess = false;
+                    Boolean readSuccess = false;
                     Byte[] gameId = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress, 6, out readSuccess);
 
                     if (readSuccess)
@@ -795,7 +795,7 @@
                 }
             }
 
-            bool mem2Found = false;
+            Boolean mem2Found = false;
             foreach (T region in mappedRegions)
             {
                 // Dolphin stores wii memory in a memory mapped region of this exact size.
