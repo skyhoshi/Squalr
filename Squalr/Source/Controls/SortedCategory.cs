@@ -9,6 +9,9 @@
     /// </summary>
     public class SortedCategory : CategoryAttribute
     {
+        /// <summary>
+        /// A non printable character used to force a string sort that causes this category to appear sorted.
+        /// </summary>
         private const Char NonPrintableChar = '\t';
 
         /// <summary>

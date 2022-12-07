@@ -21,7 +21,7 @@
 
         private String headerText = "Preview Header";
 
-        private String bodyText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+        private String bodyText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
 
         private String optionOkayText = "Okay";
 
@@ -97,13 +97,13 @@
         }
 
         /// <summary>
-        /// 
+        /// Shows a generic two choice dialog box with the given parameters.
         /// </summary>
         /// <param name="owner">The window that owns this dialog.</param>
-        /// <param name="headerText"></param>
-        /// <param name="bodyText"></param>
-        /// <param name="optionOkayText"></param>
-        /// <param name="optionCancelText"></param>
+        /// <param name="headerText">The dialog header text.</param>
+        /// <param name="bodyText">The dialog body text.</param>
+        /// <param name="optionOkayText">The dialog 'Okay' button text.</param>
+        /// <param name="optionCancelText">The dialog 'Cancel' button text.</param>
         /// <returns></returns>
         public Boolean ShowDialog(Window owner, String headerText, String bodyText, String optionOkayText, String optionCancelText)
         {

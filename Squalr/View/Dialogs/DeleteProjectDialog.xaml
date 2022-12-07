@@ -8,8 +8,8 @@
     x:Name="SqualrDeleteProjectDialog"
     Width="320"
     Height="144"
-    d:DesignWidth="320"
     d:DesignHeight="144"
+    d:DesignWidth="320"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding DeleteProjectDialogViewModel, Source={StaticResource ViewModelLocator}}"
@@ -50,8 +50,8 @@
                         Text="Enter 'delete' to delete this project." />
                 </shell:StackPanel>
                 <shell:TextBox
-                    Background="{StaticResource SqualrColorGray27}"
-                    BorderBrush="{StaticResource SqualrColorGray40}"
+                    Background="{StaticResource SqualrColorInput}"
+                    BorderBrush="{StaticResource SqualrColorBorder}"
                     Foreground="{StaticResource SqualrColorWhite}"
                     Text="{Binding ConfirmDeleteText, UpdateSourceTrigger=PropertyChanged}" />
             </shell:StackPanel>

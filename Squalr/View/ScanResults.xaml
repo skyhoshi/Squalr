@@ -20,17 +20,16 @@
     <UserControl.Resources>
         <ContextMenu
             x:Key="ScanResultsRightClickMenu"
-            Background="{StaticResource SqualrColorGray27}"
+            Background="{StaticResource SqualrColorInput}"
             BorderBrush="{StaticResource SqualrColorWhite}"
             Foreground="{StaticResource SqualrColorWhite}">
-            <MenuItem
-                Command="{Binding ScanResultsViewModel.AddScanResultsCommand, Source={StaticResource ViewModelLocator}}">
+            <MenuItem Command="{Binding ScanResultsViewModel.AddScanResultsCommand, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image
-                            Margin="0 0 4 0"
                             Width="16"
-                            Height="16"/>
+                            Height="16"
+                            Margin="0,0,4,0" />
                         <TextBlock
                             VerticalAlignment="Center"
                             Foreground="{StaticResource SqualrColorWhite}"
@@ -63,9 +62,10 @@
                 Background="{StaticResource SqualrColorFrame}"
                 BorderBrush="{StaticResource SqualrColorWhite}"
                 Foreground="{StaticResource SqualrColorWhite}">
-                <MenuItem VerticalAlignment="Center"
-                          Command="{Binding AddScanResultsCommand}"
-                          ToolTip="Add Selected Items to Current Project">
+                <MenuItem
+                    VerticalAlignment="Center"
+                    Command="{Binding AddScanResultsCommand}"
+                    ToolTip="Add Selected Items to Current Project">
                     <MenuItem.Header>
                         <Image
                             Width="16"
@@ -73,7 +73,8 @@
                             Source="{x:Static content:Images.Increased}" />
                     </MenuItem.Header>
                 </MenuItem>
-                <MenuItem VerticalAlignment="Center"
+                <MenuItem
+                    VerticalAlignment="Center"
                     Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand, Source={StaticResource ViewModelLocator}}"
                     ToolTip="New Scan">
                     <MenuItem.Header>
@@ -183,9 +184,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn
-                    Header="Previous Value"
-                    IsReadOnly="True">
+                <DataGridTemplateColumn Header="Previous Value" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Margin="4,0,4,0" Text="{Binding Path=PreviousValue}" />
@@ -239,7 +238,12 @@
                 </Menu>
                 <WrapPanel Grid.Column="1" HorizontalAlignment="Center">
                     <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="Page: " />
-                    <TextBox HorizontalContentAlignment="Center" Background="{StaticResource SqualrColorPanel}" MinWidth="48" Foreground="{StaticResource SqualrColorWhite}" Text="{Binding CurrentPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox
+                        MinWidth="48"
+                        HorizontalContentAlignment="Center"
+                        Background="{StaticResource SqualrColorPanel}"
+                        Foreground="{StaticResource SqualrColorWhite}"
+                        Text="{Binding CurrentPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text=" of " />
                     <TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="{Binding PageCount}" />
                 </WrapPanel>

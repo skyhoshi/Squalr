@@ -26,7 +26,7 @@
         <converters:OffsetsToStringConverter x:Key="OffsetsToStringConverter" />
         <ContextMenu
             x:Key="RightClickMenu"
-            Background="{StaticResource SqualrColorGray27}"
+            Background="{StaticResource SqualrColorInput}"
             BorderBrush="{StaticResource SqualrColorWhite}"
             DataContext="{StaticResource ViewModelLocator}"
             Foreground="{StaticResource SqualrColorWhite}">
@@ -39,7 +39,7 @@
         </ContextMenu>
         <ContextMenu
             x:Key="ProjectItemRightClickMenu"
-            Background="{StaticResource SqualrColorGray27}"
+            Background="{StaticResource SqualrColorInput}"
             BorderBrush="{StaticResource SqualrColorWhite}"
             DataContext="{StaticResource ViewModelLocator}"
             Foreground="{StaticResource SqualrColorWhite}">

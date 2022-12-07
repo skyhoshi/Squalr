@@ -7,9 +7,9 @@
     xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     x:Name="SqualrTwoChoiceDialog"
     Width="320"
-    Height="144"
+    Height="160"
+    d:DesignHeight="160"
     d:DesignWidth="320"
-    d:DesignHeight="144"
     BorderBrush="{StaticResource SqualrColorWhite}"
     BorderThickness="2"
     DataContext="{Binding TwoChoiceDialogViewModel, Source={StaticResource ViewModelLocator}}"
@@ -24,7 +24,7 @@
         <shell:Grid.RowDefinitions>
             <shell:RowDefinition Height="Auto" />
             <shell:RowDefinition Height="*" />
-            <shell:RowDefinition Height="Auto"/>
+            <shell:RowDefinition Height="Auto" />
         </shell:Grid.RowDefinitions>
 
         <shell:Grid
@@ -32,21 +32,23 @@
             Grid.Row="0"
             Height="24"
             Background="{StaticResource SqualrColorGray20}">
-            <shell:TextBlock Margin="8 0 8 2" VerticalAlignment="Center" Foreground="{StaticResource SqualrColorWhite}" Text="{Binding HeaderText}" />
+            <shell:TextBlock
+                Margin="8,0,8,2"
+                VerticalAlignment="Center"
+                Foreground="{StaticResource SqualrColorWhite}"
+                Text="{Binding HeaderText}" />
         </shell:Grid>
 
         <shell:Grid Margin="4" shell:Grid.Row="1">
             <shell:TextBlock
-                    Margin="0,0,0,4"
-                    TextWrapping="Wrap"
-                    Foreground="{StaticResource SqualrColorWhite}"
-                    Text="{Binding BodyText}" />
+                Margin="0,0,0,4"
+                Foreground="{StaticResource SqualrColorWhite}"
+                Text="{Binding BodyText}"
+                TextWrapping="Wrap" />
         </shell:Grid>
 
         <shell:Grid Margin="4" shell:Grid.Row="2">
-            <shell:TextBlock
-                Foreground="{StaticResource SqualrColorWhite}"
-                Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
+            <shell:TextBlock Foreground="{StaticResource SqualrColorWhite}" Text="{Binding StatusText, UpdateSourceTrigger=PropertyChanged}" />
         </shell:Grid>
         <shell:Grid Grid.Row="3" Margin="8">
             <shell:Button
