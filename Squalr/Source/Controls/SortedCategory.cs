@@ -15,6 +15,15 @@
         private const Char NonPrintableChar = '\t';
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="SortedCategory" /> class.
+        /// </summary>
+        /// <param name="category">The category type used to sort the property.</param>
+        public SortedCategory(CategoryType category)
+            : base(category.GetDescription().PadLeft(category.GetDescription().Length + Enum.GetNames(typeof(CategoryType)).Length - (Int32)category, SortedCategory.NonPrintableChar))
+        {
+        }
+
+        /// <summary>
         /// Defines category types for items displayed in the property viewer.
         /// </summary>
         public enum CategoryType
@@ -30,15 +39,6 @@
             /// </summary>
             [Description("Advanced")]
             Advanced = 2,
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SortedCategory" /> class.
-        /// </summary>
-        /// <param name="category">The category type used to sort the property.</param>
-        public SortedCategory(CategoryType category)
-            : base(category.GetDescription().PadLeft(category.GetDescription().Length + Enum.GetNames(typeof(CategoryType)).Length - (Int32)category, SortedCategory.NonPrintableChar))
-        {
         }
     }
     //// End class
