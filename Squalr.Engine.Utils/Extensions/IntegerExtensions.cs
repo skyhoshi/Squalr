@@ -348,6 +348,82 @@
         }
 
         /// <summary>
+        /// Extracts a single bit from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The index of the bit to extract.</param>
+        /// <returns>The extracted bit value as a boolean.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Boolean GetBit(this Int32 value, Int32 bit)
+        {
+            return (value & (1 << bit)) != 0;
+        }
+
+        /// <summary>
+        /// Extracts a single bit from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The index of the bit to extract.</param>
+        /// <returns>The extracted bit value as a boolean.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Boolean GetBit(this Int64 value, Int32 bit)
+        {
+            return (value & (1 << bit)) != 0;
+        }
+
+        /// <summary>
+        /// Extracts a single bit from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The index of the bit to extract.</param>
+        /// <returns>The extracted bit value as a boolean.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Boolean GetBit(this IntPtr value, Int32 bit)
+        {
+            return GetBit(value.ToInt64(), bit);
+        }
+
+        /// <summary>
+        /// Extracts a range of bits from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The bit index flags to extract.</param>
+        /// <returns>The extracted bit values as a new integer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32 GetBits(this Int32 value, Int32 bit, Int32 length)
+        {
+            Int32 mask = (1 << length) - 1;
+
+            return (value >> bit) & mask;
+        }
+
+        /// <summary>
+        /// Extracts a range of bits from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The bit index flags to extract.</param>
+        /// <returns>The extracted bit values as a new integer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64 GetBits(this Int64 value, Int32 bit, Int32 length)
+        {
+            Int64 mask = (1L << length) - 1L;
+
+            return (value >> bit) & mask;
+        }
+
+        /// <summary>
+        /// Extracts a range of bits from an integer.
+        /// </summary>
+        /// <param name="value">The value from which a bit is extracted.</param>
+        /// <param name="bit">The bit index flags to extract.</param>
+        /// <returns>The extracted bit values as a new integer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int64 GetBits(this IntPtr value, Int32 bit, Int32 length)
+        {
+            return GetBits(value.ToInt64(), bit, length);
+        }
+
+        /// <summary>
         /// Performs the given mathematical operation on the given left and right values.
         /// </summary>
         /// <param name="left">The left side value.</param>
@@ -450,46 +526,6 @@
                         throw ex;
                 }
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Boolean GetBit(this Int32 result, Int32 bit)
-        {
-            return (result & (1 << bit)) != 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Boolean GetBit(this Int64 result, Int32 bit)
-        {
-            return (result & (1 << bit)) != 0;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Boolean GetBit(this IntPtr result, Int32 bit)
-        {
-            return GetBit(result.ToInt64(), bit);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int32 GetBits(this int result, Int32 bit, Int32 length)
-        {
-            Int32 mask = (1 << length) - 1;
-
-            return (result >> bit) & mask;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int64 GetBits(this Int64 result, Int32 bit, Int32 length)
-        {
-            Int64 mask = (1L << length) - 1L;
-
-            return (result >> bit) & mask;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Int64 GetBits(this IntPtr result, Int32 bit, Int32 length)
-        {
-            return GetBits(result.ToInt64(), bit, length);
         }
     }
     //// End class

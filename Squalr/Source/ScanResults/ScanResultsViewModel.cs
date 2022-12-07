@@ -91,11 +91,6 @@
             this.UpdateLoop();
         }
 
-        private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
-        {
-            this.Update(snapshotManager.GetActiveSnapshot());
-        }
-
         /// <summary>
         /// Gets the command to edit the specified address item.
         /// </summary>
@@ -107,7 +102,7 @@
         public ICommand ChangeTypeCommand { get; private set; }
 
         /// <summary>
-        /// Gets or sets the command to select scan results.
+        /// Gets the command to select scan results.
         /// </summary>
         public ICommand SelectScanResultsCommand { get; private set; }
 
@@ -184,7 +179,6 @@
                             break;
                     }
                 });
-
 
                 this.RaisePropertyChanged(nameof(this.ActiveType));
                 this.RaisePropertyChanged(nameof(this.ActiveTypeName));
@@ -315,7 +309,7 @@
         }
 
         /// <summary>
-        /// Gets the address elements.
+        /// Gets or sets the address elements.
         /// </summary>
         public FullyObservableCollection<ScanResult> Addresses
         {
@@ -376,9 +370,15 @@
             });
         }
 
+        private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
+        {
+            this.Update(snapshotManager.GetActiveSnapshot());
+        }
+
         /// <summary>
         /// Promts the user to edit the value of the specified result.
         /// </summary>
+        /// <param name="scanResult">The scan result to edit.</param>
         private void EditValue(ScanResult scanResult)
         {
             ValueEditorViewModel.GetInstance().ShowDialog(scanResult?.ProjectItemView?.ProjectItem as PointerItem);

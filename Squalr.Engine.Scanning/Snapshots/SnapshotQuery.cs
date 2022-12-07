@@ -26,8 +26,11 @@
         /// <summary>
         /// Gets a snapshot based on the provided mode. Will not read any memory.
         /// </summary>
+        /// <param name="process"></param>
         /// <param name="snapshotCreationMode">The method of snapshot retrieval.</param>
+        /// <param name="emulatorType"></param>
         /// <returns>The collected snapshot.</returns>
+        /// <exception cref="NotImplementedException"></exception>
         public static Snapshot GetSnapshot(Process process, SnapshotRetrievalMode snapshotCreationMode, EmulatorType emulatorType = EmulatorType.None)
         {
             switch (snapshotCreationMode)
@@ -47,9 +50,13 @@
                     return null;
             }
         }
+
         /// <summary>
         /// Creates a new snapshot of memory in the target process. Will not read any memory.
         /// </summary>
+        /// <param name="process"></param>
+        /// <param name="startAddress"></param>
+        /// <param name="endAddress"></param>
         /// <returns>The snapshot of memory taken in the target process.</returns>
         public static Snapshot CreateSnapshotByAddressRange(Process process, UInt64 startAddress, UInt64 endAddress)
         {
@@ -79,6 +86,7 @@
         /// <summary>
         /// Creates a snapshot from all usermode memory. Will not read any memory.
         /// </summary>
+        /// <param name="process"></param>
         /// <returns>A snapshot created from usermode memory.</returns>
         private static Snapshot CreateSnapshotFromUsermodeMemory(Process process)
         {
@@ -109,6 +117,8 @@
         /// <summary>
         /// Creates a new snapshot of memory in the target process. Will not read any memory.
         /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorType"></param>
         /// <returns>The snapshot of memory taken in the target process.</returns>
         private static Snapshot CreateSnapshotFromSettings(Process process, EmulatorType emulatorType = EmulatorType.None)
         {
@@ -161,6 +171,8 @@
         /// <summary>
         /// Creates a snapshot from modules in the selected process.
         /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorType"></param>
         /// <returns>The created snapshot.</returns>
         private static Snapshot CreateSnapshotFromModules(Process process, EmulatorType emulatorType)
         {
@@ -182,6 +194,8 @@
         /// <summary>
         /// Creates a snapshot from modules in the selected process.
         /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorType"></param>
         /// <returns>The created snapshot.</returns>
         private static Snapshot CreateSnapshotFromHeaps(Process process, EmulatorType emulatorType)
         {

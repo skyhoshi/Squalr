@@ -22,51 +22,16 @@
         public PointerItemView(PointerItem pointerItem)
         {
             this.PointerItem = pointerItem;
-            this.PointerItem.PropertyChanged += PointerItemPropertyChanged;
+            this.PointerItem.PropertyChanged += this.PointerItemPropertyChanged;
         }
 
         ~PointerItemView()
         {
-            this.PointerItem.PropertyChanged -= PointerItemPropertyChanged;
-        }
-
-        private void PointerItemPropertyChanged(Object sender, PropertyChangedEventArgs args)
-        {
-            switch (args.PropertyName)
-            {
-                case nameof(PointerItem.AddressValue):
-                    this.RaisePropertyChanged(nameof(this.DisplayValue));
-                    break;
-                case nameof(PointerItem.IsStatic):
-                    this.RaisePropertyChanged(nameof(this.IsStatic));
-                    break;
-                case nameof(PointerItem.ModuleOffset):
-                    this.RaisePropertyChanged(nameof(this.ModuleOffset));
-                    break;
-                case nameof(PointerItem.DataType):
-                    this.RaisePropertyChanged(nameof(this.DataType));
-                    break;
-            }
-        }
-
-        [Browsable(false)]
-        private PointerItem PointerItem
-        {
-            get
-            {
-                return this.pointerItem;
-            }
-
-            set
-            {
-                this.pointerItem = value;
-                this.ProjectItem = value;
-                this.RaisePropertyChanged(nameof(this.PointerItem));
-            }
+            this.PointerItem.PropertyChanged -= this.PointerItemPropertyChanged;
         }
 
         /// <summary>
-        /// Gets or sets the description for this object.
+        /// Gets the description for this object.
         /// </summary>
         [Browsable(false)]
         public String AddressSpecifier
@@ -160,7 +125,7 @@
         }
 
         /// <summary>
-        /// Gets or sets the base address of this object. This will be added as an offset from the resolved base identifier.
+        /// Gets the base address of this object. This will be added as an offset from the resolved base identifier.
         /// </summary>
         [Browsable(true)]
         [RefreshProperties(RefreshProperties.All)]
@@ -243,6 +208,41 @@
             get
             {
                 return this.PointerItem.IsStatic;
+            }
+        }
+
+        [Browsable(false)]
+        private PointerItem PointerItem
+        {
+            get
+            {
+                return this.pointerItem;
+            }
+
+            set
+            {
+                this.pointerItem = value;
+                this.ProjectItem = value;
+                this.RaisePropertyChanged(nameof(this.PointerItem));
+            }
+        }
+
+        private void PointerItemPropertyChanged(Object sender, PropertyChangedEventArgs args)
+        {
+            switch (args.PropertyName)
+            {
+                case nameof(PointerItem.AddressValue):
+                    this.RaisePropertyChanged(nameof(this.DisplayValue));
+                    break;
+                case nameof(PointerItem.IsStatic):
+                    this.RaisePropertyChanged(nameof(this.IsStatic));
+                    break;
+                case nameof(PointerItem.ModuleOffset):
+                    this.RaisePropertyChanged(nameof(this.ModuleOffset));
+                    break;
+                case nameof(PointerItem.DataType):
+                    this.RaisePropertyChanged(nameof(this.DataType));
+                    break;
             }
         }
     }

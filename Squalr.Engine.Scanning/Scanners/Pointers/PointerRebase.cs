@@ -39,7 +39,8 @@
             {
                 TrackableTask<PointerBag> pointerScanTask = TrackableTask<PointerBag>.Create(PointerRebase.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken);
 
-                return pointerScanTask.With(Task<PointerBag>.Run(() =>
+                return pointerScanTask.With(Task<PointerBag>.Run(
+                    () =>
                     {
                         try
                         {
@@ -95,7 +96,7 @@
                                 updatedStaticPointers.SetAlignmentCascading(previousPointerBag.PointerSize.ToSize(), alignment);
 
                                 levelStopwatch.Stop();
-                                Logger.Log(LogLevel.Info, "Pointer rebase from level " + (levelIndex) + " => " + (levelIndex + 1) + " completed in: " + levelStopwatch.Elapsed);
+                                Logger.Log(LogLevel.Info, "Pointer rebase from level " + levelIndex + " => " + (levelIndex + 1) + " completed in: " + levelStopwatch.Elapsed);
 
                                 newLevels.Add(new Level(updatedHeapPointers, updatedStaticPointers));
                             }
@@ -120,7 +121,8 @@
                         }
 
                         return null;
-                    }, cancellationToken));
+                    },
+                    cancellationToken));
             }
             catch (TaskConflictException ex)
             {

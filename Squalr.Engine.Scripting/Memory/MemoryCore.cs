@@ -11,7 +11,6 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Threading;
 
     /// <summary>
@@ -32,13 +31,14 @@
         /// <summary>
         /// Gets or sets the keywords associated with all running scripts.
         /// </summary>
-        private static Lazy<ConcurrentDictionary<String, Object>> globalKeywords = new Lazy<ConcurrentDictionary<String, Object>>(
+        private static readonly Lazy<ConcurrentDictionary<String, Object>> GlobalKeywords = new Lazy<ConcurrentDictionary<String, Object>>(
             () => { return new ConcurrentDictionary<String, Object>(); },
             LazyThreadSafetyMode.ExecutionAndPublication);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryCore" /> class.
         /// </summary>
+        /// <param name="session">A session reference used to access the target process.</param>
         public MemoryCore(Session session)
         {
             this.Session = session;
@@ -47,6 +47,9 @@
             this.CodeCaves = new List<CodeCave>();
         }
 
+        /// <summary>
+        /// Gets or sets the session object used to access the target process.
+        /// </summary>
         private Session Session { get; set; }
 
         /// <summary>
@@ -444,7 +447,7 @@
         {
             this.PrintDebugTag(globalKeyword?.ToLower(), value.ToString() as String);
 
-            MemoryCore.globalKeywords.Value[globalKeyword?.ToLower()] = value;
+            MemoryCore.GlobalKeywords.Value[globalKeyword?.ToLower()] = value;
         }
 
         /// <summary>
@@ -468,7 +471,7 @@
         public Object GetGlobalKeyword(String globalKeyword)
         {
             Object result;
-            MemoryCore.globalKeywords.Value.TryGetValue(globalKeyword?.ToLower(), out result);
+            MemoryCore.GlobalKeywords.Value.TryGetValue(globalKeyword?.ToLower(), out result);
 
             return result;
         }
@@ -496,10 +499,10 @@
         {
             this.PrintDebugTag(globalKeyword);
 
-            if (MemoryCore.globalKeywords.Value.ContainsKey(globalKeyword))
+            if (MemoryCore.GlobalKeywords.Value.ContainsKey(globalKeyword))
             {
                 Object valueRemoved;
-                MemoryCore.globalKeywords.Value.TryRemove(globalKeyword, out valueRemoved);
+                MemoryCore.GlobalKeywords.Value.TryRemove(globalKeyword, out valueRemoved);
             }
         }
 
@@ -520,7 +523,7 @@
         {
             this.PrintDebugTag();
 
-            MemoryCore.globalKeywords.Value.Clear();
+            MemoryCore.GlobalKeywords.Value.Clear();
         }
 
         /// <summary>
@@ -559,12 +562,18 @@
             throw new NotImplementedException();
         }
 
-        public UInt64 EvaluatePointer(UInt64 address, IEnumerable<Int32> offsets)
+        /// <summary>
+        /// Evaluates a pointer given a base address and a set of offsets.
+        /// </summary>
+        /// <param name="baseAddress">The base address of the pointer.</param>
+        /// <param name="offsets">The offsets to use when evaluating the pointer.</param>
+        /// <returns>The evaluated pointer address.</returns>
+        public UInt64 EvaluatePointer(UInt64 baseAddress, IEnumerable<Int32> offsets)
         {
             this.PrintDebugTag();
 
-            UInt64 finalAddress = MemoryReader.Instance.EvaluatePointer(this.Session.OpenedProcess, address, offsets);
-            return finalAddress;
+            UInt64 evaluatedAddress = MemoryReader.Instance.EvaluatePointer(this.Session.OpenedProcess, baseAddress, offsets);
+            return evaluatedAddress;
         }
 
         /// <summary>
@@ -641,7 +650,7 @@
                 assembly = assembly.Replace("<" + keyword.Key + ">", Conversions.ToHex(keyword.Value, formatAsAddress: false, includePrefix: true) as String, StringComparison.OrdinalIgnoreCase);
             }
 
-            foreach (KeyValuePair<String, Object> globalKeyword in MemoryCore.globalKeywords.Value.ToArray())
+            foreach (KeyValuePair<String, Object> globalKeyword in MemoryCore.GlobalKeywords.Value.ToArray())
             {
                 assembly = assembly.Replace("<" + globalKeyword.Key + ">", Conversions.ToHex(globalKeyword.Value, formatAsAddress: false, includePrefix: true) as String, StringComparison.OrdinalIgnoreCase);
             }

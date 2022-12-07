@@ -77,7 +77,7 @@
         /// Also, this takes into account how much space is available for reading from the snapshot region containing this element range.
         /// </summary>
         /// <param name="dataTypeSize">The data type size of the elements contained.</param>
-        /// <returns></returns>
+        /// <returns>The true byte count of this range given a data type.</returns>
         public Int32 GetByteCount(Int32 dataTypeSize)
         {
             Int32 desiredSpillOverBytes = Math.Max(dataTypeSize - 1, 0);

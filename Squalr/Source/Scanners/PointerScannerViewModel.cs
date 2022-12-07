@@ -19,11 +19,6 @@
     public class PointerScannerViewModel : ToolViewModel
     {
         /// <summary>
-        /// An identifier to ensure only one pointer scan runs at a time.
-        /// </summary>
-        public static readonly String PointerScanTaskIdentifier = Guid.NewGuid().ToString();
-
-        /// <summary>
         /// Gets the default pointer scan depth.
         /// </summary>
         public const Int32 DefaultPointerScanDepth = 3;
@@ -38,6 +33,18 @@
         /// </summary>
         public const Int32 MaximumPointerScanDepth = 25;
 
+        /// <summary>
+        /// An identifier to ensure only one pointer scan runs at a time.
+        /// </summary>
+        public static readonly String PointerScanTaskIdentifier = Guid.NewGuid().ToString();
+
+        /// <summary>
+        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
+        /// </summary>
+        private static readonly Lazy<PointerScannerViewModel> PointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
+                () => { return new PointerScannerViewModel(); },
+                LazyThreadSafetyMode.ExecutionAndPublication);
+
         private UInt64 retargetAddress;
 
         private UInt64 targetAddress;
@@ -47,13 +54,6 @@
         private Object rescanValue;
 
         private Int32 pointerDepth;
-
-        /// <summary>
-        /// Singleton instance of the <see cref="PointerScannerViewModel" /> class.
-        /// </summary>
-        private static Lazy<PointerScannerViewModel> pointerScannerViewModelInstance = new Lazy<PointerScannerViewModel>(
-                () => { return new PointerScannerViewModel(); },
-                LazyThreadSafetyMode.ExecutionAndPublication);
 
         /// <summary>
         /// Prevents a default instance of the <see cref="PointerScannerViewModel" /> class from being created.
@@ -203,7 +203,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static PointerScannerViewModel GetInstance()
         {
-            return pointerScannerViewModelInstance.Value;
+            return PointerScannerViewModelInstance.Value;
         }
 
         /// <summary>
@@ -221,8 +221,7 @@
                     this.PointerDepth,
                     MemoryAlignment.Alignment4,
                     pointerSize,
-                    PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerScanTask.Result;
             }
@@ -242,8 +241,7 @@
                     SessionManager.Session.OpenedProcess,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
                     readMemory: true,
-                    taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    taskIdentifier: PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRebaseTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRebaseTask.Result;
             }
@@ -265,8 +263,7 @@
                     this.RetargetAddress,
                     MemoryAlignment.Alignment4,
                     PointerScanResultsViewModel.GetInstance().DiscoveredPointers,
-                    PointerScannerViewModel.PointerScanTaskIdentifier
-                );
+                    PointerScannerViewModel.PointerScanTaskIdentifier);
                 TaskTrackerViewModel.GetInstance().TrackTask(pointerRetargetScanTask);
                 PointerScanResultsViewModel.GetInstance().DiscoveredPointers = pointerRetargetScanTask.Result;
             }

@@ -35,38 +35,6 @@
         private TtlCache<Int32, IList<NormalizedModule>> ModuleCache { get; set; }
 
         /// <summary>
-        /// Gets the address of the stacks in the opened process.
-        /// </summary>
-        /// <returns>A pointer to the stacks of the opened process.</returns>
-        public IEnumerable<NormalizedRegion> GetStackAddresses(Process process, EmulatorType emulatorType)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets the address(es) of the heap in the target process.
-        /// </summary>
-        /// <returns>The heap addresses in the target process.</returns>
-        public IEnumerable<NormalizedRegion> GetHeapAddresses(Process process, EmulatorType emulatorType)
-        {
-            switch (emulatorType)
-            {
-                case EmulatorType.AutoDetect:
-                    throw new NotImplementedException("Auto detect emulator type not yet supported on GetModules()");
-                case EmulatorType.Dolphin:
-                    return this.GetDolphinHeaps(process);
-                case EmulatorType.None:
-                    break;
-                default:
-                    throw new NotImplementedException("Provided emulator type not yet supported on GetModules()");
-            }
-
-            ManagedPeb peb = new ManagedPeb(process == null ? IntPtr.Zero : process.Handle);
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Gets regions of memory allocated in the remote process based on provided parameters.
         /// </summary>
         /// <param name="process">The target process.</param>
@@ -76,6 +44,7 @@
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
         /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         public IEnumerable<NormalizedRegion> GetVirtualPages(
             Process process,
@@ -94,11 +63,14 @@
         /// Gets regions of memory allocated in the remote process based on provided parameters.
         /// </summary>
         /// <typeparam name="T">A type inheriting from <see cref="NormalizedRegion"/>.</typeparam>
+        /// <param name="process">The target process.</param>
         /// <param name="requiredProtection">Protection flags required to be present.</param>
         /// <param name="excludedProtection">Protection flags that must not be present.</param>
         /// <param name="allowedTypes">Memory types that can be present.</param>
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
+        /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         public IEnumerable<T> GetVirtualPages<T>(
             Process process, 
@@ -110,6 +82,18 @@
             RegionBoundsHandling regionBoundsHandling,
             EmulatorType emulatorType) where T : NormalizedRegion, new()
         {
+            switch (emulatorType)
+            {
+                case EmulatorType.AutoDetect:
+                    throw new NotImplementedException("Auto detect emulator type not yet supported on GetModules()");
+                case EmulatorType.Dolphin:
+                    return this.GetDolphinVirtualPages<T>(process);
+                case EmulatorType.None:
+                    break;
+                default:
+                    throw new NotImplementedException("Provided emulator type not yet supported on GetModules()");
+            }
+
             MemoryProtectionFlags requiredFlags = 0;
             MemoryProtectionFlags excludedFlags = 0;
 
@@ -171,6 +155,7 @@
         /// Gets all virtual pages in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of regions in the process.</returns>
         public IEnumerable<NormalizedRegion> GetAllVirtualPages(Process process, EmulatorType emulatorType)
         {
@@ -181,6 +166,8 @@
         /// Gets all virtual pages in the opened process.
         /// </summary>
         /// <typeparam name="T">A type inheriting from <see cref="NormalizedRegion"/>.</typeparam>
+        /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of regions in the process.</returns>
         public IEnumerable<T> GetAllVirtualPages<T>(Process process, EmulatorType emulatorType) where T : NormalizedRegion, new()
         {
@@ -189,6 +176,12 @@
             return this.GetVirtualPages<T>(process, 0, 0, flags, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, emulatorType);
         }
 
+        /// <summary>
+        /// Gets a value indicating whether an address is writable.
+        /// </summary>
+        /// <param name="process">The target process.</param>
+        /// <param name="address">The address to check for writability.</param>
+        /// <returns>A value indicating whether the given address is writable.</returns>
         public bool IsAddressWritable(Process process, UInt64 address)
         {
             MemoryTypeEnum flags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
@@ -249,6 +242,8 @@
         /// <summary>
         /// Gets all modules in the opened process.
         /// </summary>
+        /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect modules from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of modules in the process.</returns>
         public IEnumerable<NormalizedModule> GetModules(Process process, EmulatorType emulatorType)
         {
@@ -257,7 +252,7 @@
                 return new List<NormalizedModule>();
             }
 
-            switch(emulatorType)
+            switch (emulatorType)
             {
                 case EmulatorType.AutoDetect:
                     throw new NotImplementedException("Auto detect emulator type not yet supported on GetModules()");
@@ -325,6 +320,42 @@
         }
 
         /// <summary>
+        /// Gets the address of the stacks in the opened process.
+        /// </summary>
+        /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect stack addresses from the emulated game, rather than the emulator process entirely.</param>
+        /// <returns>A pointer to the stacks of the opened process.</returns>
+        public IEnumerable<NormalizedRegion> GetStackAddresses(Process process, EmulatorType emulatorType)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Gets the addresses of the heaps in the opened process.
+        /// </summary>
+        /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect heap addresses from the emulated game, rather than the emulator process entirely.</param>
+        /// <returns>A collection of pointers to all heaps in the opened process.</returns>
+        public IEnumerable<NormalizedRegion> GetHeapAddresses(Process process, EmulatorType emulatorType)
+        {
+            switch (emulatorType)
+            {
+                case EmulatorType.AutoDetect:
+                    throw new NotImplementedException("Auto detect emulator type not yet supported on GetModules()");
+                case EmulatorType.Dolphin:
+                    return this.GetDolphinHeaps(process);
+                case EmulatorType.None:
+                    break;
+                default:
+                    throw new NotImplementedException("Provided emulator type not yet supported on GetModules()");
+            }
+
+            ManagedPeb peb = new ManagedPeb(process == null ? IntPtr.Zero : process.Handle);
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Converts an address to a module and an address offset.
         /// </summary>
         /// <param name="address">The original address.</param>
@@ -374,10 +405,7 @@
         /// <returns>
         /// A collection of <see cref="MemoryBasicInformation64"/> structures containing info about all virtual pages in the target process.
         /// </returns>
-        public static IEnumerable<MemoryBasicInformation64> QueryUnallocatedMemory(
-            IntPtr processHandle,
-            UInt64 startAddress,
-            UInt64 endAddress)
+        public static IEnumerable<MemoryBasicInformation64> QueryUnallocatedMemory(IntPtr processHandle, UInt64 startAddress, UInt64 endAddress)
         {
             if (startAddress >= endAddress)
             {
@@ -437,6 +465,86 @@
                 }
             }
             while (startAddress < endAddress && queryResult != 0 && !wrappedAround);
+        }
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="emulatorAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        public UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType)
+        {
+            switch (emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    const UInt64 MemoryBase = 0x80000000;
+                    const UInt64 WiiMemoryBase = 0x90000000;
+
+                    if (emulatorAddress < MemoryBase)
+                    {
+                        return 0;
+                    }
+
+                    bool isWiiExtendedMemory = emulatorAddress >= WiiMemoryBase;
+                    UInt64 baseRelativeAddress = emulatorAddress - (isWiiExtendedMemory ? WiiMemoryBase : MemoryBase);
+                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetDolphinVirtualPages<NormalizedRegion>(process).OrderByDescending(region => region.BaseAddress);
+
+                    if (isWiiExtendedMemory && dolphinRegions.Count() >= 2)
+                    {
+                        return dolphinRegions.First().BaseAddress + baseRelativeAddress;
+                    }
+
+                    if (dolphinRegions.Count() >= 1)
+                    {
+                        return dolphinRegions.Last().BaseAddress + baseRelativeAddress;
+                    }
+
+                    break;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Dtermines the real address of an emulator address.
+        /// </summary>
+        /// <param name="process"></param>
+        /// <param name="realAddress"></param>
+        /// <param name="emulatorType"></param>
+        /// <returns></returns>
+        public UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType)
+        {
+            switch (emulatorType)
+            {
+                case EmulatorType.Dolphin:
+                    const UInt64 MemoryBase = 0x80000000;
+                    const UInt64 WiiMemoryBase = 0x90000000;
+                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetDolphinVirtualPages<NormalizedRegion>(process).OrderByDescending(region => region.BaseAddress);
+
+                    if (dolphinRegions.Count() >= 2)
+                    {
+                        NormalizedRegion region = dolphinRegions.First();
+                        if (realAddress >= region.BaseAddress)
+                        {
+                            return realAddress - region.BaseAddress + WiiMemoryBase;
+                        }
+                    }
+
+                    if (dolphinRegions.Count() >= 1)
+                    {
+                        NormalizedRegion region = dolphinRegions.Last();
+                        if (realAddress >= region.BaseAddress)
+                        {
+                            return realAddress - region.BaseAddress + MemoryBase;
+                        }
+                    }
+
+                    break;
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -612,85 +720,6 @@
         }
 
         /// <summary>
-        /// Dtermines the real address of an emulator address.
-        /// </summary>
-        /// <param name="process"></param>
-        /// <param name="emulatorAddress"></param>
-        /// <param name="emulatorType"></param>
-        /// <returns></returns>
-        public UInt64 EmulatorAddressToRealAddress(Process process, UInt64 emulatorAddress, EmulatorType emulatorType)
-        {
-            switch (emulatorType)
-            {
-                case EmulatorType.Dolphin:
-                    const UInt64 MemoryBase = 0x80000000;
-                    const UInt64 WiiMemoryBase = 0x90000000;
-
-                    if (emulatorAddress < MemoryBase)
-                    {
-                        return 0;
-                    }
-
-                    bool isWiiExtendedMemory = emulatorAddress >= WiiMemoryBase;
-                    UInt64 baseRelativeAddress = emulatorAddress - (isWiiExtendedMemory ? WiiMemoryBase : MemoryBase);
-                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetDolphinVirtualPages<NormalizedRegion>(process).OrderByDescending(region => region.BaseAddress);
-
-                    if (isWiiExtendedMemory && dolphinRegions.Count() >= 2)
-                    {
-                        return dolphinRegions.First().BaseAddress + baseRelativeAddress;
-                    }
-
-                    if (dolphinRegions.Count() >= 1)
-                    {
-                        return dolphinRegions.Last().BaseAddress + baseRelativeAddress;
-                    }
-
-                    break;
-            }
-
-            return 0;
-        }
-
-        /// <summary>
-        /// Dtermines the real address of an emulator address.
-        /// </summary>
-        /// <param name="process"></param>
-        /// <param name="realAddress"></param>
-        /// <param name="emulatorType"></param>
-        /// <returns></returns>
-        public UInt64 RealAddressToEmulatorAddress(Process process, UInt64 realAddress, EmulatorType emulatorType)
-        {
-            switch (emulatorType)
-            {
-                case EmulatorType.Dolphin:
-                    const UInt64 MemoryBase = 0x80000000;
-                    const UInt64 WiiMemoryBase = 0x90000000;
-                    IEnumerable<NormalizedRegion> dolphinRegions = this.GetDolphinVirtualPages<NormalizedRegion>(process).OrderByDescending(region => region.BaseAddress);
-
-                    if (dolphinRegions.Count() >= 2)
-                    {
-                        NormalizedRegion region = dolphinRegions.First();
-                        if (realAddress >= region.BaseAddress)
-                        {
-                            return realAddress - region.BaseAddress + WiiMemoryBase;
-                        }
-                    }
-
-                    if (dolphinRegions.Count() >= 1)
-                    {
-                        NormalizedRegion region = dolphinRegions.Last();
-                        if (realAddress >= region.BaseAddress)
-                        {
-                            return realAddress - region.BaseAddress + MemoryBase;
-                        }
-                    }
-                    break;
-            }
-
-            return 0;
-        }
-
-        /// <summary>
         /// Gets all modules in the opened Dolphin emulator process.
         /// </summary>
         /// <returns>A collection of Dolphin emulator modules in the process.</returns>
@@ -726,13 +755,13 @@
             return regions;
         }
 
-
         /// <summary>
         /// Gets all virtual pages for the target emulator in the opened process.
         /// </summary>
         /// <typeparam name="T">A type inheriting from <see cref="NormalizedRegion"/>.</typeparam>
+        /// <param name="process">The process from which virtual memory pages are collected.</param>
         /// <returns>A collection of regions in the process.</returns>
-        public IEnumerable<T> GetDolphinVirtualPages<T>(Process process) where T : NormalizedRegion, new()
+        private IEnumerable<T> GetDolphinVirtualPages<T>(Process process) where T : NormalizedRegion, new()
         {
             IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
             IList<T> regions = new List<T>();
@@ -740,7 +769,7 @@
             Byte[] layoutMagicWii = { 0xC2, 0x33, 0x9F, 0x3D };
             Byte[] bootCode = { 0x0D, 0x15, 0xEA, 0x5E };
 
-            IEnumerable<T> mappedRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.Dolphin);
+            IEnumerable<T> mappedRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Mapped, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.None);
 
             foreach (T region in mappedRegions)
             {
@@ -770,7 +799,7 @@
             foreach (T region in mappedRegions)
             {
                 // Dolphin stores wii memory in a memory mapped region of this exact size.
-                if (region.RegionSize == 0x4000000 && IsRegionBackedByPhysicalMemory(processHandle, region))
+                if (region.RegionSize == 0x4000000 && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                 {
                     regions.Add(region);
                     mem2Found = true;
@@ -781,12 +810,12 @@
             // Try private regions if mapped didn't contain mem2
             if (!mem2Found)
             {
-                IEnumerable<T> privateRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.Dolphin);
+                IEnumerable<T> privateRegions = this.GetVirtualPages<T>(process, 0, 0, MemoryTypeEnum.Private, 0, this.GetMaximumAddress(process), RegionBoundsHandling.Exclude, EmulatorType.None);
 
                 foreach (T region in privateRegions)
                 {
                     // Dolphin stores wii memory in a memory mapped region of this exact size.
-                    if (region.RegionSize == 0x4000000 && IsRegionBackedByPhysicalMemory(processHandle, region))
+                    if (region.RegionSize == 0x4000000 && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                     {
                         regions.Add(region);
                         mem2Found = true;

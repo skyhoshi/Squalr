@@ -14,7 +14,7 @@
         /// <summary>
         /// Singleton instance of the <see cref="WindowsMemoryWriter"/> class.
         /// </summary>
-        private static readonly Lazy<CpuArchitecture> architectureInstance = new Lazy<CpuArchitecture>(
+        private static readonly Lazy<CpuArchitecture> ArchitectureInstance = new Lazy<CpuArchitecture>(
             () => { return new CpuArchitecture(); },
             LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -24,7 +24,7 @@
         /// <returns>A system architecture instance.</returns>
         public static IArchitecture GetInstance()
         {
-            return architectureInstance.Value;
+            return ArchitectureInstance.Value;
         }
 
         /// <summary>

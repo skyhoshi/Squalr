@@ -26,19 +26,6 @@
         }
 
         /// <summary>
-        /// Gets the base address of this element.
-        /// </summary>
-        public UInt64 GetBaseAddress()
-        {
-            return unchecked(this.ElementRange.ParentRegion.BaseAddress + (UInt64)(this.ElementRange.RegionOffset + this.ElementIndex * (Int32)this.Alignment));
-        }
-
-        /// <summary>
-        /// Gets or sets the parent snapshot element range.
-        /// </summary>
-        private SnapshotElementRange ElementRange { get; set; }
-
-        /// <summary>
         /// Gets the index of this element.
         /// </summary>
         public Int32 ElementIndex { get; set; }
@@ -47,6 +34,19 @@
         /// Gets or sets the memory alignment of this indexer.
         /// </summary>
         public MemoryAlignment Alignment { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parent snapshot element range.
+        /// </summary>
+        private SnapshotElementRange ElementRange { get; set; }
+
+        /// <summary>
+        /// Gets the base address of this element.
+        /// </summary>
+        public UInt64 GetBaseAddress()
+        {
+            return unchecked(this.ElementRange.ParentRegion.BaseAddress + (UInt64)(this.ElementRange.RegionOffset + (this.ElementIndex * (Int32)this.Alignment)));
+        }
 
         public Object LoadCurrentValue(ScannableType dataType)
         {

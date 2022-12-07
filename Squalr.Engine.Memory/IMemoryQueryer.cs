@@ -41,6 +41,7 @@
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
         /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         IEnumerable<NormalizedRegion> GetVirtualPages(
             Process process,
@@ -63,6 +64,7 @@
         /// <param name="startAddress">The start address of the query range.</param>
         /// <param name="endAddress">The end address of the query range.</param>
         /// <param name="regionBoundsHandling">An enum specifying how to handle any regions that partially fall within the specified range.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of pointers to virtual pages in the target process.</returns>
         IEnumerable<T> GetVirtualPages<T>(
             Process process,
@@ -78,6 +80,7 @@
         /// Gets all virtual pages in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of regions in the process.</returns>
         IEnumerable<NormalizedRegion> GetAllVirtualPages(Process process, EmulatorType emulatorType = EmulatorType.None);
 
@@ -85,6 +88,7 @@
         /// Gets all virtual pages in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect virtual memory pages from the emulated game, rather than the emulator process entirely.</param>
         /// <typeparam name="T">A type inheriting from <see cref="NormalizedRegion"/>.</typeparam>
         /// <returns>A collection of regions in the process.</returns>
         IEnumerable<T> GetAllVirtualPages<T>(Process process, EmulatorType emulatorType = EmulatorType.None) where T : NormalizedRegion, new();
@@ -93,9 +97,9 @@
         /// Gets a value indicating whether an address is writable.
         /// </summary>
         /// <param name="process">The target process.</param>
-        /// <param name="address"></param>
-        /// <returns></returns>
-        bool IsAddressWritable(Process process, UInt64 address);
+        /// <param name="address">The address to check for writability.</param>
+        /// <returns>A value indicating whether the given address is writable.</returns>
+        Boolean IsAddressWritable(Process process, UInt64 address);
 
         /// <summary>
         /// Gets the maximum address possible in the target process.
@@ -122,6 +126,7 @@
         /// Gets all modules in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect modules from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of modules in the process.</returns>
         IEnumerable<NormalizedModule> GetModules(Process process, EmulatorType emulatorType = EmulatorType.None);
 
@@ -129,6 +134,7 @@
         /// Gets the address of the stacks in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect stack addresses from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A pointer to the stacks of the opened process.</returns>
         IEnumerable<NormalizedRegion> GetStackAddresses(Process process, EmulatorType emulatorType = EmulatorType.None);
 
@@ -136,6 +142,7 @@
         /// Gets the addresses of the heaps in the opened process.
         /// </summary>
         /// <param name="process">The target process.</param>
+        /// <param name="emulatorType">The process emulator type, if applicable. This is used to collect heap addresses from the emulated game, rather than the emulator process entirely.</param>
         /// <returns>A collection of pointers to all heaps in the opened process.</returns>
         IEnumerable<NormalizedRegion> GetHeapAddresses(Process process, EmulatorType emulatorType = EmulatorType.None);
 

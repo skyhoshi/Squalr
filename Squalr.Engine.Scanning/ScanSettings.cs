@@ -2,14 +2,9 @@
 {
     using Squalr.Engine.Common;
     using System;
-
+    
     public static class ScanSettings
     {
-        public static MemoryAlignment ResolveAutoAlignment(MemoryAlignment alignment, Int32 dataTypeSize)
-        {
-            return alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataTypeSize : alignment;
-        }
-
         public static Int32 ResultReadInterval
         {
             get
@@ -268,6 +263,11 @@
             {
                 Properties.Settings.Default.UseMultiThreadScans = value;
             }
+        }
+
+        public static MemoryAlignment ResolveAutoAlignment(MemoryAlignment alignment, Int32 dataTypeSize)
+        {
+            return alignment == MemoryAlignment.Auto ? (MemoryAlignment)dataTypeSize : alignment;
         }
     }
     //// End class

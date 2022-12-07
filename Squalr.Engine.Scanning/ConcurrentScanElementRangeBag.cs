@@ -17,19 +17,6 @@
             }
         }
     }
-    public class NonConcurrentScanElementRangeBag : List<IList<SnapshotElementRange>>, IEnumerable<SnapshotElementRange>
-    {
-        IEnumerator<SnapshotElementRange> IEnumerable<SnapshotElementRange>.GetEnumerator()
-        {
-            foreach (IList<SnapshotElementRange> list in this)
-            {
-                foreach (SnapshotElementRange item in list)
-                {
-                    yield return item;
-                }
-            }
-        }
-    }
     //// End class
 }
 //// End namespace

@@ -46,27 +46,27 @@
         }
 
         /// <summary>
-        /// Iterator for array of bytes vectorized chunks.
+        /// Gets or sets the iterator index for array of bytes vectorized chunks.
         /// </summary>
         protected Int32 ArrayOfBytesChunkIndex { get; set; }
 
         /// <summary>
-        /// Gets a function which determines if this element has changed.
+        /// Gets or sets a function which determines if this element has changed.
         /// </summary>
         private Func<Vector<Byte>> Changed { get; set; }
 
         /// <summary>
-        /// Gets a function which determines if this element has not changed.
+        /// Gets or sets a function which determines if this element has not changed.
         /// </summary>
         private Func<Vector<Byte>> Unchanged { get; set; }
 
         /// <summary>
-        /// Gets a function which determines if this array of bytes has a value equal to the given array of bytes.
+        /// Gets or sets a function which determines if this array of bytes has a value equal to the given array of bytes.
         /// </summary>
         private Func<Object, Vector<Byte>, Vector<Byte>> EqualToValue { get; set; }
 
         /// <summary>
-        /// Gets a function which determines if this array of bytes has a value not equal to the given array of bytes.
+        /// Gets or sets a function which determines if this array of bytes has a value not equal to the given array of bytes.
         /// </summary>
         private Func<Object, Vector<Byte>, Vector<Byte>> NotEqualToValue { get; set; }
 
@@ -151,7 +151,6 @@
         /// Sets the default compare action to use for this element.
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the scan.</param>
-        /// <param name="compareActionValue">The value to use for the scan.</param>
         private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
             switch (constraint)

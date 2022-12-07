@@ -114,6 +114,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a changed value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonChanged()
         {
             switch (this.DataType)
@@ -162,6 +164,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for an unchanged value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonUnchanged()
         {
             switch (this.DataType)
@@ -210,6 +214,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for an increased value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonIncreased()
         {
             switch (this.DataType)
@@ -258,6 +264,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a decreased value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonDecreased()
         {
             switch (this.DataType)
@@ -306,6 +314,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for an increased by value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonIncreasedBy(Object value)
         {
             switch (this.DataType)
@@ -354,6 +364,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a decreased by value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonDecreasedBy(Object value)
         {
             switch (this.DataType)
@@ -402,6 +414,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for an equal to value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonEqual(Object value)
         {
             switch (this.DataType)
@@ -450,6 +464,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a not equal to value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonNotEqual(Object value)
         {
             switch (this.DataType)
@@ -498,6 +514,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a greater than value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonGreaterThan(Object value)
         {
             switch (this.DataType)
@@ -546,6 +564,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a greater than or equal to value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonGreaterThanOrEqual(Object value)
         {
             switch (this.DataType)
@@ -594,6 +614,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a greater than value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonLessThan(Object value)
         {
             switch (this.DataType)
@@ -642,6 +664,8 @@
         /// <summary>
         /// Gets the appropriate comparison function for a less than or equal to value scan.
         /// </summary>
+        /// <returns>The comparison function.</returns>
+        /// <exception cref="ArgumentException">Thrown if the data type is unsupported for this operation.</exception>
         private unsafe Func<Boolean> GetComparisonLessThanOrEqual(Object value)
         {
             switch (this.DataType)
@@ -730,8 +754,10 @@
                                 return resultLeft ^ resultRight;
                             };
                         default:
-                            throw new ArgumentException("Unkown operation type");
+                            break;
                     }
+
+                    throw new ArgumentException("Unkown operation type");
                 case ScanConstraint scanConstraint:
                     switch (scanConstraint.Constraint)
                     {
@@ -760,8 +786,10 @@
                         case ScanConstraint.ConstraintType.LessThanOrEqual:
                             return this.GetComparisonLessThanOrEqual(scanConstraint.ConstraintValue);
                         default:
-                            throw new Exception("Unknown constraint type");
+                            break;
                     }
+
+                    throw new Exception("Unknown constraint type");
                 default:
                     throw new ArgumentException("Invalid constraint");
             }

@@ -21,7 +21,7 @@
         /// <summary>
         /// Singleton instance of the <see cref="MemoryViewerViewModel" /> class.
         /// </summary>
-        private static readonly Lazy<MemoryViewerViewModel> memoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
+        private static readonly Lazy<MemoryViewerViewModel> MemoryViewerViewModelInstance = new Lazy<MemoryViewerViewModel>(
                 () => { return new MemoryViewerViewModel(); },
                 LazyThreadSafetyMode.ExecutionAndPublication);
 
@@ -35,19 +35,9 @@
         /// </summary>
         private Int32 currentPage;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        SnapshotRegion[] snapshotRegions;
+        private SnapshotRegion[] snapshotRegions;
 
-        SnapshotRegion activeRegion;
-
-        ByteArrayType viewSize = new ByteArrayType(4096);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private UInt64 address = 0x80406F98;
+        private SnapshotRegion activeRegion;
 
         /// <summary>
         /// Prevents a default instance of the <see cref="MemoryViewerViewModel" /> class from being created.
@@ -113,12 +103,9 @@
             set
             {
                 this.currentPage = value;
-                // this.LoadScanResults();
-                this.RaisePropertyChanged(nameof(this.CurrentPage));
-                this.RaisePropertyChanged(nameof(this.CanNavigateFirst));
-                this.RaisePropertyChanged(nameof(this.CanNavigatePrevious));
-                this.RaisePropertyChanged(nameof(this.CanNavigateNext));
-                this.RaisePropertyChanged(nameof(this.CanNavigateLast));
+                this.MemoryStream = null;
+                this.RefreshCurrentView();
+                this.RefreshUIBindings();
             }
         }
 
@@ -173,22 +160,7 @@
         {
             get
             {
-                return this.snapshotRegions?.Length ?? 0;
-            }
-        }
-
-        public UInt64 Address
-        {
-            get
-            {
-                return this.address;
-            }
-
-            set
-            {
-                this.address = value;
-                this.RebuildSnapshot();
-                this.RaisePropertyChanged(nameof(this.Address));
+                return this.snapshotRegions == null ? 0 : (this.snapshotRegions.Length - 1);
             }
         }
 
@@ -198,7 +170,7 @@
         /// <returns>A singleton instance of the class.</returns>
         public static MemoryViewerViewModel GetInstance()
         {
-            return MemoryViewerViewModel.memoryViewerViewModelInstance.Value;
+            return MemoryViewerViewModel.MemoryViewerViewModelInstance.Value;
         }
 
         /// <summary>
@@ -238,34 +210,29 @@
         /// </summary>
         private void RebuildSnapshot()
         {
-            UInt64 effectiveAddress = this.Address;
+            MemoryProtectionEnum requiredPageFlags = 0;
+            MemoryProtectionEnum excludedPageFlags = 0;
+            MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
 
-            switch(SessionManager.Session.DetectedEmulator)
+            UInt64 startAddress = 0;
+            UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(SessionManager.Session.OpenedProcess);
+
+            this.snapshotRegions = MemoryQueryer.Instance.GetVirtualPages<SnapshotRegion>(
+                SessionManager.Session.OpenedProcess,
+                requiredPageFlags,
+                excludedPageFlags,
+                allowedTypeFlags,
+                startAddress,
+                endAddress,
+                RegionBoundsHandling.Exclude,
+                SessionManager.Session.DetectedEmulator)?.ToArray();
+
+            if (this.activeRegion == null)
             {
-                // TODO: Probably do not need special cases for emu, just make sure SnapshotQuery.SnapshotRetrievalMode.FromUserModeMemory returns what we want
-                case EmulatorType.Dolphin:
-                    // effectiveAddress = MemoryQueryer.Instance.EmulatorAddressToRealAddress(SessionManager.Session?.OpenedProcess, this.Address, EmulatorType.Dolphin);
-                    // this.snapshot = SnapshotQuery.CreateSnapshotByAddressRange(SessionManager.Session.OpenedProcess, effectiveAddress, effectiveAddress + (UInt64)this.viewSize.Length);
-                    break;
-                default:
-                    MemoryProtectionEnum requiredPageFlags = 0;
-                    MemoryProtectionEnum excludedPageFlags = 0;
-                    MemoryTypeEnum allowedTypeFlags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
-
-                    UInt64 startAddress = 0;
-                    UInt64 endAddress = MemoryQueryer.Instance.GetMaxUsermodeAddress(SessionManager.Session.OpenedProcess);
-
-                    this.snapshotRegions = MemoryQueryer.Instance.GetVirtualPages<SnapshotRegion>(
-                        SessionManager.Session.OpenedProcess,
-                        requiredPageFlags,
-                        excludedPageFlags,
-                        allowedTypeFlags,
-                        startAddress,
-                        endAddress)?.ToArray();
-                    break;
+                this.RefreshCurrentView();
             }
 
-            this.RaisePropertyChanged(nameof(this.PageCount));
+            this.RefreshUIBindings();
         }
 
         /// <summary>
@@ -278,38 +245,50 @@
                 return;
             }
 
-            activeRegion.ReadAllMemory(SessionManager.Session.OpenedProcess);
-            activeRegion.SetAlignment(MemoryAlignment.Alignment1, 1);
+            this.activeRegion.ReadAllMemory(SessionManager.Session.OpenedProcess);
+            this.activeRegion.SetAlignment(MemoryAlignment.Alignment1, 1);
 
-            Int32 size = Math.Min(this.viewSize.Length, activeRegion.ElementByteCount);
-
-            if (size <= 0)
+            if (!this.activeRegion.HasCurrentValues)
             {
                 this.MemoryStream = null;
             }
             else
             {
-                SnapshotElementIndexer indexer = activeRegion[0, MemoryAlignment.Alignment1];
-
-                if (indexer.HasCurrentValue())
+                if (this.MemoryStream == null)
                 {
-                    Byte[] value = indexer.LoadCurrentValue(this.viewSize) as Byte[];
-
-                    if (value != null)
+                    this.MemoryStream = new MemoryStream(this.activeRegion.CurrentValues);
+                }
+                else
+                {
+                    try
                     {
-                        if (this.MemoryStream == null)
-                        {
-                            this.MemoryStream = new MemoryStream(value);
-                        }
-                        else
-                        {
-                            this.MemoryStream.Seek(0, SeekOrigin.Begin);
-                            this.MemoryStream.Write(value, 0, (Int32)this.MemoryStream.Length);
-                            this.RaisePropertyChanged(nameof(this.MemoryStream));
-                        }
+                        this.MemoryStream.Seek(0, SeekOrigin.Begin);
+                        this.MemoryStream.Write(this.activeRegion.CurrentValues, 0, (Int32)this.MemoryStream.Length);
+                        this.RaisePropertyChanged(nameof(this.MemoryStream));
+                    }
+                    catch (Exception)
+                    {
+                        // Supress. Memory stream is not very thread-safe, so the index may change post-seek, causing a write out of bounds exception.
+                        // This will mean stale values for one update cycle, but it seems rare enough to not be a major issue.
                     }
                 }
             }
+        }
+        
+        private void RefreshCurrentView()
+        {
+            this.activeRegion = this.currentPage < (this.snapshotRegions?.Length ?? 0) ? this.snapshotRegions[this.currentPage] : null;
+        }
+
+        private void RefreshUIBindings()
+        {
+            this.RaisePropertyChanged(nameof(this.CurrentPage));
+            this.RaisePropertyChanged(nameof(this.PageCount));
+            this.RaisePropertyChanged(nameof(this.CanNavigateFirst));
+            this.RaisePropertyChanged(nameof(this.CanNavigatePrevious));
+            this.RaisePropertyChanged(nameof(this.CanNavigateNext));
+            this.RaisePropertyChanged(nameof(this.CanNavigateLast));
+            this.RaisePropertyChanged(nameof(this.MemoryStream));
         }
 
         /// <summary>

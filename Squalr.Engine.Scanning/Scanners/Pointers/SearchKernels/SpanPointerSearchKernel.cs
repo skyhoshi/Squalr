@@ -38,7 +38,7 @@
 
         private UInt32[] UArray { get; set; }
 
-        private Comparer<UInt32> Comparer;
+        private Comparer<UInt32> Comparer { get; set; }
 
         public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScannerBase snapshotRegionScanner)
         {

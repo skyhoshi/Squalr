@@ -27,7 +27,8 @@
             {
                 return TrackableTask<Snapshot>
                     .Create(ValueCollector.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
-                    .With(Task<Snapshot>.Run(() =>
+                    .With(Task<Snapshot>.Run(
+                    () =>
                     {
                         try
                         {
@@ -41,7 +42,7 @@
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
-                            ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
+                            ParallelOptions options = ParallelSettings.ParallelSettingsFastest;
                             options.CancellationToken = cancellationToken;
 
                             // Read memory to get current values for each region
@@ -94,7 +95,8 @@
 
                             return null;
                         }
-                    }, cancellationToken));
+                    },
+                    cancellationToken));
             }
             catch (TaskConflictException ex)
             {

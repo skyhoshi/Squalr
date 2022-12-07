@@ -58,19 +58,6 @@
         }
 
         /// <summary>
-        /// Explicitly the range of this region.
-        /// </summary>
-        /// <param name="baseAddress">The base address of the region.</param>
-        /// <param name="regionSize">The size of the region.</param>
-        public override void GenericConstructor(UInt64 baseAddress, Int32 regionSize)
-        {
-            base.GenericConstructor(baseAddress, regionSize);
-
-            // Create one large snapshot element range spanning the entire region by default
-            this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
-        }
-
-        /// <summary>
         /// Gets the most recently read values.
         /// </summary>
         public unsafe Byte[] CurrentValues { get; private set; }
@@ -159,6 +146,25 @@
         }
 
         /// <summary>
+        /// Gets an enumerator for all snapshot element ranges within this snapshot region.
+        /// </summary>
+        /// <returns>An enumerator for all snapshot element ranges within this snapshot region.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => this.SnapshotElementRanges?.GetEnumerator();
+
+        /// <summary>
+        /// Explicitly the range of this region.
+        /// </summary>
+        /// <param name="baseAddress">The base address of the region.</param>
+        /// <param name="regionSize">The size of the region.</param>
+        public override void GenericConstructor(UInt64 baseAddress, Int32 regionSize)
+        {
+            base.GenericConstructor(baseAddress, regionSize);
+
+            // Create one large snapshot element range spanning the entire region by default
+            this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
+        }
+
+        /// <summary>
         /// Reads all memory for this memory region.
         /// </summary>
         /// <returns>The bytes read from memory.</returns>
@@ -206,7 +212,7 @@
             if (constraints == null
                 || !constraints.IsValid()
                 || !this.HasCurrentValues
-                || ((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && !this.HasPreviousValues)
+                || (((constraints as ScanConstraint)?.IsRelativeConstraint() ?? false) && !this.HasPreviousValues))
             {
                 return false;
             }
@@ -267,15 +273,6 @@
                     currentElementCount += elementCount;
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets an enumerator for all snapshot element ranges within this snapshot region.
-        /// </summary>
-        /// <returns>An enumerator for all snapshot element ranges within this snapshot region.</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return SnapshotElementRanges?.GetEnumerator();
         }
     }
     //// End class
