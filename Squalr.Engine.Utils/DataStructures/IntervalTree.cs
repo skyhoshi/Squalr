@@ -5,6 +5,11 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// An interval tree data structure for mapping contiguous key ranges to a single value.
+    /// </summary>
+    /// <typeparam name="TKey">The key data type.</typeparam>
+    /// <typeparam name="TValue">The value data type.</typeparam>
     public class IntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
     {
         /// <summary>
@@ -26,6 +31,9 @@
             this.Items = new List<RangeValuePair<TKey, TValue>>();
         }
 
+        /// <summary>
+        /// Gets the maximum key value contained in this interval tree.
+        /// </summary>
         public TKey Max
         {
             get
@@ -39,6 +47,9 @@
             }
         }
 
+        /// <summary>
+        /// Gets the minimum key value contained in this interval tree.
+        /// </summary>
         public TKey Min
         {
             get
@@ -52,16 +63,34 @@
             }
         }
 
+        /// <summary>
+        /// Gets all items contained in the tree.
+        /// </summary>
         public IEnumerable<TValue> Values => this.Items.Select(i => i.Value);
 
+        /// <summary>
+        /// Gets the number of elements contained in the tree.
+        /// </summary>
         public Int32 Count => this.Items.Count;
 
+        /// <summary>
+        /// Gets or sets the root node of the interval tree.
+        /// </summary>
         private IntervalTreeNode<TKey, TValue> Root { get; set; }
 
+        /// <summary>
+        /// Gets or sets the list of items contained in the interval tree.
+        /// </summary>
         private List<RangeValuePair<TKey, TValue>> Items { get; set; }
 
+        /// <summary>
+        /// Gets or sets the custom comparer function for comparing interval tree items.
+        /// </summary>
         private IComparer<TKey> Comparer { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the interval tree is in sync and able to be queried.
+        /// </summary>
         private Boolean IsInSync { get; set; }
 
         /// <summary>
@@ -163,6 +192,10 @@
             this.IsInSync = true;
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>An enumerator that iterates through the collection.</returns>
         public IEnumerator<RangeValuePair<TKey, TValue>> GetEnumerator()
         {
             if (!this.IsInSync)

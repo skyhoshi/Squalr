@@ -19,6 +19,28 @@
 
         protected static readonly ConcurrentDictionary<String, TrackableTask> UniqueTaskPool = new ConcurrentDictionary<String, TrackableTask>();
 
+        private Single progress;
+
+        private String name;
+
+        private String taskIdentifier;
+
+        private Boolean isCanceled;
+
+        private Boolean isCompleted;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrackableTask" /> class.
+        /// </summary>
+        /// <param name="name">The name of the trackable task.</param>
+        public TrackableTask(String name)
+        {
+            this.Name = name;
+
+            this.AccessLock = new Object();
+            this.CancellationTokenSource = new CancellationTokenSource();
+        }
+
         public delegate void OnTaskCanceled(TrackableTask task);
 
         public delegate void OnTaskCompleted(TrackableTask task);
@@ -32,24 +54,6 @@
         public event OnTaskCompleted OnCompletedEvent;
 
         public event OnProgressUpdate OnProgressUpdatedEvent;
-
-        private Single progress;
-
-        private String name;
-
-        private String taskIdentifier;
-
-        private Boolean isCanceled;
-
-        private Boolean isCompleted;
-
-        public TrackableTask(String name)
-        {
-            this.Name = name;
-
-            this.AccessLock = new Object();
-            this.CancellationTokenSource = new CancellationTokenSource();
-        }
 
         /// <summary>
         /// An event that is raised when a property of this object changes.

@@ -42,7 +42,7 @@
                             Stopwatch stopwatch = new Stopwatch();
                             stopwatch.Start();
 
-                            ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
+                            ParallelOptions options = ParallelSettings.ParallelSettingsFastest;
                             options.CancellationToken = cancellationToken;
 
                             // Read memory to get current values for each region

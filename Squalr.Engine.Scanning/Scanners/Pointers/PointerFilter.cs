@@ -42,7 +42,7 @@
 
                         ConcurrentBag<SnapshotRegion> resultRegions = new ConcurrentBag<SnapshotRegion>();
 
-                        ParallelOptions options = ParallelSettings.ParallelSettingsFastest.Clone();
+                        ParallelOptions options = ParallelSettings.ParallelSettingsFastest;
                         options.CancellationToken = parentTask.CancellationToken;
 
                         // ISearchKernel DEBUG_KERNEL = new SpanSearchKernel(DEBUG, RADIUS_DEBUG);

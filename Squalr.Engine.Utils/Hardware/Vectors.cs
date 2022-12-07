@@ -13,40 +13,14 @@
         /// </summary>
         public static readonly Vector<Byte> AllBits = Vector.OnesComplement(Vector<Byte>.Zero);
 
+        /// <summary>
+        /// Initializes static members of the <see cref="Vectors" /> class.
+        /// </summary>
         static Vectors()
         {
             Vectors.HasVectorSupport = Vector.IsHardwareAccelerated;
             Vectors.VectorSize = Vector<Byte>.Count;
-
-            Span<Byte> quarterZeros = stackalloc Byte[Vectors.VectorSize];
-            Span<Byte> halfZeros = stackalloc Byte[Vectors.VectorSize];
-            Span<Byte> threeFourthsZeros = stackalloc Byte[Vectors.VectorSize];
-
-            for (Int32 index = Vectors.VectorSize / 4; index < Vectors.VectorSize; index++)
-            {
-                quarterZeros[index] = 0xFF;
-            }
-
-            for (Int32 index = Vectors.VectorSize / 2; index < Vectors.VectorSize; index++)
-            {
-                halfZeros[index] = 0xFF;
-            }
-
-            for (Int32 index = Vectors.VectorSize * 3 / 4; index < Vectors.VectorSize; index++)
-            {
-                threeFourthsZeros[index] = 0xFF;
-            }
-
-            Vectors.HalfZeros = new Vector<Byte>(halfZeros);
-            Vectors.QuarterZeros = new Vector<Byte>(quarterZeros);
-            Vectors.ThreeFourthsZeros = new Vector<Byte>(threeFourthsZeros);
         }
-
-        public static Vector<Byte> QuarterZeros { get; private set; }
-
-        public static Vector<Byte> HalfZeros { get; private set; }
-
-        public static Vector<Byte> ThreeFourthsZeros { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the archiecture has vector instruction support.

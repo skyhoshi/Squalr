@@ -6,8 +6,8 @@
     /// <summary>
     /// A node of the range tree. Given a list of items, it builds its subtree. Contains methods to query the subtree and all interval tree logic.
     /// </summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TValue"></typeparam>
+    /// <typeparam name="TKey">The key data type.</typeparam>
+    /// <typeparam name="TValue">The value data type.</typeparam>
     internal class IntervalTreeNode<TKey, TValue> : IComparer<RangeValuePair<TKey, TValue>>
     {
         /// <summary>
@@ -33,7 +33,7 @@
         {
             this.Comparer = comparer ?? Comparer<TKey>.Default;
 
-            // first, find the median
+            // First, find the median
             List<TKey> endPoints = new List<TKey>(items.Count * 2);
 
             foreach (RangeValuePair<TKey, TValue> item in items)
@@ -44,7 +44,7 @@
 
             endPoints.Sort(this.Comparer);
 
-            // the median is used as center value
+            // The median is used as center value
             if (endPoints.Count > 0)
             {
                 this.Min = endPoints[0];
@@ -56,10 +56,10 @@
             List<RangeValuePair<TKey, TValue>> left = new List<RangeValuePair<TKey, TValue>>();
             List<RangeValuePair<TKey, TValue>> right = new List<RangeValuePair<TKey, TValue>>();
 
-            // iterate over all items
-            // if the range of an item is completely left of the center, add it to the left items
-            // if it is on the right of the center, add it to the right items
-            // otherwise (range overlaps the center), add the item to this node's items
+            // Iterate over all items
+            // If the range of an item is completely left of the center, add it to the left items
+            // If it is on the right of the center, add it to the right items
+            // Otherwise (range overlaps the center), add the item to this node's items
             foreach (RangeValuePair<TKey, TValue> item in items)
             {
                 if (this.Comparer.Compare(item.To, this.Center) < 0)
@@ -76,7 +76,7 @@
                 }
             }
 
-            // sort the items, this way the query is faster later on
+            // Sort the items, this way the query is faster later on
             if (inner.Count > 0)
             {
                 if (inner.Count > 1)
@@ -91,7 +91,7 @@
                 this.Items = null;
             }
 
-            // create left and right nodes, if there are any items
+            // Create left and right nodes, if there are any items
             if (left.Count > 0)
             {
                 this.LeftNode = new IntervalTreeNode<TKey, TValue>(left, this.Comparer);
@@ -103,18 +103,39 @@
             }
         }
 
-        public TKey Max { get; }
+        /// <summary>
+        /// Gets the maximum key value contained in this interval tree node.
+        /// </summary>
+        public TKey Max { get; private set; }
 
-        public TKey Min { get; }
+        /// <summary>
+        /// Gets the minimum key value contained in this interval tree node.
+        /// </summary>
+        public TKey Min { get; private set; }
 
+        /// <summary>
+        /// Gets the center key value contained in this interval tree node. Used to balance the interval tree.
+        /// </summary>
         private TKey Center { get; set; }
 
+        /// <summary>
+        /// Gets or sets the custom comparer function for comparing interval tree items.
+        /// </summary>
         private IComparer<TKey> Comparer { get; set; }
 
+        /// <summary>
+        /// Gets or sets the array of items contained in the interval tree.
+        /// </summary>
         private RangeValuePair<TKey, TValue>[] Items { get; set; }
 
+        /// <summary>
+        /// Gets or sets the left child node of this interval tree node.
+        /// </summary>
         private IntervalTreeNode<TKey, TValue> LeftNode { get; set; }
 
+        /// <summary>
+        /// Gets or sets the right child node of this interval tree node.
+        /// </summary>
         private IntervalTreeNode<TKey, TValue> RightNode { get; set; }
 
         /// <summary>
@@ -221,8 +242,7 @@
                 }
             }
 
-            // go to the left or go to the right of the tree, depending
-            // where the query value lies compared to the center
+            // Go to the left or go to the right of the tree, depending where the query value lies compared to the center
             if (this.LeftNode != null && this.Comparer.Compare(from, this.Center) < 0)
             {
                 results.AddRange(this.LeftNode.Query(from, to));
@@ -238,12 +258,11 @@
 
         /// <summary>
         /// Returns less than 0 if this range's From is less than the other, greater than 0 if greater.
-        /// If both are equal, the comparison of the To values is returned.
-        /// 0 if both ranges are equal.
+        /// If both are equal, the comparison of the To values is returned. 0 if both ranges are equal.
         /// </summary>
         /// <param name="a">The first item.</param>
         /// <param name="b">The other item.</param>
-        /// <returns></returns>
+        /// <returns>A value indicating whether the given range is equal, greater, or less than this range.</returns>
         Int32 IComparer<RangeValuePair<TKey, TValue>>.Compare(RangeValuePair<TKey, TValue> a, RangeValuePair<TKey, TValue> b)
         {
             Int32 fromComp = this.Comparer.Compare(a.From, b.From);

@@ -241,15 +241,6 @@ namespace Squalr.Engine.Common
         /// </summary>
         public Type Type { get; private set; }
 
-        /// <summary>
-        /// Gets primitive types that are available for scanning.
-        /// </summary>
-        /// <returns>An enumeration of scannable types.</returns>
-        public static IEnumerable<ScannableType> GetScannableDataTypes()
-        {
-            return ScannableType.ScannableDataTypes;
-        }
-
         public Int32 Size
         {
             get
@@ -383,6 +374,15 @@ namespace Squalr.Engine.Common
         public static Boolean operator !=(Type self, ScannableType other)
         {
             return !(self == other);
+        }
+
+        /// <summary>
+        /// Gets primitive types that are available for scanning.
+        /// </summary>
+        /// <returns>An enumeration of scannable types.</returns>
+        public static IEnumerable<ScannableType> GetScannableDataTypes()
+        {
+            return ScannableType.ScannableDataTypes;
         }
 
         /// <summary>

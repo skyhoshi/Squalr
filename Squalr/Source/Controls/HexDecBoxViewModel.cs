@@ -270,7 +270,7 @@
         {
             if (this.IsHex && this.SupportsMask && this.IsValid)
             {
-                return Conversions.ParseByteArrayMask(this.Text);
+                return Conversions.ParseByteArrayWildcardMask(this.Text);
             }
 
             return null;
