@@ -8,15 +8,16 @@
     public class IntervalTree<TKey, TValue> : IIntervalTree<TKey, TValue>
     {
         /// <summary>
-        /// Initializes an empty tree.
+        /// Initializes a new instance of the <see cref="IntervalTree{TKey, TValue}" /> class.
         /// </summary>
         public IntervalTree() : this(Comparer<TKey>.Default)
         {
         }
 
         /// <summary>
-        /// Initializes an empty tree.
+        /// Initializes a new instance of the <see cref="IntervalTree{TKey, TValue}" /> class.
         /// </summary>
+        /// <param name="comparer">The custom comparer to use for comparing interval tree items.</param>
         public IntervalTree(IComparer<TKey> comparer)
         {
             this.Comparer = comparer ?? Comparer<TKey>.Default;
@@ -24,8 +25,6 @@
             this.Root = new IntervalTreeNode<TKey, TValue>(this.Comparer);
             this.Items = new List<RangeValuePair<TKey, TValue>>();
         }
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public TKey Max
         {
@@ -55,7 +54,7 @@
 
         public IEnumerable<TValue> Values => this.Items.Select(i => i.Value);
 
-        public Int32 Count => Items.Count;
+        public Int32 Count => this.Items.Count;
 
         private IntervalTreeNode<TKey, TValue> Root { get; set; }
 
@@ -66,38 +65,63 @@
         private Boolean IsInSync { get; set; }
 
         /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>An enumerator that iterates through the collection.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        /// <summary>
         /// Performs a point query with a single value. The first match is returned.
         /// </summary>
+        /// <param name="value">The single value for which the query is performed.</param>
+        /// <returns>The first result matching the given single value query.</returns>
         public TValue QueryOne(TKey value)
         {
             if (!this.IsInSync)
             {
-                Rebuild();
+                this.Rebuild();
             }
 
             return this.Root.QueryOne(value);
         }
 
+        /// <summary>
+        /// Performs a point query with a single value. All items with overlapping ranges are returned.
+        /// </summary>
+        /// <param name="value">The single value for which the query is performed.</param>
+        /// <returns>All items matching the given single value query.</returns>
         public IEnumerable<TValue> Query(TKey value)
         {
             if (!this.IsInSync)
             {
-                Rebuild();
+                this.Rebuild();
             }
 
             return this.Root.Query(value);
         }
 
+        /// <summary>
+        /// Performs a range query. All items with overlapping ranges are returned.
+        /// </summary>
+        /// <param name="from">The start of the query range.</param>
+        /// <param name="to">The end of the query range.</param>
+        /// <returns>All items discovered by this query.</returns>
         public IEnumerable<TValue> Query(TKey from, TKey to)
         {
             if (!this.IsInSync)
             {
-                Rebuild();
+                this.Rebuild();
             }
 
             return this.Root.Query(from, to);
         }
 
+        /// <summary>
+        /// Adds the specified item to this interval tree.
+        /// </summary>
+        /// <param name="from">The start of the item range.</param>
+        /// <param name="to">The end of the item range.</param>
+        /// <param name="value">The value to insert into the given interval range.</param>
         public void Add(TKey from, TKey to, TValue value)
         {
             if (this.Comparer.Compare(from, to) > 0)
@@ -109,18 +133,29 @@
             this.Items.Add(new RangeValuePair<TKey, TValue>(from, to, value));
         }
 
-        public void Remove(TValue value)
+        /// <summary>
+        /// Removes the specified item from this interval tree.
+        /// </summary>
+        /// <param name="item">The item to remove.</param>
+        public void Remove(TValue item)
         {
             this.IsInSync = false;
-            this.Items = this.Items.Where(item => !item.Value.Equals(value)).ToList();
+            this.Items = this.Items.Where(item => !item.Value.Equals(item)).ToList();
         }
 
+        /// <summary>
+        /// Removes the specified items from this interval tree.
+        /// </summary>
+        /// <param name="items">The items to remove.</param>
         public void Remove(IEnumerable<TValue> items)
         {
             this.IsInSync = false;
             this.Items = this.Items.Where(item => !items.Contains(item.Value)).ToList();
         }
 
+        /// <summary>
+        /// Removes all elements from the range tree.
+        /// </summary>
         public void Clear()
         {
             this.Root = new IntervalTreeNode<TKey, TValue>(this.Comparer);
@@ -138,6 +173,9 @@
             return this.Items.GetEnumerator();
         }
 
+        /// <summary>
+        /// Rebuilds this interval tree if it is out of sync.
+        /// </summary>
         private void Rebuild()
         {
             if (this.IsInSync)

@@ -24,6 +24,7 @@
         /// <summary>
         /// Performs a pointer scan for a given address.
         /// </summary>
+        /// <param name="process">The process to scan.</param>
         /// <param name="address">The address for which to perform a pointer scan.</param>
         /// <param name="maxOffset">The maximum pointer offset.</param>
         /// <param name="depth">The maximum pointer search depth.</param>
@@ -36,7 +37,8 @@
             {
                 return TrackableTask<PointerBag>
                     .Create(PointerScan.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
-                    .With(Task<PointerBag>.Run(() =>
+                    .With(Task<PointerBag>.Run(
+                    () =>
                     {
                         try
                         {
@@ -102,7 +104,8 @@
                         }
 
                         return null;
-                    }, cancellationToken));
+                    },
+                    cancellationToken));
             }
             catch (TaskConflictException ex)
             {

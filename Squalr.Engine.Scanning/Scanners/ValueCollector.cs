@@ -27,7 +27,8 @@
             {
                 return TrackableTask<Snapshot>
                     .Create(ValueCollector.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
-                    .With(Task<Snapshot>.Run(() =>
+                    .With(Task<Snapshot>.Run(
+                    () =>
                     {
                         try
                         {
@@ -94,7 +95,8 @@
 
                             return null;
                         }
-                    }, cancellationToken));
+                    },
+                    cancellationToken));
             }
             catch (TaskConflictException ex)
             {

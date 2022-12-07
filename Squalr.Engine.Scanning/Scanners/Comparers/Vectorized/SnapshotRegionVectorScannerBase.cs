@@ -180,12 +180,12 @@
         protected Int32 VectorOverread { get; private set; }
 
         /// <summary>
-        /// Gets an action based on the element iterator scan constraint.
+        /// Gets or sets an action based on the element iterator scan constraint.
         /// </summary>
         protected Func<Vector<Byte>> VectorCompare { get; set; }
 
         /// <summary>
-        /// Gets an action based on the element iterator scan constraint.
+        /// Gets or sets an action based on the element iterator scan constraint.
         /// </summary>
         protected Func<Vector<Byte>> CustomVectorCompare { get; set; }
 
@@ -887,7 +887,9 @@
         /// Sets the default compare action to use for this element.
         /// </summary>
         /// <param name="constraint">The constraint(s) to use for the scan.</param>
-        /// <param name="compareActionValue">The value to use for the scan.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="Exception"></exception>
         private Func<Vector<Byte>> BuildCompareActions(IScanConstraint constraint)
         {
             if (this.CustomVectorCompare != null)

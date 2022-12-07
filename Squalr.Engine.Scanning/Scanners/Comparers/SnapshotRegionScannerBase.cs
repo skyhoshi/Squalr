@@ -25,7 +25,7 @@
         protected SnapshotElementRange ElementRnage { get; set; }
 
         /// <summary>
-        /// Gets or sets a snapshot region run length encoder, which is used to create the snapshots from this scan.
+        /// Gets a snapshot region run length encoder, which is used to create the snapshots from this scan.
         /// </summary>
         protected SnapshotRegionRunLengthEncoder RunLengthEncoder { get; private set; }
 
@@ -45,21 +45,22 @@
         protected ScannableType DataType { get; set; }
 
         /// <summary>
-        /// The action to perform when disposing this scanner.
+        /// Gets or sets the action to perform when disposing this scanner.
         /// </summary>
         private Action OnDispose { get; set; }
 
         /// <summary>
         /// Initializes this scanner for the given region and constaints.
         /// </summary>
-        /// <param name="region">The parent region that contains this element.</param>
+        /// <param name="elementRange">The element range to scan.</param>
         /// <param name="constraints">The set of constraints to use for the element comparisons.</param>
         public virtual void Initialize(SnapshotElementRange elementRange, ScanConstraints constraints)
         {
             this.RunLengthEncoder.Initialize(elementRange);
             this.ElementRnage = elementRange;
             this.DataType = constraints.ElementType;
-            this.DataTypeSize = constraints.ElementType.Size; this.Alignment = this.DataType is ByteArrayType ? MemoryAlignment.Alignment1
+            this.DataTypeSize = constraints.ElementType.Size;
+            this.Alignment = this.DataType is ByteArrayType ? MemoryAlignment.Alignment1
                 : (constraints.Alignment == MemoryAlignment.Auto ? (MemoryAlignment)this.DataTypeSize : constraints.Alignment);
         }
 

@@ -18,9 +18,6 @@
         /// </summary>
         private IEnumerable<SnapshotRegion> snapshotRegions;
 
-        // TODO: Not needed for current use cases, but it would be good to invoke this when proprties change.
-        public event PropertyChangedEventHandler PropertyChanged;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Snapshot" /> class.
         /// </summary>
@@ -47,6 +44,11 @@
             this.SnapshotName = snapshotName ?? String.Empty;
             this.SetSnapshotRegions(snapshotRegions);
         }
+
+        /// <summary>
+        /// An event that is raised when a property of this object changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Gets or sets the name associated with this snapshot. Usually this is the method by which this snapshot was generated.

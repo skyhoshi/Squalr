@@ -6,10 +6,12 @@
     /// <summary>
     /// A node of the range tree. Given a list of items, it builds its subtree. Contains methods to query the subtree and all interval tree logic.
     /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     internal class IntervalTreeNode<TKey, TValue> : IComparer<RangeValuePair<TKey, TValue>>
     {
         /// <summary>
-        ///     Initializes an empty node.
+        /// Initializes a new instance of the <see cref="IntervalTreeNode{TKey, TValue}" /> class.
         /// </summary>
         /// <param name="comparer">The comparer used to compare two items.</param>
         public IntervalTreeNode(IComparer<TKey> comparer)
@@ -22,24 +24,10 @@
             this.Items = null;
         }
 
-        public TKey Max { get; }
-
-        public TKey Min { get; }
-
-        private TKey Center { get; set; }
-
-        private IComparer<TKey> Comparer { get; set; }
-
-        private RangeValuePair<TKey, TValue>[] Items { get; set; }
-
-        private IntervalTreeNode<TKey, TValue> LeftNode { get; set; }
-
-        private IntervalTreeNode<TKey, TValue> RightNode { get; set; }
-
         /// <summary>
-        ///     Initializes a node with a list of items, builds the sub tree.
+        /// Initializes a new instance of the <see cref="IntervalTreeNode{TKey, TValue}" /> class.
         /// </summary>
-        /// <param name="items">The items that should be added to this node</param>
+        /// <param name="items">The items that should be added to this node.</param>
         /// <param name="comparer">The comparer used to compare two items.</param>
         public IntervalTreeNode(IList<RangeValuePair<TKey, TValue>> items, IComparer<TKey> comparer)
         {
@@ -74,11 +62,11 @@
             // otherwise (range overlaps the center), add the item to this node's items
             foreach (RangeValuePair<TKey, TValue> item in items)
             {
-                if (this.Comparer.Compare(item.To, Center) < 0)
+                if (this.Comparer.Compare(item.To, this.Center) < 0)
                 {
                     left.Add(item);
                 }
-                else if (this.Comparer.Compare(item.From, Center) > 0)
+                else if (this.Comparer.Compare(item.From, this.Center) > 0)
                 {
                     right.Add(item);
                 }
@@ -106,30 +94,46 @@
             // create left and right nodes, if there are any items
             if (left.Count > 0)
             {
-                LeftNode = new IntervalTreeNode<TKey, TValue>(left, this.Comparer);
+                this.LeftNode = new IntervalTreeNode<TKey, TValue>(left, this.Comparer);
             }
 
             if (right.Count > 0)
             {
-                RightNode = new IntervalTreeNode<TKey, TValue>(right, this.Comparer);
+                this.RightNode = new IntervalTreeNode<TKey, TValue>(right, this.Comparer);
             }
         }
+
+        public TKey Max { get; }
+
+        public TKey Min { get; }
+
+        private TKey Center { get; set; }
+
+        private IComparer<TKey> Comparer { get; set; }
+
+        private RangeValuePair<TKey, TValue>[] Items { get; set; }
+
+        private IntervalTreeNode<TKey, TValue> LeftNode { get; set; }
+
+        private IntervalTreeNode<TKey, TValue> RightNode { get; set; }
 
         /// <summary>
         /// Performs a point query with a single value. The first match is returned.
         /// </summary>
+        /// <param name="value">The single value for which the query is performed.</param>
+        /// <returns>The first result matching the given single value query.</returns>
         public TValue QueryOne(TKey value)
         {
             // If the node has items, check for leaves containing the value.
-            if (Items != null)
+            if (this.Items != null)
             {
-                foreach (RangeValuePair<TKey, TValue> item in Items)
+                foreach (RangeValuePair<TKey, TValue> item in this.Items)
                 {
-                    if (Comparer.Compare(item.From, value) > 0)
+                    if (this.Comparer.Compare(item.From, value) > 0)
                     {
                         break;
                     }
-                    else if (Comparer.Compare(value, item.From) >= 0 && Comparer.Compare(value, item.To) <= 0)
+                    else if (this.Comparer.Compare(value, item.From) >= 0 && this.Comparer.Compare(value, item.To) <= 0)
                     {
                         return item.Value;
                     }
@@ -137,13 +141,13 @@
             }
 
             // Go to the left or go to the right of the tree, depending where the query value lies compared to the center
-            Int32 centerComp = Comparer.Compare(value, Center);
+            Int32 centerComp = this.Comparer.Compare(value, this.Center);
 
             if (this.LeftNode != null && centerComp < 0)
             {
                 return this.LeftNode.QueryOne(value);
             }
-            else if (RightNode != null && centerComp > 0)
+            else if (this.RightNode != null && centerComp > 0)
             {
                 return this.RightNode.QueryOne(value);
             }
@@ -154,20 +158,22 @@
         /// <summary>
         /// Performs a point query with a single value. All items with overlapping ranges are returned.
         /// </summary>
+        /// <param name="value">The single value for which the query is performed.</param>
+        /// <returns>All items matching the given single value query.</returns>
         public IEnumerable<TValue> Query(TKey value)
         {
             List<TValue> results = new List<TValue>();
 
             // If the node has items, check for leaves containing the value.
-            if (Items != null)
+            if (this.Items != null)
             {
-                foreach (RangeValuePair<TKey, TValue> item in Items)
+                foreach (RangeValuePair<TKey, TValue> item in this.Items)
                 {
-                    if (Comparer.Compare(item.From, value) > 0)
+                    if (this.Comparer.Compare(item.From, value) > 0)
                     {
                         break;
                     }
-                    else if (Comparer.Compare(value, item.From) >= 0 && Comparer.Compare(value, item.To) <= 0)
+                    else if (this.Comparer.Compare(value, item.From) >= 0 && this.Comparer.Compare(value, item.To) <= 0)
                     {
                         results.Add(item.Value);
                     }
@@ -175,15 +181,15 @@
             }
 
             // Go to the left or go to the right of the tree, depending where the query value lies compared to the center
-            Int32 centerComp = Comparer.Compare(value, Center);
+            Int32 centerComp = this.Comparer.Compare(value, this.Center);
 
-            if (LeftNode != null && centerComp < 0)
+            if (this.LeftNode != null && centerComp < 0)
             {
-                results.AddRange(LeftNode.Query(value));
+                results.AddRange(this.LeftNode.Query(value));
             }
-            else if (RightNode != null && centerComp > 0)
+            else if (this.RightNode != null && centerComp > 0)
             {
-                results.AddRange(RightNode.Query(value));
+                results.AddRange(this.RightNode.Query(value));
             }
 
             return results;
@@ -192,20 +198,23 @@
         /// <summary>
         /// Performs a range query. All items with overlapping ranges are returned.
         /// </summary>
+        /// <param name="from">The start of the query range.</param>
+        /// <param name="to">The end of the query range.</param>
+        /// <returns>All items discovered by this query.</returns>
         public IEnumerable<TValue> Query(TKey from, TKey to)
         {
             List<TValue> results = new List<TValue>();
 
             // If the node has items, check for leaves intersecting the range.
-            if (Items != null)
+            if (this.Items != null)
             {
-                foreach (RangeValuePair<TKey, TValue> o in Items)
+                foreach (RangeValuePair<TKey, TValue> o in this.Items)
                 {
-                    if (Comparer.Compare(o.From, to) > 0)
+                    if (this.Comparer.Compare(o.From, to) > 0)
                     {
                         break;
                     }
-                    else if (Comparer.Compare(to, o.From) >= 0 && Comparer.Compare(from, o.To) <= 0)
+                    else if (this.Comparer.Compare(to, o.From) >= 0 && this.Comparer.Compare(from, o.To) <= 0)
                     {
                         results.Add(o.Value);
                     }
@@ -214,14 +223,14 @@
 
             // go to the left or go to the right of the tree, depending
             // where the query value lies compared to the center
-            if (LeftNode != null && Comparer.Compare(from, Center) < 0)
+            if (this.LeftNode != null && this.Comparer.Compare(from, this.Center) < 0)
             {
-                results.AddRange(LeftNode.Query(from, to));
+                results.AddRange(this.LeftNode.Query(from, to));
             }
 
-            if (RightNode != null && Comparer.Compare(to, Center) > 0)
+            if (this.RightNode != null && this.Comparer.Compare(to, this.Center) > 0)
             {
-                results.AddRange(RightNode.Query(from, to));
+                results.AddRange(this.RightNode.Query(from, to));
             }
 
             return results;
@@ -237,11 +246,11 @@
         /// <returns></returns>
         Int32 IComparer<RangeValuePair<TKey, TValue>>.Compare(RangeValuePair<TKey, TValue> a, RangeValuePair<TKey, TValue> b)
         {
-            Int32 fromComp = Comparer.Compare(a.From, b.From);
+            Int32 fromComp = this.Comparer.Compare(a.From, b.From);
 
             if (fromComp == 0)
             {
-                return Comparer.Compare(a.To, b.To);
+                return this.Comparer.Compare(a.To, b.To);
             }
 
             return fromComp;

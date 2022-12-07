@@ -4,14 +4,14 @@
     using System.Collections.Generic;
 
     /// <summary>
-    /// Represents a range of values.
-    /// Both values must be of the same type and comparable.
+    /// Represents a range of values. Both values must be of the same type and comparable.
     /// </summary>
-    /// <typeparam name="TKey">Type of the values.</typeparam>
+    /// <typeparam name="TKey">Type of the keys.</typeparam>
+    /// <typeparam name="TValue">Type of the values.</typeparam>
     public readonly struct RangeValuePair<TKey, TValue> : IEquatable<RangeValuePair<TKey, TValue>>
     {
         /// <summary>
-        /// Initializes a new <see cref="RangeValuePair&lt;TKey, TValue&gt;"/> instance.
+        /// Initializes a new <see cref="RangeValuePair{TKey, TValue}"/> instance.
         /// </summary>
         public RangeValuePair(TKey from, TKey to, TValue value) : this()
         {

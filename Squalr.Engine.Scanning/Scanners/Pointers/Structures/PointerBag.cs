@@ -17,7 +17,7 @@
     /// </summary>
     public class PointerBag : IEnumerable<Level>
     {
-        private static Random RandInstance = new Random();
+        private static readonly Random RandInstance = new Random();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PointerBag" /> class.
@@ -37,19 +37,14 @@
         }
 
         /// <summary>
-        /// Gets or sets the list of levels in this pointer bag.
+        /// Gets the list of levels in this pointer bag.
         /// </summary>
         public IList<Level> Levels { get; private set; }
 
         /// <summary>
-        /// Gets or sets the maximum pointer offset.
+        /// Gets the maximum pointer offset.
         /// </summary>
         public UInt32 MaxOffset { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the pointer size.
-        /// </summary>
-        internal PointerSize PointerSize { get; private set; }
 
         /// <summary>
         /// Gets the depth of the highest pointer level in this bag.
@@ -61,6 +56,11 @@
                 return this.Levels.Count;
             }
         }
+
+        /// <summary>
+        /// Gets the pointer size.
+        /// </summary>
+        internal PointerSize PointerSize { get; private set; }
 
         /// <summary>
         /// Gets a random pointer from the pointer collection.
@@ -144,12 +144,9 @@
                 : (UInt64)element.LoadCurrentValue(PointerSize.ToDataType())) : 0);
         }
 
-        public IEnumerator<Level> GetEnumerator()
-        {
-            return Levels.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => this.Levels.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public IEnumerator<Level> GetEnumerator()
         {
             return Levels.GetEnumerator();
         }

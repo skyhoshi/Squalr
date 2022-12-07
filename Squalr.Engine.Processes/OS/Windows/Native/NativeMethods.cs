@@ -13,7 +13,7 @@
         /// </summary>
         /// <param name="hwnd">A handle to the window.</param>
         /// <param name="lParam">An application-defined value to be passed to the callback function.</param>
-        /// <returns></returns>
+        /// <returns>A value indicating whether enumeration should continue.</returns>
         public delegate Boolean EnumWindowsProc(IntPtr hwnd, Int32 lParam);
 
         /// <summary>
@@ -21,7 +21,7 @@
         /// </summary>
         /// <param name="enumFunc">A pointer to an application-defined callback function.</param>
         /// <param name="lParam">An application-defined value to be passed to the callback function.</param>
-        /// <returns></returns>
+        /// <returns>A value indicating whether the enumeration was successful. For more info, call GetLastError().</returns>
         [DllImport("user32")]
         public static extern Boolean EnumWindows(EnumWindowsProc enumFunc, Int32 lParam);
 

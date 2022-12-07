@@ -36,8 +36,8 @@
         {
             try
             {
-                // TODO: This has been updated to scan in-place (ie edit the snapshot that has been provided). It may be worth adding an option
-                // to create a new snapshot.
+                //// TODO: This has been updated to scan in-place (ie edit the snapshot that has been provided). It may be worth adding an option
+                //// to create a new snapshot.
 
                 return TrackableTask<Snapshot>
                     .Create(ManualScanner.Name, taskIdentifier, out UpdateProgress updateProgress, out CancellationToken cancellationToken)
@@ -51,7 +51,7 @@
                             stopwatch.Start();
 
                             Int32 processedPages = 0;
-                            // ConcurrentScanRegionBag resultRegions = new ConcurrentScanRegionBag(); // Reimplement if we ever decide to reimplement manual scanner creating new snapshots
+                            //// ConcurrentScanRegionBag resultRegions = new ConcurrentScanRegionBag(); // Reimplement if we ever decide to reimplement manual scanner creating new snapshots
 
                             ParallelOptions options = ScanSettings.UseMultiThreadScans ? ParallelSettings.ParallelSettingsFastest : ParallelSettings.ParallelSettingsNone;
 

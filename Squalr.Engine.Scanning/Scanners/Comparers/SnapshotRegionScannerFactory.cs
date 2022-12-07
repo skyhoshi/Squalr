@@ -14,6 +14,78 @@
     /// </summary>
     internal static class SnapshotRegionScannerFactory
     {
+        private static readonly ObjectPool<SnapshotRegionSingleElementScanner> SnapshotRegionSingleElementScannerPool = new ObjectPool<SnapshotRegionSingleElementScanner>(() =>
+        {
+            SnapshotRegionSingleElementScanner instance = new SnapshotRegionSingleElementScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionSingleElementScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> SnapshotRegionVectorArrayOfBytesScannerPool = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
+        {
+            SnapshotRegionVectorArrayOfBytesScanner instance = new SnapshotRegionVectorArrayOfBytesScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionVectorArrayOfBytesScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorSparseScanner> SnapshotRegionVectorSparseScannerPool = new ObjectPool<SnapshotRegionVectorSparseScanner>(() =>
+        {
+            SnapshotRegionVectorSparseScanner instance = new SnapshotRegionVectorSparseScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionVectorSparseScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorFastScanner> SnapshotRegionVectorFastScannerPool = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
+        {
+            SnapshotRegionVectorFastScanner instance = new SnapshotRegionVectorFastScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionVectorFastScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionVectorStaggeredScanner> SnapshotRegionVectorStaggeredScannerPool = new ObjectPool<SnapshotRegionVectorStaggeredScanner>(() =>
+        {
+            SnapshotRegionVectorStaggeredScanner instance = new SnapshotRegionVectorStaggeredScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionVectorStaggeredScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
+        private static readonly ObjectPool<SnapshotRegionIterativeScanner> SnapshotRegionIterativeScannerPool = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
+        {
+            SnapshotRegionIterativeScanner instance = new SnapshotRegionIterativeScanner();
+
+            instance.SetDisposeCallback(() =>
+            {
+                SnapshotRegionIterativeScannerPool.Return(instance);
+            });
+
+            return instance;
+        });
+
         /// <summary>
         /// Performs a scan over the given element range, returning the elements that match the scan.
         /// </summary>
@@ -28,14 +100,14 @@
                 return snapshotRegionSingleElementScannerPool.Get();
             }
             else */
-            
+
             if (Vectors.HasVectorSupport && elementRange.ParentRegion.RegionSize >= Vectors.VectorSize)
             {
                 return SnapshotRegionScannerFactory.CreateVectorScannerInstance(elementRange, constraints);
             }
             else
             {
-                return snapshotRegionIterativeScannerPool.Get();
+                return SnapshotRegionIterativeScannerPool.Get();
             }
         }
 
@@ -50,96 +122,24 @@
             switch (constraints?.ElementType)
             {
                 case ByteArrayType:
-                    return snapshotRegionVectorArrayOfBytesScannerPool.Get();
+                    return SnapshotRegionVectorArrayOfBytesScannerPool.Get();
                 default:
                     Int32 alignmentSize = unchecked((Int32)constraints.Alignment);
 
                     if (alignmentSize == constraints.ElementType.Size)
                     {
-                        return snapshotRegionVectorFastScannerPool.Get();
+                        return SnapshotRegionVectorFastScannerPool.Get();
                     }
                     else if (alignmentSize > constraints.ElementType.Size)
                     {
-                        return snapshotRegionVectorSparseScannerPool.Get();
+                        return SnapshotRegionVectorSparseScannerPool.Get();
                     }
                     else
                     {
-                        return snapshotRegionVectorStaggeredScannerPool.Get();
+                        return SnapshotRegionVectorStaggeredScannerPool.Get();
                     }
             }
         }
-
-        private static readonly ObjectPool<SnapshotRegionSingleElementScanner> snapshotRegionSingleElementScannerPool = new ObjectPool<SnapshotRegionSingleElementScanner>(() =>
-        {
-            SnapshotRegionSingleElementScanner instance = new SnapshotRegionSingleElementScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionSingleElementScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
-
-        private static readonly ObjectPool<SnapshotRegionVectorArrayOfBytesScanner> snapshotRegionVectorArrayOfBytesScannerPool = new ObjectPool<SnapshotRegionVectorArrayOfBytesScanner>(() =>
-        {
-            SnapshotRegionVectorArrayOfBytesScanner instance = new SnapshotRegionVectorArrayOfBytesScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionVectorArrayOfBytesScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
-
-        private static readonly ObjectPool<SnapshotRegionVectorSparseScanner> snapshotRegionVectorSparseScannerPool = new ObjectPool<SnapshotRegionVectorSparseScanner>(() =>
-        {
-            SnapshotRegionVectorSparseScanner instance = new SnapshotRegionVectorSparseScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionVectorSparseScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
-
-        private static readonly ObjectPool<SnapshotRegionVectorFastScanner> snapshotRegionVectorFastScannerPool = new ObjectPool<SnapshotRegionVectorFastScanner>(() =>
-        {
-            SnapshotRegionVectorFastScanner instance = new SnapshotRegionVectorFastScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionVectorFastScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
-
-        private static readonly ObjectPool<SnapshotRegionVectorStaggeredScanner> snapshotRegionVectorStaggeredScannerPool = new ObjectPool<SnapshotRegionVectorStaggeredScanner>(() =>
-        {
-            SnapshotRegionVectorStaggeredScanner instance = new SnapshotRegionVectorStaggeredScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionVectorStaggeredScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
-
-        private static readonly ObjectPool<SnapshotRegionIterativeScanner> snapshotRegionIterativeScannerPool = new ObjectPool<SnapshotRegionIterativeScanner>(() =>
-        {
-            SnapshotRegionIterativeScanner instance = new SnapshotRegionIterativeScanner();
-
-            instance.SetDisposeCallback(() =>
-            {
-                snapshotRegionIterativeScannerPool.Return(instance);
-            });
-
-            return instance;
-        });
     }
     //// End class
 }

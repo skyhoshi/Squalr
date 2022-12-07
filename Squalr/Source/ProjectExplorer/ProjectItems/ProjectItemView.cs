@@ -16,6 +16,9 @@
 
         private Boolean isSelected;
 
+        /// <summary>
+        /// An event that is raised when a property of this object changes.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         [Browsable(false)]

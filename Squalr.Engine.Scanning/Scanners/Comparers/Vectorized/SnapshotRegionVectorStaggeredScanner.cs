@@ -28,11 +28,11 @@
         /// </summary>
         private static readonly Dictionary<Int32, Dictionary<MemoryAlignment, Vector<Byte>[]>> StaggeredMaskMap = new Dictionary<Int32, Dictionary<MemoryAlignment, Vector<Byte>[]>>
         {
-            // Data type size 2
+            //// Data type size 2
             {
                 2, new Dictionary<MemoryAlignment, Vector<Byte>[]>
                 {
-                    // 1-byte aligned
+                    //// 1-byte aligned
                     {
                         MemoryAlignment.Alignment1, new Vector<Byte>[2]
                         {
@@ -42,11 +42,11 @@
                     },
                 }
             },
-            // Data type size 4
+            //// Data type size 4
             {
                 4, new Dictionary<MemoryAlignment, Vector<Byte>[]>
                 {
-                    // 1-byte aligned
+                    //// 1-byte aligned
                     {
                         MemoryAlignment.Alignment1, new Vector<Byte>[4]
                         {
@@ -56,7 +56,7 @@
                             Vector.AsVectorByte(new Vector<UInt32>(0xFF000000)),
                         }
                     },
-                    // 2-byte aligned
+                    //// 2-byte aligned
                     {
                         MemoryAlignment.Alignment2, new Vector<Byte>[2]
                         {
@@ -66,11 +66,11 @@
                     },
                 }
             },
-            // Data type size 8
+            //// Data type size 8
             {
                 8, new Dictionary<MemoryAlignment, Vector<Byte>[]>
                 {
-                    // 1-byte aligned
+                    //// 1-byte aligned
                     {
                         MemoryAlignment.Alignment1, new Vector<Byte>[8]
                         {
@@ -84,7 +84,7 @@
                             Vector.AsVectorByte(new Vector<UInt64>(0xFF00000000000000)),
                         }
                     },
-                    // 2-byte aligned
+                    //// 2-byte aligned
                     {
                         MemoryAlignment.Alignment2, new Vector<Byte>[4]
                         {
@@ -94,7 +94,7 @@
                             Vector.AsVectorByte(new Vector<UInt64>(0xFFFF000000000000)),
                         }
                     },
-                    // 4-byte aligned
+                    //// 4-byte aligned
                     {
                         MemoryAlignment.Alignment4, new Vector<Byte>[2]
                         {
@@ -122,9 +122,9 @@
             // This is accomplished by performing a full vector scan, then masking it against the appropriate stagger mask to extract the relevant scan results for that iteration.
             // These sub-scans are OR'd together to get a run-length encoded vector of all scan matches.
 
-            Int32 scanCount = this.ElementRnage.Range / Vectors.VectorSize + (this.VectorOverread > 0 ? 1 : 0);
+            Int32 scanCount = (this.ElementRnage.Range / Vectors.VectorSize) + (this.VectorOverread > 0 ? 1 : 0);
             Int32 scanCountPerVector = unchecked(this.DataTypeSize / (Int32)this.Alignment);
-            Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - (Int32)this.Alignment * scanCountPerVector);
+            Int32 offsetVectorIncrementSize = unchecked(Vectors.VectorSize - ((Int32)this.Alignment * scanCountPerVector));
             Vector<Byte> misalignmentMask = this.BuildVectorMisalignmentMask();
             Vector<Byte> overreadMask = this.BuildVectorOverreadMask();
             Vector<Byte>[] staggeredMasks = SnapshotRegionVectorStaggeredScanner.StaggeredMaskMap[this.DataTypeSize][this.Alignment];

@@ -13,8 +13,6 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotRegionSingleElementScanner" /> class.
         /// </summary>
-        /// <param name="region">The parent region that contains this element.</param>
-        /// <param name="constraints">The constraints to use for the element comparisons.</param>
         public unsafe SnapshotRegionSingleElementScanner() : base()
         {
         }

@@ -74,7 +74,7 @@
         {
             IEnumerable<UInt32> lowerBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.BaseAddress.Subtract(this.MaxOffset, wrapAround: false)));
 
-            while (lowerBounds.Count() < PowerOf2Padding)
+            while (lowerBounds.Count() < this.PowerOf2Padding)
             {
                 lowerBounds = lowerBounds.Append<UInt32>(UInt32.MinValue);
             }
@@ -86,7 +86,7 @@
         {
             IEnumerable<UInt32> upperBounds = this.BoundsSnapshot.SnapshotRegions.Select(region => unchecked((UInt32)region.EndAddress.Add(this.MaxOffset, wrapAround: false)));
 
-            while (upperBounds.Count() < PowerOf2Padding)
+            while (upperBounds.Count() < this.PowerOf2Padding)
             {
                 upperBounds = upperBounds.Append<UInt32>(UInt32.MaxValue);
             }

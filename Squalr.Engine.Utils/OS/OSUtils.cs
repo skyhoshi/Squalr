@@ -23,7 +23,6 @@
             {
                 try
                 {
-
                     switch (platformid)
                     {
                         case PlatformID.Win32NT:

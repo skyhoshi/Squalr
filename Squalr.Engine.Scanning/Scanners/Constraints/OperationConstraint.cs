@@ -14,9 +14,17 @@
         public OperationConstraint(OperationType operation, IScanConstraint left = null, IScanConstraint right = null)
         {
             this.BinaryOperation = operation;
+
+            // TODO: Balance these trees to be "Right heavy". Scans currently early-exit after evaluating the left tree.
             this.Left = left;
             this.Right = right;
         }
+
+        public OperationType BinaryOperation { get; private set; }
+
+        public IScanConstraint Left { get; set; }
+
+        public IScanConstraint Right { get; set; }
 
         /// <summary>
         /// Sets the element type to which all constraints apply.
@@ -27,14 +35,6 @@
             this.Left?.SetElementType(elementType);
             this.Right?.SetElementType(elementType);
         }
-
-        // TODO: Balance these trees to be "Right heavy". Scans currently early-exit after evaluating the left tree.
-
-        public OperationType BinaryOperation { get; private set; }
-
-        public IScanConstraint Left { get; set; }
-
-        public IScanConstraint Right { get; set; }
 
         public Boolean IsValid()
         {

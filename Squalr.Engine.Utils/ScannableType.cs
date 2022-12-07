@@ -1,19 +1,41 @@
-﻿
-/// <summary>
+﻿/// <summary>
 /// Custom data type classes, namespaced under System for consistency in naming patterns.
 /// This also avoids any potential project compatibility issues if Squalr namespaces change.
 /// Just be sure not to name any class something that might end up under the System namespace naturally.
 /// </summary>
 namespace System
 {
-    public class Int16BigEndian { };
-    public class Int32BigEndian { };
-    public class Int64BigEndian { };
-    public class UInt16BigEndian { };
-    public class UInt32BigEndian { };
-    public class UInt64BigEndian { };
-    public class SingleBigEndian { };
-    public class DoubleBigEndian { };
+    public class Int16BigEndian
+    {
+    }
+
+    public class Int32BigEndian
+    {
+    }
+
+    public class Int64BigEndian
+    {
+    }
+
+    public class UInt16BigEndian
+    {
+    }
+
+    public class UInt32BigEndian
+    {
+    }
+
+    public class UInt64BigEndian
+    {
+    }
+
+    public class SingleBigEndian
+    {
+    }
+
+    public class DoubleBigEndian
+    {
+    }
 }
 
 namespace Squalr.Engine.Common
@@ -39,7 +61,7 @@ namespace Squalr.Engine.Common
         /// </summary>
         [DataMember]
         public Byte[] Mask { get; set; }
-    };
+    }
 
     /// <summary>
     /// A class representing a serializable data type. This is a wrapper over the Type class.
@@ -47,29 +69,6 @@ namespace Squalr.Engine.Common
     [DataContract]
     public class ScannableType
     {
-        private Int32 size;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ScannableType" /> class.
-        /// </summary>
-        public ScannableType() : this(null)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ScannableType" /> class.
-        /// </summary>
-        /// <param name="type">The default type.</param>
-        public ScannableType(Type type)
-        {
-            this.Type = type;
-        }
-
-        /// <summary>
-        /// Gets or sets the type wrapped by this class.
-        /// </summary>
-        public Type Type { get; private set; }
-
         /// <summary>
         /// DataType for an array of bytes.
         /// </summary>
@@ -218,6 +217,29 @@ namespace Squalr.Engine.Common
             ScannableType.Char,
             ScannableType.String,
         };
+
+        private Int32 size;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScannableType" /> class.
+        /// </summary>
+        public ScannableType() : this(null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ScannableType" /> class.
+        /// </summary>
+        /// <param name="type">The default type.</param>
+        public ScannableType(Type type)
+        {
+            this.Type = type;
+        }
+
+        /// <summary>
+        /// Gets the type wrapped by this class.
+        /// </summary>
+        public Type Type { get; private set; }
 
         /// <summary>
         /// Gets primitive types that are available for scanning.

@@ -7,26 +7,21 @@
     public class BinaryHeap<T> : IEnumerable<T>
     {
         /// <summary>
-        /// Removes the need to instantiate with an IComparer if the default will suffice.
+        /// Initializes a new instance of the <see cref="BinaryHeap{T}" /> class.
         /// </summary>
-        public BinaryHeap() : this(Comparer<T>.Default) { }
+        public BinaryHeap() : this(Comparer<T>.Default)
+        {
+        }
 
         /// <summary>
-        /// Contructs an instance with the appropriate IComparer
+        /// Initializes a new instance of the <see cref="BinaryHeap{T}" /> class.
         /// </summary>
-        /// <param name="comparer"></param>
+        /// <param name="comparer">The custom comparer to use for the binary heap.</param>
         public BinaryHeap(IComparer<T> comparer)
         {
             this.Comparer = comparer;
             this.Items = new List<T>();
         }
-
-        protected IComparer<T> Comparer { get; set; }
-
-        /// <summary>
-        /// Holds all the items in the heap.
-        /// </summary>
-        protected List<T> Items { get; set; }
 
         public Int32 Count
         {
@@ -36,17 +31,24 @@
             }
         }
 
+        protected IComparer<T> Comparer { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list that holds all the items in the heap.
+        /// </summary>
+        protected List<T> Items { get; set; }
+
         public virtual void Insert(T newItem)
         {
-            Int32 index = Count;
+            Int32 index = this.Count;
 
             // Add the new item to the bottom of the heap.
-            Items.Add(newItem);
+            this.Items.Add(newItem);
 
             // Until the new item is greater than its parent item, swap the two
-            while (index > 0 && Comparer.Compare(Items[(index - 1) / 2], newItem) > 0)
+            while (index > 0 && this.Comparer.Compare(this.Items[(index - 1) / 2], newItem) > 0)
             {
-                Items[index] = Items[(index - 1) / 2];
+                this.Items[index] = this.Items[(index - 1) / 2];
 
                 index = (index - 1) / 2;
             }
@@ -72,7 +74,7 @@
 
         public virtual IEnumerator GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()

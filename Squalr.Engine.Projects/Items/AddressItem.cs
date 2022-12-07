@@ -25,30 +25,31 @@
         /// </summary>
         [Browsable(false)]
         [DataMember]
-        protected ScannableType dataType;
+        private ScannableType dataType;
 
         /// <summary>
         /// The value at this address.
         /// </summary>
         [Browsable(false)]
-        protected Object addressValue;
+        private Object addressValue;
 
         /// <summary>
         /// A value indicating whether the value at this address should be displayed as hex.
         /// </summary>
         [Browsable(false)]
         [DataMember]
-        protected Boolean isValueHex;
+        private Boolean isValueHex;
 
         /// <summary>
         /// The effective address after tracing all pointer offsets.
         /// </summary>
         [Browsable(false)]
-        protected UInt64 calculatedAddress;
+        private UInt64 calculatedAddress;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
+        /// <param name="processSession">A process session reference for accessing the current opened process.</param>
         public AddressItem(ProcessSession processSession) : this(processSession, ScannableType.Int32, "New Address")
         {
         }
@@ -56,7 +57,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressItem" /> class.
         /// </summary>
-        /// <param name="processSession">The process session used to resolve addresses and values.</param>
+        /// <param name="processSession">A process session reference for accessing the current opened process.</param>
         /// <param name="dataType">The data type of the value at this address.</param>
         /// <param name="description">The description of this address.</param>
         /// <param name="isValueHex">A value indicating whether the value at this address should be displayed as hex.</param>
@@ -70,7 +71,6 @@
             : base(processSession, description)
         {
             // Bypass setters to avoid running setter code
-            this.processSession = processSession;
             this.dataType = dataType;
             this.isValueHex = isValueHex;
 
@@ -165,7 +165,7 @@
         }
 
         /// <summary>
-        /// Gets the effective address after tracing all pointer offsets.
+        /// Gets or sets the effective address after tracing all pointer offsets.
         /// </summary>
         public virtual UInt64 CalculatedAddress
         {
@@ -203,7 +203,12 @@
             }
         }
 
-        public override ProjectItem Clone(bool rename)
+        /// <summary>
+        /// Clones this project item.
+        /// </summary>
+        /// <param name="rename">A value indicating whether to rename this project item to a default after cloning.</param>
+        /// <returns>The cloned project item.</returns>
+        public override ProjectItem Clone(Boolean rename)
         {
             ProjectItem clone = base.Clone(rename);
 
@@ -215,6 +220,7 @@
         /// <summary>
         /// Gets the extension for this project item.
         /// </summary>
+        /// <returns>The extension for this project item.</returns>
         public override String GetExtension()
         {
             return AddressItem.Extension;
@@ -273,7 +279,7 @@
             {
                 MemoryWriter.Instance.Write(this.processSession?.OpenedProcess, this.DataType, this.CalculatedAddress, newValue);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Logger.Log(LogLevel.Error, "Error writing value to memory.", ex);
             }

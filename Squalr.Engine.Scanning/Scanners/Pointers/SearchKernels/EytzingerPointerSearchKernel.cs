@@ -12,6 +12,8 @@
 
     internal class EytzingerPointerSearchKernel : IVectorPointerSearchKernel
     {
+        private Vector<UInt32> Two = new Vector<UInt32>(2);
+
         public EytzingerPointerSearchKernel(Snapshot boundsSnapshot, UInt32 maxOffset, PointerSize pointerSize)
         {
             this.BoundsSnapshot = boundsSnapshot;
@@ -20,7 +22,7 @@
             this.L = 1 + this.Log2(2 + this.BoundsSnapshot.SnapshotRegions.Count() + 1); // Final +1 due to inversion
             this.M = new Vector<UInt32>(unchecked((UInt32)(~(2 * this.L))));
 
-            this.Length = 2 << (this.L + 2) - 1;
+            this.Length = (2 << (this.L + 2)) - 1;
 
             this.LowerBounds = this.GetInverseLowerBounds();
             this.UpperBounds = this.GetInverseUpperBounds();
@@ -49,8 +51,6 @@
         private Int32 L { get; set; }
 
         private Vector<UInt32> M { get; set; }
-
-        private Vector<UInt32> Two = new Vector<UInt32>(2);
 
         public Func<Vector<Byte>> GetSearchKernel(SnapshotRegionVectorScannerBase snapshotRegionScanner)
         {

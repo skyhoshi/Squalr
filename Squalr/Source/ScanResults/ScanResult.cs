@@ -87,7 +87,7 @@
         }
 
         /// <summary>
-        /// Occurs after a property value changes.
+        /// An event that is raised when a property of this object changes.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 

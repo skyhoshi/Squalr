@@ -115,7 +115,6 @@
         /// </summary>
         protected void OnEnd()
         {
-
         }
 
         /// <summary>

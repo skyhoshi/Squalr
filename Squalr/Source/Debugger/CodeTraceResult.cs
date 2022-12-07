@@ -23,6 +23,9 @@
             this.Count = 1;
         }
 
+        /// <summary>
+        /// An event that is raised when a property of this object changes.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         public UInt64 Address

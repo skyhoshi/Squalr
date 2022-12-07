@@ -10,9 +10,16 @@
     /// </summary>
     public class ProcessSession
     {
+        /// <summary>
+        /// The current opened process.
+        /// </summary>
         private Process openedProcess;
 
-        public ProcessSession(Process processToOpen)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProcessSession" /> class.
+        /// </summary>
+        /// <param name="processToOpen">The optional initial process to open for this session.</param>
+        public ProcessSession(Process processToOpen = null)
         {
             if (processToOpen != null)
             {
@@ -26,24 +33,24 @@
         }
 
         /// <summary>
-        /// Gets a reference to the target process.
+        /// Gets or sets a reference to the current target process.
         /// </summary>
         public Process OpenedProcess
         {
             get
             {
-                return openedProcess;
+                return this.openedProcess;
             }
 
             set
             {
                 if (value == DetachProcess.Instance)
                 {
-                    openedProcess = null;
+                    this.openedProcess = null;
                 }
                 else
                 {
-                    openedProcess = value;
+                    this.openedProcess = value;
                 }
             }
         }

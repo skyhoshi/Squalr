@@ -4,7 +4,7 @@
     using System;
     using System.Linq;
 
-    class LayoutInitializer : ILayoutUpdateStrategy
+    public class LayoutInitializer : ILayoutUpdateStrategy
     {
         public Boolean BeforeInsertAnchorable(LayoutRoot layout, LayoutAnchorable anchorableToShow, ILayoutContainer destinationContainer)
         {
