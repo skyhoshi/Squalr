@@ -114,7 +114,7 @@
         public TKey Min { get; private set; }
 
         /// <summary>
-        /// Gets the center key value contained in this interval tree node. Used to balance the interval tree.
+        /// Gets or sets the center key value contained in this interval tree node. Used to balance the interval tree.
         /// </summary>
         private TKey Center { get; set; }
 
