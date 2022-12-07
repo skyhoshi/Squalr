@@ -1018,17 +1018,13 @@
                             <shell:Border
                                 Margin="0,2,0,2"
                                 VerticalAlignment="Center"
-                                Background="{StaticResource SqualrColorInput}"
-                                BorderBrush="{StaticResource SqualrColorBorder}"
                                 BorderThickness="1"
                                 DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
                                 Visibility="{Binding IsScanConstraintValued, Converter={StaticResource BooleanToHiddenConverter}}">
                                 <Controls:HexDecBox
                                     x:Name="ValueHexDecBox"
                                     Width="196"
-                                    Height="20"
-                                    Background="{StaticResource SqualrColorInput}"
-                                    BorderBrush="{StaticResource SqualrColorBorder}" />
+                                    Height="20" />
                                 <shell:Border.InputBindings>
                                     <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
                                 </shell:Border.InputBindings>

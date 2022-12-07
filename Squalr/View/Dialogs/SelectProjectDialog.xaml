@@ -121,6 +121,7 @@
                         <shell:Setter Property="Background" Value="{StaticResource SqualrColorPanel}" />
                         <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
                         <shell:Setter Property="HorizontalAlignment" Value="Stretch" />
+                        <shell:Setter Property="Padding" Value="4 0 4 4" />
                     </shell:Style>
                 </shell:DataGrid.ColumnHeaderStyle>
                 <shell:DataGrid.Style>
@@ -129,6 +130,7 @@
                         <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
                         <shell:Setter Property="BorderBrush" Value="{StaticResource SqualrColorBorder}" />
                         <shell:Setter Property="BorderThickness" Value="1" />
+                        <shell:Setter Property="Padding" Value="4" />
                     </shell:Style>
                 </shell:DataGrid.Style>
                 <shell:DataGrid.CellStyle>

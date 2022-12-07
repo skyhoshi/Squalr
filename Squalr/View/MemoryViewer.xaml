@@ -47,7 +47,6 @@
                                 x:Name="AddressHexDecBox"
                                 Width="196"
                                 HorizontalAlignment="Left"
-                                BorderBrush="{StaticResource SqualrColorWhite}"
                                 BorderThickness="1" />
                             <Image
                                 Width="16"

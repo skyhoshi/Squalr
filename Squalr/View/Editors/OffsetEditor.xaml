@@ -92,6 +92,7 @@
                     <shell:Setter Property="Background" Value="{StaticResource SqualrColorFrame}" />
                     <shell:Setter Property="Foreground" Value="{StaticResource SqualrColorWhite}" />
                     <shell:Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <shell:Setter Property="Padding" Value="4" />
                 </shell:Style>
             </shell:DataGrid.ColumnHeaderStyle>
             <shell:DataGrid.Style>
