@@ -240,6 +240,7 @@
         /// </summary>
         private void ReadMemoryViewerData()
         {
+            return;
             if (this.activeRegion == null)
             {
                 return;

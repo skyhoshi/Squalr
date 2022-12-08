@@ -27,12 +27,18 @@
         public WindowsMemoryQuery()
         {
             this.ModuleCache = new TtlCache<Int32, IList<NormalizedModule>>(TimeSpan.FromSeconds(10.0));
+            this.DolphinRegionCache = new TtlCache<Int32, IEnumerable<Tuple<UInt64, Int32>>>(TimeSpan.FromSeconds(10.0));
         }
 
         /// <summary>
         /// Gets or sets the module cache of process modules.
         /// </summary>
         private TtlCache<Int32, IList<NormalizedModule>> ModuleCache { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cache of dolphin memory regions.
+        /// </summary>
+        private TtlCache<Int32, IEnumerable<Tuple<UInt64, Int32>>> DolphinRegionCache { get; set; }
 
         /// <summary>
         /// Gets regions of memory allocated in the remote process based on provided parameters.
@@ -185,8 +191,9 @@
         public Boolean IsAddressWritable(Process process, UInt64 address)
         {
             MemoryTypeEnum flags = MemoryTypeEnum.None | MemoryTypeEnum.Private | MemoryTypeEnum.Image | MemoryTypeEnum.Mapped;
+            IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
 
-            IEnumerable<MemoryBasicInformation64> memoryInfo = WindowsMemoryQuery.VirtualPages(process == null ? IntPtr.Zero : process.Handle, address, address + 1, 0, 0, flags);
+            IEnumerable<MemoryBasicInformation64> memoryInfo = WindowsMemoryQuery.VirtualPages(processHandle, address, address + 1, 0, 0, flags, RegionBoundsHandling.Include);
 
             if (memoryInfo.Count() > 0)
             {
@@ -763,7 +770,25 @@
         /// <returns>A collection of regions in the process.</returns>
         private IEnumerable<T> GetDolphinVirtualPages<T>(Process process) where T : NormalizedRegion, new()
         {
+            if (this.DolphinRegionCache.Contains(process?.Id ?? 0))
+            { 
+                if (this.DolphinRegionCache.TryGetValue(process?.Id ?? 0, out IEnumerable<Tuple<UInt64, Int32>> memoryRegions))
+                {
+                    IList<T> cachedRegions = new List<T>();
+
+                    foreach (Tuple<UInt64, Int32> region in memoryRegions)
+                    {
+                        T cachedRegion = new T();
+                        cachedRegion.GenericConstructor(region.Item1, region.Item2);
+                        cachedRegions.Add(cachedRegion);
+                    }
+
+                    return cachedRegions;
+                }
+            }
+
             IntPtr processHandle = process?.Handle ?? IntPtr.Zero;
+
             IList<T> regions = new List<T>();
             Byte[] layoutMagicGC = { 0x5D, 0x1C, 0x9E, 0xA3 };
             Byte[] layoutMagicWii = { 0xC2, 0x33, 0x9F, 0x3D };
@@ -784,7 +809,7 @@
                     {
                         String gameIdStr = Encoding.ASCII.GetString(gameId);
 
-                        if ((gameIdStr.StartsWith('G') || gameIdStr.StartsWith('R')) && gameIdStr.All(character => Char.IsLetterOrDigit(character)))
+                        if ((gameIdStr.StartsWith('G') || gameIdStr.StartsWith('R')) && gameIdStr.All(Char.IsLetterOrDigit))
                         {
                             // Oddly Dolphin seems to map multiple main memory regions into RAM. These are identical.
                             // Changing values in one will change the other. This means that we can just take the first one we find.
@@ -823,6 +848,9 @@
                     }
                 }
             }
+
+            // Cache the regions, since fetching them can be rather expensive.
+            this.DolphinRegionCache.Add(process?.Id ?? 0, regions.Select(region => new Tuple<UInt64, Int32>(region.BaseAddress, region.RegionSize)));
 
             return regions;
         }

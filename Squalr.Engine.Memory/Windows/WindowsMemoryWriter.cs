@@ -133,7 +133,7 @@
                 // Make address writable if it is not so already
                 if (!isAddressWritable)
                 {
-                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, MemoryProtectionFlags.ExecuteReadWrite, out oldProtection);
+                    NativeMethods.VirtualProtectEx(processHandle, address.ToIntPtr(), byteArray.Length, MemoryProtectionFlags.ReadWrite, out oldProtection);
                 }
 
                 // Write the data to the target process

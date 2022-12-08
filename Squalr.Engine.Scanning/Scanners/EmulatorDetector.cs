@@ -39,7 +39,8 @@
                             EmulatorType detectedEmulator = EmulatorType.None;
 
                             // TODO: something a bit more accurate.
-                            if (process?.MainWindowTitle?.StartsWith("Dolphin") ?? false)
+                            if ((process?.MainWindowTitle?.StartsWith("Dolphin") ?? false)
+                                || (process?.ProcessName?.StartsWith("Dolphin") ?? false))
                             {
                                 detectedEmulator = EmulatorType.Dolphin;
                             }

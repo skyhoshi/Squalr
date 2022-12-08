@@ -233,7 +233,14 @@
                 {
                     ProjectItem projectRoot = this.ProjectRoot?.FirstOrDefault()?.ProjectItem;
 
-                    projectRoot?.Update();
+                    try
+                    {
+                        projectRoot?.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(LogLevel.Warn, "Error updating project", ex);
+                    }
 
                     // TODO: Probably get this from user settings and clamp it
                     Thread.Sleep(50);

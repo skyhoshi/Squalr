@@ -3,6 +3,7 @@
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.Extensions;
     using Squalr.Engine.Common.Logging;
+    using Squalr.Engine.Scanning.Scanners.Constraints;
     using Squalr.Engine.Scanning.Snapshots;
     using System;
     using System.Diagnostics;
@@ -20,7 +21,7 @@
         /// </summary>
         private const String Name = "Value Collector";
 
-        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, Boolean withLogging = true)
+        public static TrackableTask<Snapshot> CollectValues(Process process, Snapshot snapshot, String taskIdentifier = null, ScanConstraints optionalConstraint = null, Boolean withLogging = true)
         {
             try
             {
@@ -56,6 +57,11 @@
                                     // Read the memory for this region
                                     snapshotRegion.ReadAllMemory(process);
 
+                                    if (optionalConstraint != null)
+                                    {
+                                        snapshotRegion.SetAlignment(optionalConstraint.Alignment, optionalConstraint.ElementType.Size);
+                                    }
+
                                     // Update progress every N regions
                                     if (Interlocked.Increment(ref processedRegions) % 32 == 0)
                                     {
@@ -65,7 +71,20 @@
                                 });
 
                             cancellationToken.ThrowIfCancellationRequested();
-                            UInt64 byteCount = snapshot?.SnapshotRegions?.Sum(snapshotRegion => unchecked((UInt64)snapshotRegion.RegionSize)) ?? 0;
+
+                            UInt64 byteCount;
+
+                            // If there is a constraint provided, we want to apply it, which changes how we count the collected bytes.
+                            if (optionalConstraint == null)
+                            {
+                                byteCount = snapshot?.SnapshotRegions?.Sum(snapshotRegion => unchecked((UInt64)snapshotRegion.RegionSize)) ?? 0;
+                            }
+                            else
+                            {
+                                snapshot.SetAlignment(optionalConstraint.Alignment);
+                                byteCount = snapshot.ByteCount;
+                            }
+
                             stopwatch.Stop();
 
                             if (withLogging)
