@@ -4,6 +4,7 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
+    using Squalr.Source.ProjectExplorer;
     using Squalr.Source.Updater;
     using System;
     using System.Numerics;
@@ -35,18 +36,11 @@
 
             if (Vectors.HasVectorSupport)
             {
-                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + (Vector<Byte>.Count * 8) + " bit)");
+                Logger.Log(LogLevel.Info, "Hardware acceleration enabled (vector size: " + (Vectors.VectorSize * 8) + " bit)");
             }
 
             Logger.Log(LogLevel.Info, "Squalr started");
-
-            // this.DisplayChangeLogCommand = new RelayCommand(() => ChangeLogViewModel.GetInstance().DisplayChangeLog(new Content.ChangeLog().TransformText()), () => true);
         }
-
-        /// <summary>
-        /// Gets the command to open the change log.
-        /// </summary>
-        public ICommand DisplayChangeLogCommand { get; private set; }
 
         /// <summary>
         /// Default layout file for browsing cheats.
