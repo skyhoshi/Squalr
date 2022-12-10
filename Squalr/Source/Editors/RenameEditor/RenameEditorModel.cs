@@ -1,4 +1,4 @@
-﻿namespace Squalr.Source.Editors.ValueEditor
+﻿namespace Squalr.Source.Editors.RenameEditor
 {
     using Squalr.Engine.Projects.Items;
     using System;
@@ -7,14 +7,14 @@
     using System.Windows;
 
     /// <summary>
-    /// Editor for project item values.
+    /// Editor for renaming project items.
     /// </summary>
-    public class ValueEditorModel : UITypeEditor
+    public class RenameEditorModel : UITypeEditor
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValueEditorModel" /> class.
+        /// Initializes a new instance of the <see cref="RenameEditorModel" /> class.
         /// </summary>
-        public ValueEditorModel()
+        public RenameEditorModel()
         {
         }
 
@@ -37,14 +37,14 @@
         /// <returns>The updated values.</returns>
         public override Object EditValue(ITypeDescriptorContext context, IServiceProvider provider, Object value)
         {
-            View.Editors.ValueEditor valueEditor = new View.Editors.ValueEditor(value as AddressItem) { Owner = Application.Current.MainWindow };
+            View.Editors.RenameEditor renameEditor = new View.Editors.RenameEditor(value as ProjectItem) { Owner = Application.Current.MainWindow };
 
-            if (valueEditor.ShowDialog() == true)
+            if (renameEditor.ShowDialog() == true)
             {
-                return valueEditor.ValueEditorViewModel.Value;
+                return renameEditor.RenameEditorViewModel.NewName;
             }
 
-            return (value as AddressItem)?.AddressValue;
+            return (value as ProjectItem)?.Name;
         }
     }
     //// End class

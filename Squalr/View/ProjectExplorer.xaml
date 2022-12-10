@@ -309,8 +309,6 @@
                                 <Setter Property="BorderBrush" Value="{StaticResource SqualrColorHighlightBorder}" />
                             </Trigger>
                         </Style.Triggers>
-                        <Setter Property="behaviors:MouseDoubleClickBehavior.Command" Value="{Binding ProjectExplorerViewModel.EditProjectItemCommand, Source={StaticResource ViewModelLocator}}" />
-                        <Setter Property="behaviors:MouseDoubleClickBehavior.CommandParameter" Value="{Binding ElementName=ProjectExplorerTreeView, Path=SelectedItem}" />
                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                         <Setter Property="ContextMenu" Value="{StaticResource ProjectItemRightClickMenu}" />
@@ -355,7 +353,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <CheckBox
@@ -380,6 +378,7 @@
                                     Grid.Column="2"
                                     Margin="4,0,0,0"
                                     Foreground="{StaticResource SqualrColorWhite}"
+                                    MouseDown="NameMouseDown"
                                     Text="{Binding Path=Name}">
                                     <intr:Interaction.Triggers>
                                         <intr:EventTrigger EventName="PreviewMouseRightButtonDown">
@@ -394,6 +393,7 @@
                                     Grid.Column="3"
                                     Margin="4,0,0,0"
                                     Foreground="{StaticResource SqualrColorGray74}"
+                                    MouseDown="ValueMouseDown"
                                     Text="{Binding Path=DisplayValue}">
                                     <intr:Interaction.Triggers>
                                         <intr:EventTrigger EventName="PreviewMouseRightButtonDown">

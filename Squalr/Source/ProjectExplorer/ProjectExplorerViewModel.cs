@@ -8,6 +8,7 @@
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Docking;
+    using Squalr.Source.Editors.RenameEditor;
     using Squalr.Source.Editors.ScriptEditor;
     using Squalr.Source.Editors.ValueEditor;
     using Squalr.Source.ProjectExplorer.Dialogs;
@@ -48,7 +49,9 @@
             this.SetProjectRootCommand = new RelayCommand(() => this.SetProjectRoot());
             this.SelectProjectCommand = new RelayCommand(() => this.SelectProject());
             this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
-            this.EditProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItem(projectItem), (projectItem) => true);
+            this.ToggleSelectionActivationCommand = new RelayCommand(() => this.ToggleSelectionActivation());
+            this.EditProjectItemValueCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItemValue(projectItem), (projectItem) => true);
+            this.EditProjectItemNameCommand = new RelayCommand<ProjectItemView>((projectItem) => this.RenameProjectItem(projectItem), (projectItem) => true);
             this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
             this.AddNewFolderItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(DirectoryItem)), () => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
@@ -100,9 +103,14 @@
         public ICommand AddNewScriptItemCommand { get; private set; }
 
         /// <summary>
-        /// Gets the command to edit a project item.
+        /// Gets the command to edit a project item value.
         /// </summary>
-        public ICommand EditProjectItemCommand { get; private set; }
+        public ICommand EditProjectItemValueCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to edit a project item name.
+        /// </summary>
+        public ICommand EditProjectItemNameCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to toggle the activation the selected project explorer items.
@@ -362,10 +370,10 @@
         }
 
         /// <summary>
-        /// Edits a project item based on the project item type.
+        /// Edits a project item value based on the project item type.
         /// </summary>
         /// <param name="projectItemView">The project item to edit.</param>
-        private void EditProjectItem(ProjectItemView projectItemView)
+        private void EditProjectItemValue(ProjectItemView projectItemView)
         {
             ProjectItem projectItem = projectItemView?.ProjectItem;
 
@@ -385,6 +393,21 @@
                 ScriptEditorModel scriptEditor = new ScriptEditorModel();
                 ScriptItem scriptItem = projectItem as ScriptItem;
                 scriptItem.Script = scriptEditor.EditValue(null, null, scriptItem.Script) as String;
+            }
+        }
+
+        /// <summary>
+        /// Opens a dialog to rename a given project item.
+        /// </summary>
+        /// <param name="projectItemView">The project item to rename.</param>
+        private void RenameProjectItem(ProjectItemView projectItemView)
+        {
+            ProjectItem projectItem = projectItemView?.ProjectItem;
+
+            if (projectItem != null)
+            {
+                RenameEditorModel renameEditor = new RenameEditorModel();
+                projectItem.Name = renameEditor.EditValue(null, null, projectItem) as String;
             }
         }
 

@@ -297,6 +297,9 @@
     <Compile Update="View\Editors\TextEditor.xaml.cs">
       <DependentUpon>TextEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Update="View\Editors\ValueEditor - Copy.xaml.cs">
+      <DependentUpon>ValueEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Update="View\Editors\ValueEditor.xaml.cs">
       <DependentUpon>ValueEditor.xaml</DependentUpon>
     </Compile>

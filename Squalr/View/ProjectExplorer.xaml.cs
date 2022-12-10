@@ -1,5 +1,6 @@
 ﻿namespace Squalr.View
 {
+    using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.ProjectExplorer;
     using Squalr.Source.ProjectExplorer.ProjectItems;
@@ -8,6 +9,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
+    using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
 
@@ -25,11 +28,15 @@
         {
             this.InitializeComponent();
 
+            this.ProjectItemCache = new TtlCache<ProjectItemView>();
+
             // This works, but can be offloaded to a helper class, or perhaps rolled into the viewmodel itself.
             // Should be modified to support keyboard ctrl/shift+arrow stuff.
             // It's shit, but it's a great place to start.
-            AllowMultiSelection(ProjectExplorerTreeView);
+            ProjectExplorer.AllowMultiSelection(ProjectExplorerTreeView);
         }
+
+        private TtlCache<ProjectItemView> ProjectItemCache { get; set; }
 
         public static void AllowMultiSelection(TreeView treeView)
         {
@@ -173,6 +180,46 @@
             {
                 clickedTreeViewItem.IsSelected = false;
                 ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.Remove(clickedTreeViewItem);
+            }
+        }
+
+        private void ValueMouseDown(Object sender, MouseButtonEventArgs e)
+        {
+            ProjectItemView hitResult = (sender as FrameworkElement)?.DataContext as ProjectItemView;
+
+            if (hitResult == null)
+            {
+                return;
+            }
+
+            if (this.ProjectItemCache.Contains(hitResult))
+            {
+                ProjectExplorerViewModel.GetInstance().EditProjectItemValueCommand.Execute(hitResult);
+            }
+            else
+            {
+                this.ProjectItemCache.Invalidate();
+                this.ProjectItemCache.Add(hitResult, TimeSpan.FromMilliseconds(System.Windows.Forms.SystemInformation.DoubleClickTime));
+            }
+        }
+
+        private void NameMouseDown(Object sender, MouseButtonEventArgs e)
+        {
+            ProjectItemView hitResult = (sender as FrameworkElement)?.DataContext as ProjectItemView;
+
+            if (hitResult == null)
+            {
+                return;
+            }
+
+            if (this.ProjectItemCache.Contains(hitResult))
+            {
+                ProjectExplorerViewModel.GetInstance().EditProjectItemNameCommand.Execute(hitResult);
+            }
+            else
+            {
+                this.ProjectItemCache.Invalidate();
+                this.ProjectItemCache.Add(hitResult, TimeSpan.FromMilliseconds(System.Windows.Forms.SystemInformation.DoubleClickTime));
             }
         }
     }
