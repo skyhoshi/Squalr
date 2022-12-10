@@ -411,20 +411,11 @@
                     Object currentValue = element.HasCurrentValue() ? element.LoadCurrentValue(this.ActiveType) : null;
                     Object previousValue = element.HasPreviousValue() ? element.LoadPreviousValue(this.ActiveType) : null;
                     UInt64 address = element.GetBaseAddress();
-                    String moduleName = String.Empty;
+                    String moduleName;
 
-                    switch (emulatorType)
-                    {
-                        case EmulatorType.None:
-                        default:
-                            address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, address, out moduleName);
-                            break;
-                        case EmulatorType.Dolphin:
-                            address = MemoryQueryer.Instance.RealAddressToEmulatorAddress(SessionManager.Session.OpenedProcess, address, emulatorType);
-                            break;
-                    }
+                    address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, address, out moduleName, emulatorType);
 
-                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, emulatorType: emulatorType, value: currentValue);
+                    PointerItem pointerItem = new PointerItem(SessionManager.Session, baseAddress: address, dataType: this.ActiveType, moduleName: moduleName, value: currentValue);
                     newAddresses.Add(new ScanResult(new PointerItemView(pointerItem), previousValue));
                 }
             }

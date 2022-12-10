@@ -121,22 +121,6 @@
                     </StackPanel>
                 </MenuItem.Header>
             </MenuItem>
-            <Separator />
-            <MenuItem Command="{Binding ProjectExplorerViewModel.AddNewDolphinAddressItemCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource DirectoryItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
-                <MenuItem.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <Image
-                            Width="16"
-                            Height="16"
-                            Margin="0,0,4,0"
-                            Source="{x:Static content:Images.DolphinEmulator}" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Foreground="{StaticResource SqualrColorWhite}"
-                            Text="Add New Dolphin Emulator Address" />
-                    </StackPanel>
-                </MenuItem.Header>
-            </MenuItem>
             <Separator Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
             <MenuItem Command="{Binding PointerScannerViewModel.PointerScanCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>

@@ -732,14 +732,14 @@
         /// <returns>A collection of Dolphin emulator modules in the process.</returns>
         private IEnumerable<NormalizedModule> GetDolphinModules(Process process)
         {
-            List<NormalizedModule> modules = new List<NormalizedModule>();
+            IList<NormalizedModule> modules = new List<NormalizedModule>();
 
             // GameCube and Wii memory. See https://wiibrew.org/wiki/Memory_map
-            NormalizedModule mem1 = new NormalizedModule("mem1", this.EmulatorAddressToRealAddress(process, 0x80000000, EmulatorType.Dolphin), 0x01330000);
-
-            // TODO: If possible, it would be nice to figure out how to parse all .rel files (which are basically .dlls) and add them to the list of static modules.
+            NormalizedModule mem1 = new NormalizedModule("GC", this.EmulatorAddressToRealAddress(process, 0x80000000, EmulatorType.Dolphin), 0x01800000);
+            NormalizedModule mem2 = new NormalizedModule("Wii", this.EmulatorAddressToRealAddress(process, 0x90000000, EmulatorType.Dolphin), 0x04000000);
 
             modules.Add(mem1);
+            modules.Add(mem2);
 
             return modules;
         }

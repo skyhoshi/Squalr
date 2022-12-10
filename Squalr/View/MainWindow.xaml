@@ -809,15 +809,22 @@
                                     </Grid>
                                 </shell:MenuItem>
                                 <shell:Separator Style="{DynamicResource VerticalSeparator}" />
-                                <shell:MenuItem Command="{Binding ValueCollectorViewModel.CollectValuesCommand, Source={StaticResource ViewModelLocator}}" ToolTip="Collect Values">
-                                    <shell:MenuItem.Header>
-                                        <shell:Image
-                                            Width="16"
-                                            Height="16"
-                                            Source="{x:Static content:Images.CollectValues}" />
-                                    </shell:MenuItem.Header>
-                                </shell:MenuItem>
+
                             </shell:Menu>
+                            <shell:Border
+                                Margin="0,2,0,2"
+                                VerticalAlignment="Center"
+                                BorderThickness="1"
+                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
+                                Visibility="{Binding IsScanConstraintValued, Converter={StaticResource BooleanToHiddenConverter}}">
+                                <Controls:HexDecBox
+                                    x:Name="ValueHexDecBox"
+                                    Width="196"
+                                    Height="20" />
+                                <shell:Border.InputBindings>
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
+                                </shell:Border.InputBindings>
+                            </shell:Border>
                             <shell:Menu
                                 VerticalAlignment="Center"
                                 Background="{StaticResource SqualrColorFrame}"
@@ -1015,20 +1022,6 @@
                                     </shell:MenuItem>
                                 </shell:MenuItem>
                             </shell:Menu>
-                            <shell:Border
-                                Margin="0,2,0,2"
-                                VerticalAlignment="Center"
-                                BorderThickness="1"
-                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
-                                Visibility="{Binding IsScanConstraintValued, Converter={StaticResource BooleanToHiddenConverter}}">
-                                <Controls:HexDecBox
-                                    x:Name="ValueHexDecBox"
-                                    Width="196"
-                                    Height="20" />
-                                <shell:Border.InputBindings>
-                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
-                                </shell:Border.InputBindings>
-                            </shell:Border>
                             <shell:MenuItem
                                 Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}"
                                 Focusable="False"
@@ -1041,6 +1034,14 @@
                                         Width="16"
                                         Height="16"
                                         Source="{x:Static content:Images.RightArrow}" />
+                                </shell:MenuItem.Header>
+                            </shell:MenuItem>
+                            <shell:MenuItem Command="{Binding ValueCollectorViewModel.CollectValuesCommand, Source={StaticResource ViewModelLocator}}" ToolTip="Collect Values">
+                                <shell:MenuItem.Header>
+                                    <shell:Image
+                                        Width="16"
+                                        Height="16"
+                                        Source="{x:Static content:Images.CollectValues}" />
                                 </shell:MenuItem.Header>
                             </shell:MenuItem>
                         </shell:WrapPanel>
