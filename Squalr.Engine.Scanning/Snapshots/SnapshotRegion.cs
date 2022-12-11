@@ -164,6 +164,72 @@
             this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
         }
 
+        public void DeleteIndex(UInt64 elementIndex, MemoryAlignment alignment)
+        {
+            Int32 indexToDelete = (elementIndex - this.BaseElementIndex).ToInt32();
+            RangeValuePair<Int32, SnapshotElementRange> elementMapping = this.SnapshotElementRangeIndexLookupTable.QueryOneKey(indexToDelete);
+
+            if (elementMapping == null)
+            {
+                return;
+            }
+
+            SnapshotElementRange elementRange = elementMapping.Value;
+
+            if (elementRange == null)
+            {
+                return;
+            }
+
+            // Remove the existing element range from the index lookup table
+            this.SnapshotElementRangeIndexLookupTable.Remove(elementRange);
+
+            Int32 elementCount = elementRange.GetAlignedElementCount(alignment);
+
+            // Case 1: Only one existing element. Just remove it.
+            if (elementCount <= 1)
+            {
+                this.SnapshotElementRanges = this.SnapshotElementRanges.Where(snapshotElementRange => snapshotElementRange != elementRange);
+            }
+            // Case 2: There are multiple elements in the existing element range. Remove them and add new one(s)
+            else
+            {
+                Int32 elementRangeIndex = indexToDelete - elementRange.SnapshotRegionRelativeIndex;
+
+                // Case A: First element removed. Just resize the range.
+                if (elementRangeIndex == 0)
+                {
+                    elementRange.RegionOffset += unchecked((Int32)alignment);
+                    elementRange.Range -= unchecked((Int32)alignment);
+
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From + 1, elementMapping.To, elementRange);
+                }
+                // Case B: Last element removed. Just resize the range.
+                else if (elementRangeIndex == elementCount - 1)
+                {
+                    elementRange.Range -= unchecked((Int32)alignment);
+
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, elementMapping.To - 1, elementRange);
+                }
+                // Case C: Range has been split into two.
+                else
+                {
+                    // Resize the firest region
+                    elementRange.Range = indexToDelete * unchecked((Int32)alignment);
+
+                    // Create the new split region
+                    Int32 splitOffset = (indexToDelete + 1) * unchecked((Int32)alignment);
+                    Int32 splitSize = elementRange.Range - splitOffset;
+                    SnapshotElementRange splitRange = new SnapshotElementRange(elementRange.ParentRegion, splitOffset, splitSize);
+
+                    this.SnapshotElementRanges.Append(splitRange);
+
+                    this.SnapshotElementRangeIndexLookupTable.Add(indexToDelete + 1, elementMapping.To, splitRange);
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, indexToDelete, elementRange);
+                }
+            }
+        }
+
         /// <summary>
         /// Reads all memory for this memory region.
         /// </summary>

@@ -65,7 +65,7 @@
         /// <summary>
         /// The selected scan results.
         /// </summary>
-        private IEnumerable<ScanResult> selectedScanResults;
+        private IList<ScanResult> selectedScanResults;
 
         /// <summary>
         /// Prevents a default instance of the <see cref="ScanResultsViewModel" /> class from being created.
@@ -87,7 +87,7 @@
             this.ActiveType = ScannableType.Int32;
             this.addresses = new FullyObservableCollection<ScanResult>();
 
-            SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += SnapshotManagerOnSnapshotsUpdatedEvent;
+            SessionManager.Session.SnapshotManager.OnSnapshotsUpdatedEvent += this.SnapshotManagerOnSnapshotsUpdatedEvent;
 
             DockingViewModel.GetInstance().RegisterViewModel(this);
             this.UpdateLoop();
@@ -151,7 +151,7 @@
         /// <summary>
         /// Gets or sets the selected scan results.
         /// </summary>
-        public IEnumerable<ScanResult> SelectedScanResults
+        public IList<ScanResult> SelectedScanResults
         {
             get
             {
@@ -389,17 +389,38 @@
 
         private void ToggleSelectionActivation()
         {
-            foreach(ScanResult scanResult in this.SelectedScanResults.ToArray())
+            if (this.SelectedScanResults != null)
             {
-                if (scanResult != null)
+                foreach (ScanResult scanResult in this.SelectedScanResults.ToArray())
                 {
-                    scanResult.IsActivated = !scanResult.IsActivated;
+                    if (scanResult != null)
+                    {
+                        scanResult.IsActivated = !scanResult.IsActivated;
+                    }
                 }
             }
         }
 
         private void DeleteSelection()
         {
+            Snapshot snapshot = SessionManager.Session.SnapshotManager.GetActiveSnapshot();
+            UInt64 indexBase = this.CurrentPage * ScanResultsViewModel.PageSize;
+            List<UInt64> indiciesToDelete = new List<UInt64>();
+
+            foreach(ScanResult scanResult in this.SelectedScanResults.ToArray())
+            {
+                Int32 relativeIndex = this.Addresses?.IndexOf(scanResult) ?? -1;
+
+                if (relativeIndex >= 0 && relativeIndex < this.Addresses.Count())
+                {
+                    indiciesToDelete.Add(unchecked(indexBase + (UInt64)relativeIndex));
+                }
+            }
+
+            snapshot?.DeleteIndicies(indiciesToDelete);
+
+            this.Update(snapshot);
+            this.LoadScanResults();
         }
 
         /// <summary>
@@ -498,7 +519,7 @@
 
         private void SelectScanResults(Object selectedItems)
         {
-            this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>();
+            this.SelectedScanResults = (selectedItems as IList).Cast<ScanResult>().ToList();
         }
 
         /// <summary>
