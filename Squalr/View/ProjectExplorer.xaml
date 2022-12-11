@@ -2,7 +2,6 @@
     x:Class="Squalr.View.ProjectExplorer"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:behaviors="clr-namespace:Squalr.Source.Mvvm.AttachedBehaviors"
     xmlns:content="clr-namespace:Squalr.Content"
     xmlns:converters="clr-namespace:Squalr.Source.Mvvm.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -272,7 +271,8 @@
         <Grid Visibility="{Binding Path=HasProjectRoot, Converter={StaticResource BooleanToNotHiddenConverter}}">
             <Button
                 Background="{StaticResource SqualrColorPanel}"
-                BorderThickness="1"
+                BorderBrush="White"
+                BorderThickness="1,1,1,0"
                 Command="{Binding SelectProjectCommand}">
                 <StackPanel Orientation="Horizontal">
                     <Image
@@ -342,6 +342,7 @@
                         Modifiers="Ctrl" />
                     <KeyBinding Key="Space" Command="{Binding ToggleSelectionActivationCommand}" />
                     <KeyBinding Key="Delete" Command="{Binding DeleteSelectionCommand}" />
+                    <KeyBinding Key="F2" Command="{Binding RenameSelectedProjectItemsCommand}" />
                 </TreeView.InputBindings>
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type proj:ProjectItemView}" ItemsSource="{Binding Path=ChildItems, Converter={StaticResource ProjectItemDirectoryConverter}}">

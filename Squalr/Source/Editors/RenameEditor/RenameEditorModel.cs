@@ -44,7 +44,7 @@
                 return renameEditor.RenameEditorViewModel.NewName;
             }
 
-            return (value as ProjectItem)?.Name;
+            return null;
         }
     }
     //// End class

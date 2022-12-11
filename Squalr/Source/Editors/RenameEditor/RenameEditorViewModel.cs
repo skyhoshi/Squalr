@@ -39,16 +39,27 @@
             return RenameEditorViewModel.RenameEditorViewModelInstance.Value;
         }
 
-        public void ShowDialog(ProjectItem projectItem)
+        public void ShowDialog(params ProjectItem[] projectItems)
         {
-            View.Editors.RenameEditor valueEditor = new View.Editors.RenameEditor(projectItem) { Owner = Application.Current.MainWindow };
+            if (projectItems.Length <= 0 || projectItems[0] == null)
+            {
+                return;
+            }
 
-            this.NewName = projectItem.Name;
+            View.Editors.RenameEditor valueEditor = new View.Editors.RenameEditor(projectItems[0]) { Owner = Application.Current.MainWindow };
+
+            this.NewName = projectItems[0].Name;
             this.RaisePropertyChanged(nameof(this.NewName));
 
-            if (valueEditor.ShowDialog() == true && projectItem != null)
+            if (valueEditor.ShowDialog() == true)
             {
-                projectItem.Name = this.NewName;
+                foreach (ProjectItem projectItem in projectItems)
+                {
+                    if (projectItem != null)
+                    {
+                        projectItem.Name = this.NewName;
+                    }
+                }
             }
         }
     }

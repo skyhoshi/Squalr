@@ -214,7 +214,7 @@
 
             if (this.ProjectItemCache.Contains(hitResult))
             {
-                ProjectExplorerViewModel.GetInstance().EditProjectItemNameCommand.Execute(hitResult);
+                ProjectExplorerViewModel.GetInstance().RenameProjectItemCommand.Execute(hitResult);
             }
             else
             {

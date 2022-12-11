@@ -51,8 +51,8 @@
             this.SelectProjectItemCommand = new RelayCommand<Object>((selectedItem) => this.SelectedProjectItem = selectedItem as ProjectItemView, (selectedItem) => true);
             this.ToggleSelectionActivationCommand = new RelayCommand(() => this.ToggleSelectionActivation());
             this.EditProjectItemValueCommand = new RelayCommand<ProjectItemView>((projectItem) => this.EditProjectItemValue(projectItem), (projectItem) => true);
-            this.EditProjectItemNameCommand = new RelayCommand<ProjectItemView>((projectItem) => this.RenameProjectItem(projectItem), (projectItem) => true);
-            this.DeleteSelectionCommand = new RelayCommand<ProjectItemView>((projectItems) => this.DeleteSelection(true), (projectItem) => true);
+            this.RenameProjectItemCommand = new RelayCommand<ProjectItemView>((projectItem) => this.RenameProjectItem(projectItem), (projectItem) => true);
+            this.RenameSelectedProjectItemsCommand = new RelayCommand(() => this.RenameSelectedProjectItems(), () => true);
             this.AddNewFolderItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(DirectoryItem)), () => true);
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
@@ -108,9 +108,14 @@
         public ICommand EditProjectItemValueCommand { get; private set; }
 
         /// <summary>
-        /// Gets the command to edit a project item name.
+        /// Gets the command to rename a project item.
         /// </summary>
-        public ICommand EditProjectItemNameCommand { get; private set; }
+        public ICommand RenameProjectItemCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to rename all selected project items.
+        /// </summary>
+        public ICommand RenameSelectedProjectItemsCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to toggle the activation the selected project explorer items.
@@ -406,8 +411,18 @@
 
             if (projectItem != null)
             {
-                RenameEditorModel renameEditor = new RenameEditorModel();
-                projectItem.Name = renameEditor.EditValue(null, null, projectItem) as String;
+                RenameEditorViewModel.GetInstance().ShowDialog(projectItem);
+            }
+        }
+
+        /// <summary>
+        /// Opens a dialog to rename all selected project items.
+        /// </summary>
+        private void RenameSelectedProjectItems()
+        {
+            if (this.SelectedProjectItem != null)
+            {
+                RenameEditorViewModel.GetInstance().ShowDialog(this.SelectedProjectItems?.Select(next => next?.ProjectItem)?.ToArray());
             }
         }
 
