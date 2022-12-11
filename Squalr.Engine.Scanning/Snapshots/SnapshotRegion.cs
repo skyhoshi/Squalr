@@ -202,30 +202,40 @@
                     elementRange.RegionOffset += unchecked((Int32)alignment);
                     elementRange.Range -= unchecked((Int32)alignment);
 
-                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From + 1, elementMapping.To, elementRange);
+                    if (elementRange.Range > 0)
+                    {
+                        this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From + 1, elementMapping.To, elementRange);
+                    }
                 }
                 // Case B: Last element removed. Just resize the range.
                 else if (elementRangeIndex == elementCount - 1)
                 {
                     elementRange.Range -= unchecked((Int32)alignment);
 
-                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, elementMapping.To - 1, elementRange);
+                    if (elementRange.Range > 0)
+                    {
+                        this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, elementMapping.To - 1, elementRange);
+                    }
                 }
                 // Case C: Range has been split into two.
                 else
                 {
-                    // Resize the firest region
-                    elementRange.Range = indexToDelete * unchecked((Int32)alignment);
-
                     // Create the new split region
-                    Int32 splitOffset = (indexToDelete + 1) * unchecked((Int32)alignment);
+                    Int32 splitOffset = elementRange.RegionOffset + (elementRangeIndex + 1) * unchecked((Int32)alignment);
                     Int32 splitSize = elementRange.Range - splitOffset;
                     SnapshotElementRange splitRange = new SnapshotElementRange(elementRange.ParentRegion, splitOffset, splitSize);
 
-                    this.SnapshotElementRanges.Append(splitRange);
+                    // Resize the firest region
+                    elementRange.Range = elementRangeIndex * unchecked((Int32)alignment);
 
+                    splitRange.SnapshotRegionRelativeIndex = elementRange.Range / unchecked((Int32)alignment);
+
+                    this.SnapshotElementRanges = this.SnapshotElementRanges.Append(splitRange).OrderBy(x => x.RegionOffset);
+
+                    // Note that the deleted index left empty until the entire index table is rebuilt.
+                    // This is an optimization to allow deleting many indicies and rebuilding the index table only once afterwards.
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, indexToDelete - 1, elementRange);
                     this.SnapshotElementRangeIndexLookupTable.Add(indexToDelete + 1, elementMapping.To, splitRange);
-                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, indexToDelete, elementRange);
                 }
             }
         }
