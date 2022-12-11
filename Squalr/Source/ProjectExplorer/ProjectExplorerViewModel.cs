@@ -411,7 +411,7 @@
 
             if (projectItem != null)
             {
-                RenameEditorViewModel.GetInstance().ShowDialog(projectItem);
+                RenameProjectItemDialogViewModel.GetInstance().ShowDialog(projectItem);
             }
         }
 
@@ -422,7 +422,7 @@
         {
             if (this.SelectedProjectItem != null)
             {
-                RenameEditorViewModel.GetInstance().ShowDialog(this.SelectedProjectItems?.Select(next => next?.ProjectItem)?.ToArray());
+                RenameProjectItemDialogViewModel.GetInstance().ShowDialog(this.SelectedProjectItems?.Select(next => next?.ProjectItem)?.ToArray());
             }
         }
 

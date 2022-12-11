@@ -1,4 +1,4 @@
-﻿namespace Squalr.View.Editors
+﻿namespace Squalr.View.Dialogs
 {
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Editors.RenameEditor;
@@ -6,15 +6,15 @@
     using System.Windows;
 
     /// <summary>
-    /// Interaction logic for RenameEditor.xaml.
+    /// Interaction logic for RenameProjectItemDialog.xaml.
     /// </summary>
-    public partial class RenameEditor : Window
+    public partial class RenameProjectItemDialog : Window
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="RenameEditor" /> class.
+        /// Initializes a new instance of the <see cref="RenameProjectItemDialog" /> class.
         /// </summary>
         /// <param name="projectItem">The project being renamed.</param>
-        public RenameEditor(ProjectItem projectItem)
+        public RenameProjectItemDialog()
         {
             this.InitializeComponent();
         }
@@ -22,11 +22,11 @@
         /// <summary>
         /// Gets the view model associated with this view.
         /// </summary>
-        public RenameEditorViewModel RenameEditorViewModel
+        public RenameProjectItemDialogViewModel RenameEditorViewModel
         {
             get
             {
-                return this.DataContext as RenameEditorViewModel;
+                return this.DataContext as RenameProjectItemDialogViewModel;
             }
         }
 
@@ -67,9 +67,10 @@
         /// </summary>
         /// <param name="sender">Sending object.</param>
         /// <param name="args">Event args.</param>
-        private void SqualrRenameEditorLoaded(Object sender, RoutedEventArgs args)
+        private void OnWindowLoaded(Object sender, RoutedEventArgs args)
         {
             this.NameTextBox.Focus();
+            this.NameTextBox.SelectAll();
         }
     }
     //// End class

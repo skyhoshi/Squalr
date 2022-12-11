@@ -105,13 +105,13 @@
         }
 
         /// <summary>
-        /// Gets the Rename Editor view model.
+        /// Gets the Rename Project Item Dialog view model.
         /// </summary>
-        public RenameEditorViewModel RenameEditorViewModel
+        public RenameProjectItemDialogViewModel RenameProjectItemDialogViewModel
         {
             get
             {
-                return RenameEditorViewModel.GetInstance();
+                return RenameProjectItemDialogViewModel.GetInstance();
             }
         }
 
