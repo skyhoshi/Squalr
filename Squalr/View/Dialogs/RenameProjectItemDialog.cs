@@ -13,7 +13,6 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="RenameProjectItemDialog" /> class.
         /// </summary>
-        /// <param name="projectItem">The project being renamed.</param>
         public RenameProjectItemDialog()
         {
             this.InitializeComponent();

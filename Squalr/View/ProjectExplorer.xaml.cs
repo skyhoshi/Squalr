@@ -9,7 +9,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
@@ -38,6 +37,10 @@
 
         private TtlCache<ProjectItemView> ProjectItemCache { get; set; }
 
+        /// <summary>
+        /// Modifies a <see cref="TreeView"/> to support multi-select.
+        /// </summary>
+        /// <param name="treeView">The <see cref="TreeView"/> to grant multi-select behavior.</param>
         public static void AllowMultiSelection(TreeView treeView)
         {
             if (IsSelectionChangeActiveProperty == null)
@@ -80,6 +83,10 @@
             };
         }
 
+        /// <summary>
+        /// Helper function for ctrl+selecting multiple items in a <see cref="TreeView"/>.
+        /// </summary>
+        /// <param name="treeView">The <see cref="TreeView"/> being selected.</param>
         private static void ReselectPriorSelectedItems(TreeView treeView)
         {
             // Suppress selection change notification, select all selected items, then restore selection change notifications
@@ -91,6 +98,10 @@
             IsSelectionChangeActiveProperty.SetValue(treeView, isSelectionChangeActive, null);
         }
 
+        /// <summary>
+        /// Helper function for shift+selecting multiple items in a <see cref="TreeView"/>.
+        /// </summary>
+        /// <param name="treeView">The <see cref="TreeView"/> being selected.</param>
         private static void ShiftSelect(TreeView treeView)
         {
             ProjectItemView clickedTreeViewItem = treeView.SelectedItem as ProjectItemView;
@@ -108,6 +119,14 @@
             ProjectExplorer.SelectRange(root, selectedItem, clickedTreeViewItem, ref isSelecting);
         }
 
+        /// <summary>
+        /// Selects a range of project items between a start and end project item, based on what directories are expanded and collapsed between them.
+        /// </summary>
+        /// <param name="currentDirectory">The current directory being evaluated for recursion. Initially this should be the project root.</param>
+        /// <param name="rangeStart">The first project item view in the selection range.</param>
+        /// <param name="rangeEnd">The last project item view in the selection range.</param>
+        /// <param name="isSelecting">A value indicating whether selection is still occuring for the recursive call.</param>
+        /// <returns>A value indicating whether selection is complete, which happens when encountering the start and end range project view items.</returns>
         private static Boolean SelectRange(DirectoryItemView currentDirectory, ProjectItemView rangeStart, ProjectItemView rangeEnd, ref Boolean isSelecting)
         {
             Boolean selectionComplete = false;
@@ -155,9 +174,13 @@
             return selectionComplete;
         }
 
+        /// <summary>
+        /// Performs a normal single select on a <see cref="TreeView"/>, deselecting all other items.
+        /// </summary>
+        /// <param name="treeView">The <see cref="TreeView"/> being selected.</param>
         private static void NormalSelect(TreeView treeView)
         {
-            // deselect all selected items except the current one
+            // Feselect all selected items except the current one
             ProjectItemView clickedTreeViewItem = treeView.SelectedItem as ProjectItemView;
             ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.ForEach(item => item.IsSelected = item == clickedTreeViewItem);
             ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.Clear();
