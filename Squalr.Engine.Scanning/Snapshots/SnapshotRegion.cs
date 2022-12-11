@@ -202,28 +202,23 @@
                     elementRange.RegionOffset += unchecked((Int32)alignment);
                     elementRange.Range -= unchecked((Int32)alignment);
 
-                    if (elementRange.Range > 0)
-                    {
-                        this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From + 1, elementMapping.To, elementRange);
-                    }
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From + 1, elementMapping.To, elementRange);
                 }
                 // Case B: Last element removed. Just resize the range.
                 else if (elementRangeIndex == elementCount - 1)
                 {
                     elementRange.Range -= unchecked((Int32)alignment);
 
-                    if (elementRange.Range > 0)
-                    {
-                        this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, elementMapping.To - 1, elementRange);
-                    }
+                    this.SnapshotElementRangeIndexLookupTable.Add(elementMapping.From, elementMapping.To - 1, elementRange);
                 }
                 // Case C: Range has been split into two.
                 else
                 {
                     // Create the new split region
-                    Int32 splitOffset = elementRange.RegionOffset + (elementRangeIndex + 1) * unchecked((Int32)alignment);
+                    Int32 splitOffset = (elementRangeIndex + 1) * unchecked((Int32)alignment);
+                    Int32 splotRegionOffset = elementRange.RegionOffset + splitOffset;
                     Int32 splitSize = elementRange.Range - splitOffset;
-                    SnapshotElementRange splitRange = new SnapshotElementRange(elementRange.ParentRegion, splitOffset, splitSize);
+                    SnapshotElementRange splitRange = new SnapshotElementRange(elementRange.ParentRegion, splotRegionOffset, splitSize);
 
                     // Resize the firest region
                     elementRange.Range = elementRangeIndex * unchecked((Int32)alignment);
