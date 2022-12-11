@@ -145,6 +145,16 @@
             </DataGrid.CellStyle>
             <DataGrid.Columns>
                 <DataGridTemplateColumn
+                    MinWidth="20"
+                    MaxWidth="20"
+                    IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Path=IsActivated}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn
                     MinWidth="16"
                     MaxWidth="16"
                     IsReadOnly="True">

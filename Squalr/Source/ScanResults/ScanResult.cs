@@ -37,6 +37,23 @@
         /// Gets or sets the display value of the scan result.
         /// </summary>
         [Browsable(false)]
+        public Boolean IsActivated
+        {
+            get
+            {
+                return this.ProjectItemView.IsActivated;
+            }
+
+            set
+            {
+                this.ProjectItemView.IsActivated = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the display value of the scan result.
+        /// </summary>
+        [Browsable(false)]
         public Object DisplayValue
         {
             get

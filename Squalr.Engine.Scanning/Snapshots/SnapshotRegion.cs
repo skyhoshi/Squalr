@@ -217,6 +217,11 @@
                 return false;
             }
 
+            if (constraints is ScanConstraints)
+            {
+                return this.CanCompare((constraints as ScanConstraints)?.RootConstraint);
+            }
+
             return true;
         }
 
