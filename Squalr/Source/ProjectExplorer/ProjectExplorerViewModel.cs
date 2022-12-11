@@ -210,6 +210,14 @@
             }
         }
 
+        public Boolean IsSelectionAddress
+        {
+            get
+            {
+                return this.selectedProjectItem?.ProjectItem is AddressItem;
+            }
+        }
+
         public Boolean HasProjectRoot
         {
             get

@@ -47,6 +47,7 @@
             set
             {
                 this.ProjectItemView.IsActivated = value;
+                this.RaisePropertyChanged(nameof(this.IsActivated));
             }
         }
 

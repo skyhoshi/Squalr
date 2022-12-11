@@ -72,6 +72,8 @@
         /// </summary>
         private ScanResultsViewModel() : base("Scan Results")
         {
+            this.ToggleSelectionActivationCommand = new RelayCommand(() => this.ToggleSelectionActivation(), () => true);
+            this.DeleteSelectionCommand = new RelayCommand(() => this.DeleteSelection(), () => true);
             this.EditValueCommand = new RelayCommand<ScanResult>((scanResult) => this.EditValue(scanResult), (scanResult) => true);
             this.ChangeTypeCommand = new RelayCommand<ScannableType>((type) => this.ChangeType(type), (type) => true);
             this.SelectScanResultsCommand = new RelayCommand<Object>((selectedItems) => this.SelectScanResults(selectedItems), (selectedItems) => true);
@@ -90,6 +92,16 @@
             DockingViewModel.GetInstance().RegisterViewModel(this);
             this.UpdateLoop();
         }
+
+        /// <summary>
+        /// Gets the command to toggle selection on the selected scan results.
+        /// </summary>
+        public ICommand ToggleSelectionActivationCommand { get; private set; }
+
+        /// <summary>
+        /// Gets the command to delete the selected scan results.
+        /// </summary>
+        public ICommand DeleteSelectionCommand { get; private set; }
 
         /// <summary>
         /// Gets the command to edit the specified address item.
@@ -373,6 +385,21 @@
         private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
         {
             this.Update(snapshotManager.GetActiveSnapshot());
+        }
+
+        private void ToggleSelectionActivation()
+        {
+            foreach(ScanResult scanResult in this.SelectedScanResults.ToArray())
+            {
+                if (scanResult != null)
+                {
+                    scanResult.IsActivated = !scanResult.IsActivated;
+                }
+            }
+        }
+
+        private void DeleteSelection()
+        {
         }
 
         /// <summary>
