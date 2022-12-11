@@ -15,7 +15,7 @@
         /// </summary>
         /// <param name="from">The lower bound of this range.</param>
         /// <param name="to">The upper bound of this range.</param>
-        /// <param name="value">The value contained by this range.param>
+        /// <param name="value">The value contained by this range.</param>
         public RangeValuePair(TKey from, TKey to, TValue value) : this()
         {
             this.From = from;

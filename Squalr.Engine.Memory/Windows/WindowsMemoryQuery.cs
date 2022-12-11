@@ -702,16 +702,23 @@
             {
                 if (region.RegionSize == 0x48000 && ((region.BaseAddress & 0xFFFF) == 0) && this.IsRegionBackedByPhysicalMemory(processHandle, region))
                 {
-                    Byte[] layoutMagicGbaWm = new Byte[] { 0x47, 0x43, 0x43, 0x45, 0x47, 0x43 };
+                    const String GbaVersionEn = "GCCEGC";
+                    const String GbaVersionJp = "GCCJGC";
+
                     Boolean readSuccess1 = false;
                     Boolean readSuccess2 = false;
                     Byte[] controllerId = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress + 0xC5, 1, out readSuccess1);
                     Byte[] gbmMagic = new WindowsMemoryReader().ReadBytes(process, region.BaseAddress + 0xAC, 6, out readSuccess2);
 
-                    if (readSuccess1 && readSuccess2 && controllerId[0] >= 0 && controllerId[0] <= 3 && gbmMagic.SequenceEqual(layoutMagicGbaWm))
+                    if (readSuccess1 && readSuccess2 && controllerId[0] >= 0 && controllerId[0] <= 3)
                     {
-                        modules.Add(new NormalizedModule("GBA_WM_" + controllerId[0].ToString(), region.BaseAddress, 0x40000));
-                        modules.Add(new NormalizedModule("GBA_IM_" + controllerId[0].ToString(), region.BaseAddress + 0x40000, 0x8000));
+                        String gbaGcVersion = Encoding.ASCII.GetString(gbmMagic);
+
+                        if (gbaGcVersion == GbaVersionEn || gbaGcVersion == GbaVersionJp)
+                        {
+                            modules.Add(new NormalizedModule("GBA_WM_" + controllerId[0].ToString(), region.BaseAddress, 0x40000));
+                            modules.Add(new NormalizedModule("GBA_IM_" + controllerId[0].ToString(), region.BaseAddress + 0x40000, 0x8000));
+                        }
                     }
                 }
             }

@@ -382,11 +382,18 @@
             });
         }
 
+        /// <summary>
+        /// An event that is called when the active snapshot is updated after a scan.
+        /// </summary>
+        /// <param name="snapshotManager">The snapshot maanger.</param>
         private void SnapshotManagerOnSnapshotsUpdatedEvent(SnapshotManager snapshotManager)
         {
             this.Update(snapshotManager.GetActiveSnapshot());
         }
 
+        /// <summary>
+        /// Toggles whether the selected scan results are active. Used to freeze memory to test it prior to adding it to the project.
+        /// </summary>
         private void ToggleSelectionActivation()
         {
             if (this.SelectedScanResults != null)
@@ -401,6 +408,9 @@
             }
         }
 
+        /// <summary>
+        /// Deletes the current selected scan results from the scan results list.
+        /// </summary>
         private void DeleteSelection()
         {
             Snapshot snapshot = SessionManager.Session.SnapshotManager.GetActiveSnapshot();
@@ -421,6 +431,8 @@
 
             this.Update(snapshot);
             this.LoadScanResults();
+
+            // TODO: Make an effort to reactivate activated items, restore page number, etc
         }
 
         /// <summary>
@@ -517,9 +529,13 @@
             this.CurrentPage = (this.CurrentPage + 1).Clamp(0UL, this.PageCount);
         }
 
+        /// <summary>
+        /// Sets the selected scan results from the given anonymous list object.
+        /// </summary>
+        /// <param name="selectedItems">An object implementing <see cref="IList"/>.</param>
         private void SelectScanResults(Object selectedItems)
         {
-            this.SelectedScanResults = (selectedItems as IList).Cast<ScanResult>().ToList();
+            this.SelectedScanResults = (selectedItems as IList)?.Cast<ScanResult>()?.ToList();
         }
 
         /// <summary>

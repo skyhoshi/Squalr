@@ -164,6 +164,13 @@
             this.SnapshotElementRanges = new List<SnapshotElementRange>() { new SnapshotElementRange(this) };
         }
 
+        /// <summary>
+        /// Deletes the element at the given index. Note that this does not rebuild the snapshot regions index table, instead leaving an
+        /// empty entry where the deleted index is. This allows for efficiently deleting multiple indicies. The callers is expected to rebuild
+        /// the index table as a post step.
+        /// </summary>
+        /// <param name="elementIndex">The index of the element to delete.</param>
+        /// <param name="alignment">The snapshot alignment of the element.</param>
         public void DeleteIndex(UInt64 elementIndex, MemoryAlignment alignment)
         {
             Int32 indexToDelete = (elementIndex - this.BaseElementIndex).ToInt32();

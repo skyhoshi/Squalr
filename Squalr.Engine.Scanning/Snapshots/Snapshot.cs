@@ -147,7 +147,7 @@
 
         public void DeleteIndicies(IEnumerable<UInt64> indiciesToDelete)
         {
-            foreach (UInt64 elementIndex in indiciesToDelete.OrderByDescending(x => x))
+            foreach (UInt64 elementIndex in indiciesToDelete)
             {
                 SnapshotRegion region = this.SnapshotRegionIndexLookupTable.QueryOne(elementIndex);
 
