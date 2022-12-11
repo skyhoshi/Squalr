@@ -96,7 +96,6 @@
             CanUserResizeColumns="true"
             ColumnWidth="*"
             HeadersVisibility="Column"
-            IsReadOnly="True"
             ItemsSource="{Binding Path=Addresses}"
             RowHeaderWidth="0"
             SelectionMode="Extended"
@@ -144,13 +143,10 @@
                 </Style>
             </DataGrid.CellStyle>
             <DataGrid.Columns>
-                <DataGridTemplateColumn
-                    MinWidth="20"
-                    MaxWidth="20"
-                    IsReadOnly="True">
+                <DataGridTemplateColumn MinWidth="20" MaxWidth="20">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Path=IsActivated}" />
+                            <CheckBox IsChecked="{Binding Path=IsActivated, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -361,7 +361,7 @@
                     {
                         foreach (ScanResult result in scanResults)
                         {
-                            result?.ProjectItemView?.ProjectItem.Update();
+                            result?.ProjectItemView?.ProjectItem?.Update();
                         }
                     }
 
