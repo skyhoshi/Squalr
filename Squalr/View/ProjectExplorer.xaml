@@ -29,8 +29,8 @@
             <converters:IsDirectoryItemConverter />
             <converters:BooleanToVisibilityConverter />
         </converters:ValueConverterGroup>
-        <converters:ValueConverterGroup x:Key="AddressItemVisibilityConverter">
-            <converters:IsAddressItemConverter />
+        <converters:ValueConverterGroup x:Key="PointerItemVisibilityConverter">
+            <converters:IsPointerItemConverter />
             <converters:BooleanToVisibilityConverter />
         </converters:ValueConverterGroup>
         <converters:ProjectItemDirectoryConverter x:Key="ProjectItemDirectoryConverter" />
@@ -106,7 +106,7 @@
                     </StackPanel>
                 </MenuItem.Header>
             </MenuItem>
-            <MenuItem Command="{Binding ProjectExplorerViewModel.ToggleSelectionActivationCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+            <MenuItem Command="{Binding ProjectExplorerViewModel.ToggleSelectionActivationCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Border
@@ -120,8 +120,8 @@
                     </StackPanel>
                 </MenuItem.Header>
             </MenuItem>
-            <Separator Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
-            <MenuItem Command="{Binding PointerScannerViewModel.PointerScanCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+            <Separator Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
+            <MenuItem Command="{Binding PointerScannerViewModel.PointerScanCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image
@@ -136,11 +136,25 @@
                     </StackPanel>
                 </MenuItem.Header>
             </MenuItem>
+            <MenuItem Command="{Binding ProjectExplorerViewModel.ResolveModuleNameCommand, Source={StaticResource ViewModelLocator}}" Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Image
+                            Width="16"
+                            Height="16"
+                            Margin="0,0,4,0" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="{StaticResource SqualrColorWhite}"
+                            Text="Resolve Module Name" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
             <Separator Visibility="{Binding ProjectExplorerViewModel.IsSelectionAddress, Converter={StaticResource BooleanToVisibilityConverter}, Source={StaticResource ViewModelLocator}}" />
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatWritesCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image
@@ -158,7 +172,7 @@
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatReadsCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image
@@ -176,7 +190,7 @@
             <MenuItem
                 Command="{Binding CodeTracerViewModel.FindWhatAccessesCommand, Source={StaticResource ViewModelLocator}}"
                 CommandParameter="{Binding .}"
-                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource AddressItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
+                Visibility="{Binding ProjectExplorerViewModel.SelectedProjectItem, Converter={StaticResource PointerItemVisibilityConverter}, Source={StaticResource ViewModelLocator}}">
                 <MenuItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Image
@@ -292,11 +306,15 @@
             <TreeView
                 Name="ProjectExplorerTreeView"
                 Grid.Row="0"
+                AllowDrop="True"
                 Background="{StaticResource SqualrColorPanel}"
                 BorderBrush="White"
                 BorderThickness="1,1,1,0"
                 ContextMenu="{StaticResource RightClickMenu}"
+                Drop="ProjectExplorerTreeView_Drop"
                 ItemsSource="{Binding ProjectRoot}"
+                PreviewMouseLeftButtonDown="TemplateTreeView_PreviewMouseLeftButtonDown"
+                PreviewMouseMove="TemplateTreeView_PreviewMouseMove"
                 Visibility="{Binding Path=HasProjectRoot, Converter={StaticResource BooleanToHiddenConverter}}">
                 <TreeView.Resources>
                     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{Binding Color, Source={StaticResource SqualrColorHighlight}}" />

@@ -1,10 +1,12 @@
 ﻿namespace Squalr.Source.ProjectExplorer
 {
+    using CSScripting;
     using GalaSoft.MvvmLight.Command;
     using Squalr.Engine.Common;
     using Squalr.Engine.Common.DataStructures;
     using Squalr.Engine.Common.Logging;
     using Squalr.Engine.Common.OS;
+    using Squalr.Engine.Memory;
     using Squalr.Engine.Projects;
     using Squalr.Engine.Projects.Items;
     using Squalr.Source.Docking;
@@ -18,6 +20,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Forms;
@@ -57,6 +60,7 @@
             this.AddNewAddressItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(PointerItem)), () => true);
             this.AddNewScriptItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(ScriptItem)), () => true);
             this.AddNewInstructionItemCommand = new RelayCommand(() => this.AddNewProjectItem(typeof(InstructionItem)), () => true);
+            this.ResolveModuleNameCommand = new RelayCommand(() => this.ResolveModuleNamesForSelectedItems(), () => true);
             this.OpenFileExplorerCommand = new RelayCommand<ProjectItemView>((projectItem) => this.OpenFileExplorer(projectItem), (projectItem) => true);
             this.CopySelectionCommand = new RelayCommand(() => this.CopySelection(), () => true);
             this.CutSelectionCommand = new RelayCommand(() => this.CutSelection(), () => true);
@@ -146,6 +150,11 @@
         /// Gets a command to view a file or directory in the native file explorer.
         /// </summary>
         public ICommand OpenFileExplorerCommand { get; private set; }
+
+        /// <summary>
+        /// Gets a command to resolve the module base of an address item if possible.
+        /// </summary>
+        public ICommand ResolveModuleNameCommand { get; private set; }
 
         /// <summary>
         /// Gets or sets the project root tree of the current project.
@@ -474,11 +483,31 @@
                 return;
             }
 
-            foreach (ProjectItemView projectItem in this.SelectedProjectItems)
+            foreach (ProjectItemView projectItem in this.SelectedProjectItems.ToArray())
             {
                 if (projectItem != null)
                 {
                     projectItem.IsActivated = !projectItem.IsActivated;
+                }
+            }
+        }
+
+        private void ResolveModuleNamesForSelectedItems()
+        {
+            if (this.SelectedProjectItems == null)
+            {
+                return;
+            }
+
+            foreach (PointerItem addressItem in this.SelectedProjectItems.Select(view => view.ProjectItem).Cast<PointerItem>().ToArray())
+            {
+                if (addressItem != null && (addressItem.ModuleName == null || addressItem.ModuleName == String.Empty))
+                {
+                    String moduleName;
+                    UInt64 address = MemoryQueryer.Instance.AddressToModule(SessionManager.Session.OpenedProcess, addressItem.ModuleOffset, out moduleName, SessionManager.Session.DetectedEmulator);
+
+                    addressItem.ModuleName = moduleName;
+                    addressItem.ModuleOffset = address;
                 }
             }
         }

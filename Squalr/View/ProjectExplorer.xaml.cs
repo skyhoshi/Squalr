@@ -32,7 +32,7 @@
             // This works, but can be offloaded to a helper class, or perhaps rolled into the viewmodel itself.
             // Should be modified to support keyboard ctrl/shift+arrow stuff.
             // It's shit, but it's a great place to start.
-            ProjectExplorer.AllowMultiSelection(ProjectExplorerTreeView);
+            ProjectExplorer.AllowMultiSelection(this.ProjectExplorerTreeView);
         }
 
         private TtlCache<ProjectItemView> ProjectItemCache { get; set; }
@@ -186,6 +186,9 @@
             ProjectExplorerViewModel.GetInstance().SelectedProjectItems?.Clear();
         }
 
+
+        // WIP Drag n drop
+
         private static void ToggleSelection(TreeView treeView)
         {
             ProjectItemView clickedTreeViewItem = treeView.SelectedItem as ProjectItemView;
@@ -244,6 +247,57 @@
                 this.ProjectItemCache.Invalidate();
                 this.ProjectItemCache.Add(hitResult, TimeSpan.FromMilliseconds(System.Windows.Forms.SystemInformation.DoubleClickTime));
             }
+        }
+
+        Point _startPoint;
+        bool _IsDragging = false;
+
+        void TemplateTreeView_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed ||
+                e.RightButton == MouseButtonState.Pressed && !_IsDragging)
+            {
+                Point position = e.GetPosition(null);
+                if (Math.Abs(position.X - _startPoint.X) >
+                        SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(position.Y - _startPoint.Y) >
+                        SystemParameters.MinimumVerticalDragDistance)
+                {
+                    StartDrag(e);
+                }
+            }
+        }
+
+        void TemplateTreeView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _startPoint = e.GetPosition(null);
+        }
+
+        private void StartDrag(MouseEventArgs e)
+        {
+            _IsDragging = true;
+            Object temp = this.ProjectExplorerTreeView.SelectedItem;
+            DataObject data = null;
+
+            data = new DataObject("inadt", temp);
+
+            if (data != null)
+            {
+                DragDropEffects dde = DragDropEffects.Move;
+
+                if (e.RightButton == MouseButtonState.Pressed)
+                {
+                    dde = DragDropEffects.All;
+                }
+
+                DragDropEffects de = DragDrop.DoDragDrop(this.ProjectExplorerTreeView, data, dde);
+            }
+            _IsDragging = false;
+        }
+
+        private void ProjectExplorerTreeView_Drop(object sender, DragEventArgs e)
+        {
+
         }
     }
     //// End class
