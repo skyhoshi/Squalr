@@ -430,6 +430,14 @@
             {
                 try
                 {
+                    String lastFolderName = new DirectoryInfo(projectItemPath).Name;
+
+                    // Do not load any directories prefixed with a '.', as these are often system or version control folders.
+                    if (lastFolderName.StartsWith("."))
+                    {
+                        return null;
+                    }
+
                     DirectoryItem childDirectory = DirectoryItem.FromDirectory(this.processSession, projectItemPath, this);
 
                     if (childDirectory != null)

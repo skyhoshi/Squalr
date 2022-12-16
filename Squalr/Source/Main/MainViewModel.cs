@@ -4,13 +4,10 @@
     using Squalr.Engine.Common.Logging;
     using Squalr.Source.Docking;
     using Squalr.Source.Output;
-    using Squalr.Source.ProjectExplorer;
     using Squalr.Source.Updater;
     using System;
-    using System.Numerics;
     using System.Threading;
     using System.Windows;
-    using System.Windows.Input;
 
     /// <summary>
     /// Main view model.

@@ -23,7 +23,7 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Windows.Forms;
+    using System.Windows;
     using System.Windows.Input;
 
     public class ProjectExplorerViewModel : ToolViewModel
@@ -296,11 +296,11 @@
         {
             try
             {
-                using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+                using (System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog())
                 {
                     folderBrowserDialog.SelectedPath = SettingsViewModel.GetInstance().ProjectRoot;
 
-                    if (folderBrowserDialog.ShowDialog() == DialogResult.OK && !String.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
+                    if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK && !String.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
                     {
                         if (Directory.Exists(folderBrowserDialog.SelectedPath))
                         {
@@ -328,12 +328,15 @@
         {
             try
             {
-                SelectProjectDialogViewModel.GetInstance().ShowSelectProjectDialog(System.Windows.Application.Current.MainWindow, this.DoOpenProject);
-
-                if (!Directory.Exists(this.ProjectRoot?.FirstOrDefault()?.FilePath))
+                Application.Current.Dispatcher.Invoke(new Action(() =>
                 {
-                    this.ProjectRoot = null;
-                }
+                    SelectProjectDialogViewModel.GetInstance().ShowSelectProjectDialog(Application.Current.MainWindow, this.DoOpenProject);
+
+                    if (!Directory.Exists(this.ProjectRoot?.FirstOrDefault()?.FilePath))
+                    {
+                        this.ProjectRoot = null;
+                    }
+                }));
             }
             catch (Exception ex)
             {
