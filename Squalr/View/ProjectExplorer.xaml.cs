@@ -277,6 +277,12 @@
         {
             _IsDragging = true;
             Object temp = this.ProjectExplorerTreeView.SelectedItem;
+
+            if (temp == null)
+            {
+                return;
+            }
+
             DataObject data = null;
 
             data = new DataObject("inadt", temp);
